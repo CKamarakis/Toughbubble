@@ -39,7 +39,7 @@
 - [x] 5.4 Implement `src/proxy.ts` (Next 16 rename of `middleware.ts`) session refresh and redirects (no session -> `/sign-in?next=...`, session on sign-in/sign-up/forgot-password -> `/`); unit-test the routing decision; verify tests pass
 - [x] 5.5 Build the protected workspace layout and empty-workspace placeholder with the account email, sign-out, and theme control; set `Cache-Control: no-store`; verify sign-in -> empty workspace -> sign-out -> back button returns to sign-in on localhost
 - [ ] 5.6 Verify manually on localhost with a real inbox: sign-up sends a confirmation email and its link signs you in; sign-in before confirming is refused with a resend option; forgot-password link lets you set a new password; an expired/used link shows an error; deep link while signed out returns to that link after sign-in; reload and browser restart keep the session
-- [ ] 5.7 Build the sign-up page (email, password meeting the rules (8+ characters with lowercase, uppercase, digit, symbol), neutral "check your email" result for new and existing emails); verify with a unit test for the password rule and a sign-up of a new address
+- [x] 5.7 Build the sign-up page (email, password meeting the rules (8+ characters with lowercase, uppercase, digit, symbol), neutral "check your email" result for new and existing emails); verify with a unit test for the password rule and a sign-up of a new address
 - [x] 5.8 Implement `/auth/confirm` (`verifyOtp` with `token_hash` for `email` and `recovery` types, same-origin `next`, error redirect to sign-in) for use once custom SMTP allows `token_hash` templates, and point email links at `/auth/callback` meanwhile; verify an invalid token redirects to sign-in with the error message
 - [ ] 5.9 Build forgot-password (neutral result) and `/reset-password` (session required, new password meeting the same rules, then workspace); verify an unknown email shows the same message as a known one
 
@@ -52,7 +52,7 @@
 
 ## 7. Deploy
 
-- [ ] 7.1 Create the Vercel project from the GitHub repo; set preview env vars to the dev Supabase project; add the Vercel preview wildcard to the dev redirect allowlist; verify a branch push produces a preview where sign-in works
+- [x] 7.1 Create the Vercel project from the GitHub repo; set preview env vars to the dev Supabase project; add the Vercel preview wildcard to the dev redirect allowlist; verify a branch push produces a preview where sign-in works
 - [x] 7.2 Create the Supabase prod project with the same email auth settings and templates as 3.2 (Site URL and allowlist set to the production domain), apply migrations, and set production env vars in Vercel; verify migrations applied and RLS enabled in the prod project
-- [ ] 7.3 Deploy `main` to production; verify sign-up with confirmation, sign-in, empty workspace, theme toggle, and sign-out on the production URL
+- [x] 7.3 Deploy `main` to production; verify sign-up with confirmation, sign-in, empty workspace, theme toggle, and sign-out on the production URL
 - [x] 7.4 Update README with setup steps (env vars, `db:migrate`, test commands, environments); verify a fresh clone can follow it to a running localhost app
