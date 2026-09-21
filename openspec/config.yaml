@@ -8,6 +8,92 @@ schema: spec-driven
 #     Tech stack: TypeScript, React, Node.js
 #     We use conventional commits
 #     Domain: e-commerce platform
+context: |
+  Product: Toughbubble - a personal workspace web app for notes and visual boards.
+  - Notes: title + rich-text body (Notion-like feel).
+  - Storms: Miro-like visual canvas (stickies, text fields, rectangles, circles,
+    connectors between items, drag/resize, z-order, lock/unlock).
+  - Build order: notes + project/folder tree first, Storms after.
+
+  Users & tenancy:
+  - Google login. Each user gets a private, empty workspace.
+  - No collaboration yet. Later (not now): read-only share links, comments,
+    real-time collaboration (would need CRDT/Yjs), cross-links between items.
+  - Web (desktop browser) first. A lighter mobile version may come later.
+
+  Tech stack:
+  - Next.js (App Router) + TypeScript, deployed to Vercel.
+  - Supabase: Google OAuth, Postgres, Storage (attachments). Row-level security
+    isolates each user's data (every row has owner_id).
+  - Drizzle ORM for schema and queries.
+  - Tailwind CSS + shadcn/ui for UI.
+  - Tiptap for the note editor (chosen over BlockNote because a free font-size
+    picker is required). Note bodies stored as Tiptap JSON.
+  - React Flow (xyflow) for Storms; stickies/shapes/text are custom nodes,
+    connectors are edges. Each Storm stored as one JSON document (nodes + edges).
+  - dnd-kit (or react-arborist) for the sidebar tree drag-and-drop.
+
+  Domain model:
+  - One tree of items: kinds = project, folder, note, storm.
+  - parent_id null = root/standalone. Nesting is fully flexible (projects in
+    folders, folders in projects, projects in projects). A project is a
+    container with kind=project plus metadata (icon, color, status); folders
+    can be converted to projects.
+  - Siblings are ordered by a position field. Items can be moved/re-parented.
+  - Relationships are parent/child only for now.
+  - Everything can be created, edited, moved, deleted.
+  - Item status: active | archived | trashed.
+    - Archive: hides from sidebar to reduce noise, keeps subtree, restorable.
+    - Trash: restorable; permanent delete per item or in bulk; auto-purge
+      after 30 days.
+    - Archive/trash cascade to the whole subtree.
+
+  Editor requirements (notes):
+  - Font size (defaults per element + free size picker), bold, italic, links,
+    text alignment, bullet/numbered lists, file attachments.
+  - Autosave always on, no Save button.
+  - Notion-style slash menu and drag handles come in a later refinement phase.
+
+  Storms requirements:
+  - Empty infinite canvas; stickies, text fields, rectangles, circles.
+  - Drag, resize, connect items like diagrams.
+  - Layering: bring forward, send backward, bring to front, send to back.
+  - Lock/unlock position.
+
+  Out of scope for now: export (Markdown/PDF), collaboration, sharing, comments,
+  mobile app. Search: titles first, Postgres full-text search in refinement.
+
+  Development phases (each phase = one OpenSpec change):
+  0 Foundation: scaffold, Google login, DB schema, Vercel deploy.
+  1 Tree: CRUD for projects/folders/items, move/reorder, sidebar.
+  2 Notes: Tiptap editor, autosave.
+  3 Attachments: upload, list, delete (Supabase Storage).
+  4 Storms v1: canvas, stickies, text, shapes, drag, resize.
+  5 Storms v2: connectors, z-order, lock/unlock.
+  6 Refinement: full-text search, trash/archive UI, slash menu, drag handles.
+
+  Design:
+  - Notes/app shell follow Notion: left sidebar tree (search, new, projects,
+    Archive, Trash, avatar/theme toggle), breadcrumb + main pane.
+  - Storms follow Miro: canvas with a floating left toolbar.
+  - Light and dark themes.
+  - Brand accents:
+    - Yellow #F7D000: primary buttons (dark text only), default sticky,
+      selection. Never use as text on white.
+    - Magenta #F700A8: connectors, highlights, Storm selection. Text on white
+      uses #C4007F.
+    - Purple #9C00F7: links and focus rings in light mode; #C07BFF in dark mode.
+  - Warm neutral scale (hue 48, derived from #333129):
+    50 #FBFBF9, 100 #F5F4F2, 200 #EAE9E6, 300 #D9D8D3, 400 #B2B0A9,
+    500 #8C897D, 600 #6E6B5E, 700 #514E43, 800 #333129, 900 #22211B,
+    950 #141310. Use 950 instead of pure #000 for surfaces.
+  - Light mode: bg 50, sidebar 100, borders 200, secondary text 600, text 800.
+  - Dark mode: bg 800 (#333129), sidebar 900, raised surfaces/borders 700,
+    secondary text 300, text 50.
+  - Status colors (light / dark):
+    success #0B7F3E / #3DD68C, error #D92D20 / #FF6B5E,
+    warning #A65A00 / #FFA23D (amber, not brand yellow), info = purple.
+  - Body text must meet WCAG AA (4.5:1).
 
 # Per-artifact rules (optional)
 # Add custom rules for specific artifacts.
