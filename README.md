@@ -45,7 +45,8 @@ Requires [Node.js](https://nodejs.org/) 24+ and npm.
 
 3. **Configure Supabase Auth** in the dashboard:
    - *Authentication → Sign In / Providers → Email*: email provider on, **Confirm email** on,
-     minimum password length **8**.
+     minimum password length **8**, password requirements **lowercase, uppercase, digits and
+     symbols** (keep in sync with `src/lib/auth/validation.ts`).
    - *Authentication → URL Configuration*: Site URL `http://localhost:3001`; Redirect URLs
      `http://localhost:3001/**`.
    - *Email templates*: leave the defaults. Editing them requires custom SMTP (see

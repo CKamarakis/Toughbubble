@@ -54,7 +54,8 @@ Decisions already made during exploration (recorded here, rationale below): requ
 
 ### D2. Auth: Supabase Auth with `@supabase/ssr`, cookie sessions
 - Email + password only (Google deferred). Sign-up, sign-in, resend-confirmation, reset-request, and set-new-password are Server Actions, so auth cookies are set server-side and forms work before hydration.
-- Supabase project settings carry the rules: "Confirm email" on, minimum password length 8. The app also checks length first to give a clear message.
+- Supabase project settings carry the rules: "Confirm email" on, minimum password length 8, and required characters (lowercase, uppercase, digit, symbol) in both projects. The app checks the same rules first so it can name what is missing; `src/lib/auth/validation.ts` must stay in sync with the Supabase setting.
+- Auth errors without a specific message are logged server-side (code, status, message; never the password) so they appear in Vercel logs.
 - **Email links (now): Supabase's default templates + PKCE code.** Supabase does not allow editing email templates while the project uses its built-in email sender. The default link goes through Supabase and returns to `<app>/auth/callback?code=...` (plus `next=/reset-password` for resets), where the code is exchanged for a session. Limitation: the link only works in the browser that started the flow.
   ```
   sign-up --> email --> Supabase verify --> /auth/callback?code          --> signed in --> /

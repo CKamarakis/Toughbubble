@@ -51,6 +51,16 @@ const RATE_LIMITED = "Too many emails were sent recently. Please wait a few minu
 // Supabase's built-in mailer only delivers to the project team's addresses
 // until custom SMTP is configured.
 const CANNOT_EMAIL = "We can't send email to that address yet. Please use a different one.";
+const INVALID_EMAIL = "Enter a valid email address.";
+
+/** Record auth errors the forms don't have a specific message for (never the password). */
+function logUnexpected(action: string, error: { code?: string; status?: number; message: string }) {
+  console.error(`[auth:${action}] unexpected error`, {
+    code: error.code,
+    status: error.status,
+    message: error.message,
+  });
+}
 
 export async function signIn(_prev: AuthFormState, form: FormData): Promise<AuthFormState> {
   const email = field(form, "email");
@@ -74,6 +84,7 @@ export async function signIn(_prev: AuthFormState, form: FormData): Promise<Auth
     if (error.code === "invalid_credentials") {
       return { error: "Email or password is incorrect.", email };
     }
+    logUnexpected("sign-in", error);
     return { error: "Sign-in failed. Please try again.", email };
   }
 
@@ -98,9 +109,11 @@ export async function signUp(_prev: AuthFormState, form: FormData): Promise<Auth
   if (error) {
     if (error.code === "over_email_send_rate_limit") return { error: RATE_LIMITED, email };
     if (error.code === "email_address_not_authorized") return { error: CANNOT_EMAIL, email };
+    if (error.code === "email_address_invalid") return { error: INVALID_EMAIL, email };
     if (error.code === "weak_password") return { error: error.message, email };
     // An existing account must look the same as a new one.
     if (error.code !== "user_already_exists") {
+      logUnexpected("sign-up", error);
       return { error: "Sign-up failed. Please try again.", email };
     }
   }
@@ -121,6 +134,7 @@ export async function resendConfirmation(
     options: { emailRedirectTo: await emailLinkTarget("/") },
   });
   if (error?.code === "over_email_send_rate_limit") return { error: RATE_LIMITED, email };
+  if (error) logUnexpected("resend-confirmation", error);
   return { notice: "If that account still needs confirming, we've sent a new link.", email };
 }
 
@@ -136,6 +150,8 @@ export async function requestPasswordReset(
     redirectTo: await emailLinkTarget(RESET_PASSWORD_PATH),
   });
   if (error?.code === "over_email_send_rate_limit") return { error: RATE_LIMITED, email };
+  if (error?.code === "email_address_invalid") return { error: INVALID_EMAIL, email };
+  if (error) logUnexpected("password-reset-request", error);
   // Same answer whether or not the account exists.
   return {
     notice: "If an account exists for that email, we've sent a link to reset your password.",
@@ -157,6 +173,7 @@ export async function updatePassword(
       return { error: "Choose a password different from your current one." };
     }
     if (error.code === "weak_password") return { error: error.message };
+    logUnexpected("update-password", error);
     return { error: "Could not update your password. Please try again." };
   }
   redirect("/");

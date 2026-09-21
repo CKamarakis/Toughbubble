@@ -7,15 +7,15 @@ Lets a person create a Toughbubble account with an email address and password, s
 ## ADDED Requirements
 
 ### Requirement: Email and password sign-up
-The system SHALL let any visitor create an account with an email address and a password of at least 8 characters. Email and password SHALL be the only sign-in method offered.
+The system SHALL let any visitor create an account with an email address and a password of at least 8 characters containing a lowercase letter, an uppercase letter, a number, and a symbol. Email and password SHALL be the only sign-in method offered.
 
 #### Scenario: Successful sign-up
-- **WHEN** a visitor submits the sign-up form with a valid email address and a password of at least 8 characters
+- **WHEN** a visitor submits the sign-up form with a valid email address and a password that meets the password rules
 - **THEN** the system creates the account, sends a confirmation email to that address, and tells the visitor to check their email
 
-#### Scenario: Password too short
-- **WHEN** a visitor submits the sign-up form with a password shorter than 8 characters
-- **THEN** the system does not create an account and shows a message stating the minimum length
+#### Scenario: Password does not meet the rules
+- **WHEN** a visitor submits the sign-up form with a password that is shorter than 8 characters or lacks a lowercase letter, an uppercase letter, a number, or a symbol
+- **THEN** the system does not create an account and shows a message naming what is missing
 
 #### Scenario: Email already registered
 - **WHEN** a visitor signs up with an email address that already has an account
@@ -62,7 +62,7 @@ The system SHALL let a person who forgot their password set a new one through a 
 - **THEN** the system shows a message that a reset link has been sent if an account exists, whether or not it does, and sends the link only if it does
 
 #### Scenario: New password set through the link
-- **WHEN** a person opens a valid reset link and submits a new password of at least 8 characters
+- **WHEN** a person opens a valid reset link and submits a new password that meets the password rules
 - **THEN** the system saves the new password, signs them in, and shows their workspace
 
 #### Scenario: Invalid or expired reset link

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { updatePassword, type AuthFormState } from "@/lib/auth/actions";
-import { MIN_PASSWORD_LENGTH } from "@/lib/auth/validation";
+import { MIN_PASSWORD_LENGTH, PASSWORD_RULES_HINT } from "@/lib/auth/validation";
 
 export function ResetPasswordForm() {
   const [state, action, pending] = useActionState(updatePassword, {} as AuthFormState);
@@ -25,7 +25,7 @@ export function ResetPasswordForm() {
           aria-describedby="password-hint"
         />
         <p id="password-hint" className="text-xs text-muted-foreground">
-          At least {MIN_PASSWORD_LENGTH} characters.
+          {PASSWORD_RULES_HINT}
         </p>
       </div>
       {state.error && <FormMessage kind="error">{state.error}</FormMessage>}

@@ -18,7 +18,7 @@
 ## 3. Supabase setup (dev)
 
 - [x] 3.1 Create the Supabase dev project and record its URL, keys, pooler and direct database URLs in `.env.local`; verify a connection with `psql` or a one-off script
-- [x] 3.2 Configure dev email auth: "Confirm email" on, minimum password length 8, Site URL `http://localhost:3001`, redirect allowlist `http://localhost:3001/**`; keep the default email templates (editing them needs custom SMTP, see D2); verify the settings in the dashboard and via the Supabase auth settings endpoint
+- [x] 3.2 Configure dev email auth: "Confirm email" on, minimum password length 8, required characters lowercase/uppercase/digit/symbol, Site URL `http://localhost:3001`, redirect allowlist `http://localhost:3001/**`; keep the default email templates (editing them needs custom SMTP, see D2); verify the settings in the dashboard and via the Supabase auth settings endpoint
 
 ## 4. Database schema and access layer
 
@@ -39,9 +39,9 @@
 - [x] 5.4 Implement `src/proxy.ts` (Next 16 rename of `middleware.ts`) session refresh and redirects (no session -> `/sign-in?next=...`, session on sign-in/sign-up/forgot-password -> `/`); unit-test the routing decision; verify tests pass
 - [x] 5.5 Build the protected workspace layout and empty-workspace placeholder with the account email, sign-out, and theme control; set `Cache-Control: no-store`; verify sign-in -> empty workspace -> sign-out -> back button returns to sign-in on localhost
 - [ ] 5.6 Verify manually on localhost with a real inbox: sign-up sends a confirmation email and its link signs you in; sign-in before confirming is refused with a resend option; forgot-password link lets you set a new password; an expired/used link shows an error; deep link while signed out returns to that link after sign-in; reload and browser restart keep the session
-- [ ] 5.7 Build the sign-up page (email, password with 8-character minimum, neutral "check your email" result for new and existing emails); verify with a unit test for the password rule and a sign-up of a new address
+- [ ] 5.7 Build the sign-up page (email, password meeting the rules (8+ characters with lowercase, uppercase, digit, symbol), neutral "check your email" result for new and existing emails); verify with a unit test for the password rule and a sign-up of a new address
 - [x] 5.8 Implement `/auth/confirm` (`verifyOtp` with `token_hash` for `email` and `recovery` types, same-origin `next`, error redirect to sign-in) for use once custom SMTP allows `token_hash` templates, and point email links at `/auth/callback` meanwhile; verify an invalid token redirects to sign-in with the error message
-- [ ] 5.9 Build forgot-password (neutral result) and `/reset-password` (session required, new password with 8-character minimum, then workspace); verify an unknown email shows the same message as a known one
+- [ ] 5.9 Build forgot-password (neutral result) and `/reset-password` (session required, new password meeting the same rules, then workspace); verify an unknown email shows the same message as a known one
 
 ## 6. Data isolation tests
 
