@@ -18,7 +18,7 @@
 ## 3. Supabase setup (dev)
 
 - [x] 3.1 Create the Supabase dev project and record its URL, keys, pooler and direct database URLs in `.env.local`; verify a connection with `psql` or a one-off script
-- [ ] 3.2 Configure dev email auth: "Confirm email" on, minimum password length 8, Site URL `http://localhost:3001`, redirect allowlist `http://localhost:3001/**`; keep the default email templates (editing them needs custom SMTP, see D2); verify the settings in the dashboard and via the Supabase auth settings endpoint
+- [x] 3.2 Configure dev email auth: "Confirm email" on, minimum password length 8, Site URL `http://localhost:3001`, redirect allowlist `http://localhost:3001/**`; keep the default email templates (editing them needs custom SMTP, see D2); verify the settings in the dashboard and via the Supabase auth settings endpoint
 
 ## 4. Database schema and access layer
 
@@ -53,6 +53,6 @@
 ## 7. Deploy
 
 - [ ] 7.1 Create the Vercel project from the GitHub repo; set preview env vars to the dev Supabase project; add the Vercel preview wildcard to the dev redirect allowlist; verify a branch push produces a preview where sign-in works
-- [ ] 7.2 Create the Supabase prod project with the same email auth settings and templates as 3.2 (Site URL and allowlist set to the production domain), apply migrations, and set production env vars in Vercel; verify migrations applied and RLS enabled in the prod project
+- [x] 7.2 Create the Supabase prod project with the same email auth settings and templates as 3.2 (Site URL and allowlist set to the production domain), apply migrations, and set production env vars in Vercel; verify migrations applied and RLS enabled in the prod project
 - [ ] 7.3 Deploy `main` to production; verify sign-up with confirmation, sign-in, empty workspace, theme toggle, and sign-out on the production URL
 - [x] 7.4 Update README with setup steps (env vars, `db:migrate`, test commands, environments); verify a fresh clone can follow it to a running localhost app
