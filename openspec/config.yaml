@@ -16,14 +16,15 @@ context: |
   - Build order: notes + project/folder tree first, Storms after.
 
   Users & tenancy:
-  - Google login. Each user gets a private, empty workspace.
+  - Email + password login with email confirmation (Google sign-in deferred).
+    Each user gets a private, empty workspace.
   - No collaboration yet. Later (not now): read-only share links, comments,
     real-time collaboration (would need CRDT/Yjs), cross-links between items.
   - Web (desktop browser) first. A lighter mobile version may come later.
 
   Tech stack:
   - Next.js (App Router) + TypeScript, deployed to Vercel.
-  - Supabase: Google OAuth, Postgres, Storage (attachments). Row-level security
+  - Supabase: Auth (email + password), Postgres, Storage (attachments). Row-level security
     isolates each user's data (every row has owner_id).
   - Drizzle ORM for schema and queries.
   - Tailwind CSS + shadcn/ui for UI.
@@ -64,7 +65,7 @@ context: |
   mobile app. Search: titles first, Postgres full-text search in refinement.
 
   Development phases (each phase = one OpenSpec change):
-  0 Foundation: scaffold, Google login, DB schema, Vercel deploy.
+  0 Foundation: scaffold, email + password login, DB schema, Vercel deploy.
   1 Tree: CRUD for projects/folders/items, move/reorder, sidebar.
   2 Notes: Tiptap editor, autosave.
   3 Attachments: upload, list, delete (Supabase Storage).
