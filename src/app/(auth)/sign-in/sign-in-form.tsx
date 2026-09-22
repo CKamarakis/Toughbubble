@@ -6,6 +6,7 @@ import { FormMessage } from "@/components/form-message";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PasswordInput } from "@/components/password-input";
 import { resendConfirmation, signIn, type AuthFormState } from "@/lib/auth/actions";
 
 export function SignInForm({ next, forgotHref }: { next: string; forgotHref: string }) {
@@ -33,7 +34,7 @@ export function SignInForm({ next, forgotHref }: { next: string; forgotHref: str
               Forgot password?
             </Link>
           </div>
-          <Input id="password" name="password" type="password" autoComplete="current-password" required />
+          <PasswordInput id="password" name="password" autoComplete="current-password" required />
         </div>
         {state.error && <FormMessage kind="error">{state.error}</FormMessage>}
         <Button type="submit" size="lg" disabled={pending}>

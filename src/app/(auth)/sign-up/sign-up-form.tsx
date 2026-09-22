@@ -5,6 +5,7 @@ import { FormMessage } from "@/components/form-message";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PasswordInput } from "@/components/password-input";
 import { signUp, type AuthFormState } from "@/lib/auth/actions";
 import { MIN_PASSWORD_LENGTH, PASSWORD_RULES_HINT } from "@/lib/auth/validation";
 
@@ -28,10 +29,9 @@ export function SignUpForm() {
       </div>
       <div className="flex flex-col gap-2">
         <Label htmlFor="password">Password</Label>
-        <Input
+        <PasswordInput
           id="password"
           name="password"
-          type="password"
           autoComplete="new-password"
           required
           minLength={MIN_PASSWORD_LENGTH}
