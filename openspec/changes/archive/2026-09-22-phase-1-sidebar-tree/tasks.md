@@ -48,4 +48,4 @@
 ## 8. Release
 
 - [x] 8.1 Update README (tree actions, `edited_at` rule for future edit paths, trigger migration note); verify lint, unit, and integration tests pass
-- [ ] 8.2 Push a branch and verify the preview deploy in the browser; apply the migrations to prod with `.env.prod-migrate` and verify the column and triggers exist there; merge to `main` and verify the tree on production
+- [x] 8.2 Push a branch and verify the preview deploy in the browser; apply the migrations to prod with `.env.prod-migrate` and verify the column and triggers exist there; merge to `main` and verify the tree on production
