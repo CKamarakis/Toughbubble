@@ -42,6 +42,7 @@ const pairs: [string, string][] = [
   ["accent-foreground", "accent"],
   ["link", "background"],
   ["highlight-text", "background"],
+  ["highlight-text", "sidebar"],
   ["destructive", "background"],
   ["success", "background"],
   ["warning", "background"],

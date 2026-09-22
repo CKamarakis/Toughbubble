@@ -84,7 +84,7 @@
   --popover: #ffffff;
   --popover-foreground: #333129;
   --primary: #f7d000;
-  --primary-foreground: #333129;
+  --primary-foreground: #141310;
   --secondary: #f5f4f2;
   --secondary-foreground: #333129;
   --muted: #f5f4f2;
@@ -112,7 +112,7 @@
   --sidebar: #f5f4f2;
   --sidebar-foreground: #333129;
   --sidebar-primary: #f7d000;
-  --sidebar-primary-foreground: #333129;
+  --sidebar-primary-foreground: #141310;
   --sidebar-accent: #eae9e6;
   --sidebar-accent-foreground: #333129;
   --sidebar-border: #eae9e6;
@@ -136,7 +136,7 @@
   --popover: #514e43;
   --popover-foreground: #fbfbf9;
   --primary: #f7d000;
-  --primary-foreground: #333129;
+  --primary-foreground: #141310;
   --secondary: #514e43;
   --secondary-foreground: #fbfbf9;
   --muted: #514e43;
@@ -162,7 +162,7 @@
   --sidebar: #22211b;
   --sidebar-foreground: #fbfbf9;
   --sidebar-primary: #f7d000;
-  --sidebar-primary-foreground: #333129;
+  --sidebar-primary-foreground: #141310;
   --sidebar-accent: #514e43;
   --sidebar-accent-foreground: #fbfbf9;
   --sidebar-border: #514e43;
@@ -174,6 +174,15 @@
   --project-amber: #ffa23d;
   --project-blue: #6ea8ff;
   --project-red: #ff6b5e;
+}
+
+/* Hand cursor on everything clickable. Unlayered so it applies to every
+   button and option, including shadcn components, without per-use classes. */
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]),
+[role="option"],
+summary {
+  cursor: pointer;
 }
 
 @layer base {

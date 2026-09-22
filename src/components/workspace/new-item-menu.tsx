@@ -14,14 +14,37 @@ import { useWorkspace } from "./workspace-context";
 
 const KINDS: ItemKind[] = ["project", "folder", "note", "storm"];
 
-/** "New" menu creating an item at the root level. */
-export function NewItemMenu({ label = "New", size = "sm" }: { label?: string; size?: "sm" | "default" }) {
+/**
+ * "New" menu creating an item at the root level. `round` is the compact
+ * sidebar version: a yellow "+" on a black circle, named "New" for screen readers.
+ */
+export function NewItemMenu({
+  label = "New",
+  size = "sm",
+  round = false,
+}: {
+  label?: string;
+  size?: "sm" | "default";
+  round?: boolean;
+}) {
   const ws = useWorkspace();
+  const trigger = round ? (
+    <button
+      type="button"
+      aria-label={label}
+      title={label}
+      disabled={ws.pending}
+      className="flex size-7 items-center justify-center rounded-full bg-warm-950 text-brand-yellow ring-1 ring-warm-700 transition-transform hover:scale-105 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:opacity-50"
+    />
+  ) : (
+    <Button size={size} disabled={ws.pending} />
+  );
+
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger render={<Button size={size} variant="outline" disabled={ws.pending} />}>
-        <Plus />
-        {label}
+      <DropdownMenuTrigger render={trigger}>
+        <Plus className={round ? "size-4" : undefined} strokeWidth={round ? 2.75 : undefined} />
+        {!round && label}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-44">
         {KINDS.map((kind) => (
