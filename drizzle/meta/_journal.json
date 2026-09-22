@@ -15,6 +15,20 @@
       "when": 1789998348387,
       "tag": "0001_updated_at_trigger",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790065205043,
+      "tag": "0002_items_edited_at",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1790065230104,
+      "tag": "0003_tree_integrity_triggers",
+      "breakpoints": true
     }
   ]
 }

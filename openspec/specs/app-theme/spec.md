@@ -1,7 +1,7 @@
 # app-theme Specification
 
 ## Purpose
-Lets a user view Toughbubble in a light or dark theme, defaulting to their operating system preference and remembering an explicit choice across visits.
+Lets a user view ToughBubble in a light or dark theme, defaulting to their operating system preference and remembering an explicit choice across visits.
 
 ## Requirements
 ### Requirement: System theme by default

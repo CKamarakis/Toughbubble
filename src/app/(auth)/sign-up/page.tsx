@@ -3,7 +3,7 @@ import Link from "next/link";
 import { SIGN_IN_PATH } from "@/lib/auth/routing";
 import { SignUpForm } from "./sign-up-form";
 
-export const metadata: Metadata = { title: "Create account · Toughbubble" };
+export const metadata: Metadata = { title: "Create account · ToughBubble" };
 
 export default function SignUpPage() {
   return (

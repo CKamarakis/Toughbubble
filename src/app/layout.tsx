@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Toughbubble",
+  title: "ToughBubble",
   description: "A personal workspace for notes and visual boards.",
 };
 

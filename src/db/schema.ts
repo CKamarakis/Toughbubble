@@ -60,7 +60,9 @@ export const items = pgTable(
     parentId: uuid("parent_id"),
     kind: itemKind("kind").notNull(),
     title: text("title").notNull().default(""),
-    position: byteOrderText("position").notNull(),
+    // Unused since the sidebar order became fixed (kind groups, newest first).
+    // Kept so a manual-order option can reuse it; defaults so inserts skip it.
+    position: byteOrderText("position").notNull().default("a0"),
     status: itemStatus("status").notNull().default("active"),
     // Item whose archive/trash action set this status; used to restore a whole
     // subtree together. Not a foreign key: that item may be purged first.
@@ -70,6 +72,10 @@ export const items = pgTable(
     icon: text("icon"),
     color: text("color"),
     projectStatus: text("project_status"),
+    // Last user edit (rename, restyle, convert, move, content save). Set
+    // explicitly by those actions; unlike updated_at, archive/trash/restore
+    // leave it alone.
+    editedAt: timestamp("edited_at", { withTimezone: true }).notNull().defaultNow(),
     ...timestamps,
   },
   (t) => [

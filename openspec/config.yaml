@@ -9,7 +9,7 @@ schema: spec-driven
 #     We use conventional commits
 #     Domain: e-commerce platform
 context: |
-  Product: Toughbubble - a personal workspace web app for notes and visual boards.
+  Product: ToughBubble - a personal workspace web app for notes and visual boards.
   - Notes: title + rich-text body (Notion-like feel).
   - Storms: Miro-like visual canvas (stickies, text fields, rectangles, circles,
     connectors between items, drag/resize, z-order, lock/unlock).

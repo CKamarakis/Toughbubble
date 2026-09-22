@@ -1,9 +1,10 @@
-# Toughbubble
+# ToughBubble
 
 A personal workspace web app for notes and visual boards ("Storms").
 
-> Status: Phase 0 (foundation) — sign-in, database schema with row-level security, light/dark
-> theme, and an empty workspace. See `openspec/changes/` for work in progress.
+> Status: Phase 1 — sign-in, the sidebar tree of projects, folders, notes, and Storms (create,
+> rename, move, search, archive, trash), and project/folder pages with sortable contents. Note
+> and Storm editors come next. See `openspec/changes/` for work in progress.
 
 This repository uses [OpenSpec](https://github.com/Fission-AI/OpenSpec) for spec-driven
 development: requirements are written as plain Markdown and reviewed *before* implementation
@@ -21,6 +22,8 @@ shadcn/ui · Vitest · deployed on Vercel.
 | `src/app/` | Pages and routes: `(auth)` sign-in/up pages, `(workspace)` signed-in pages, `auth/` email-link and sign-out routes |
 | `src/proxy.ts` | Runs before every request: refreshes the session, redirects visitors without one (Next 16's name for middleware) |
 | `src/db/` | Drizzle schema, `withUserDb()` (the only database entry point for app code), admin client |
+| `src/lib/tree/` | Item tree: pure logic (order, search, destinations), database operations, Server Actions |
+| `src/components/workspace/` | Sidebar, tree, item page, contents list, Archive/Trash views, drag and drop |
 | `src/lib/` | Auth actions, routing rules, Supabase clients |
 | `drizzle/` | SQL migrations (generated, committed) |
 | `tests/integration/` | Tests against the dev database (row-level security, integrity, cascades) |
@@ -104,6 +107,23 @@ App code reaches the database only through `withUserDb()` from `@/db/client`. It
 session, then runs queries as that user with row-level security enforced, so a query without an
 owner filter still only sees the user's own rows. The admin client (`@/db/admin`) bypasses RLS
 and is blocked from `src/` by a lint rule; it is for migrations, tests, and background jobs.
+
+## The item tree
+
+- **One table, one tree.** Projects, folders, notes, and Storms are rows in `items`. Only projects
+  and folders can contain items; the database enforces that, rejects cycles, and keeps active
+  items under active parents (triggers in `drizzle/0003_tree_integrity_triggers.sql`, errors
+  mapped to messages in `src/lib/tree/errors.ts`).
+- **Order is computed, not stored.** The sidebar is always projects, folders, then notes and
+  Storms, newest first; project and folder pages sort their contents by the viewer's choice.
+  `position` is kept but unused.
+- **`edited_at` is set explicitly** by edits (rename, restyle, convert, move) and drives the
+  "Last edited" sort. Any new edit path — including note content saves — must set it too;
+  archive, trash, and restore must not.
+- **Archive and Trash** cascade to the whole subtree and record the item acted on in
+  `status_root_id`, so restore brings back exactly what went together.
+- **Drag and drop** only moves items into containers or to the top level; "Move to…" is the
+  keyboard alternative.
 
 ## Environments
 

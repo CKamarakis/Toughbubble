@@ -5,7 +5,7 @@ import { safeNextPath } from "@/lib/auth/redirect";
 import { FORGOT_PASSWORD_PATH, SIGN_UP_PATH } from "@/lib/auth/routing";
 import { SignInForm } from "./sign-in-form";
 
-export const metadata: Metadata = { title: "Sign in · Toughbubble" };
+export const metadata: Metadata = { title: "Sign in · ToughBubble" };
 
 const errorMessages: Record<string, string> = {
   link: "That link is invalid or has expired. Sign in, or request a new link.",

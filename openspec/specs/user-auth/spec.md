@@ -1,7 +1,7 @@
 # user-auth Specification
 
 ## Purpose
-Lets a person create a Toughbubble account with an email address and password, sign in and stay signed in across visits, recover a forgotten password, and sign out, while keeping every workspace page closed to anyone without a session.
+Lets a person create a ToughBubble account with an email address and password, sign in and stay signed in across visits, recover a forgotten password, and sign out, while keeping every workspace page closed to anyone without a session.
 
 ## Requirements
 ### Requirement: Email and password sign-up

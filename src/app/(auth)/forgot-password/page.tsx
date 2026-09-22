@@ -3,7 +3,7 @@ import Link from "next/link";
 import { SIGN_IN_PATH } from "@/lib/auth/routing";
 import { ForgotPasswordForm } from "./forgot-password-form";
 
-export const metadata: Metadata = { title: "Reset password · Toughbubble" };
+export const metadata: Metadata = { title: "Reset password · ToughBubble" };
 
 export default function ForgotPasswordPage() {
   return (

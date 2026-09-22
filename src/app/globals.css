@@ -117,6 +117,14 @@
   --sidebar-accent-foreground: #333129;
   --sidebar-border: #eae9e6;
   --sidebar-ring: #9c00f7;
+  /* Project colors (src/lib/tree/style.ts): 3:1 on sidebar and page. */
+  --project-yellow: #8a6d00;
+  --project-magenta: #c4007f;
+  --project-purple: #9c00f7;
+  --project-green: #0b7f3e;
+  --project-amber: #a65a00;
+  --project-blue: #1d5fd1;
+  --project-red: #d92d20;
 }
 
 /* Dark theme. Surfaces use the warm scale, never pure black. */
@@ -159,6 +167,13 @@
   --sidebar-accent-foreground: #fbfbf9;
   --sidebar-border: #514e43;
   --sidebar-ring: #c07bff;
+  --project-yellow: #f7d000;
+  --project-magenta: #ff5cc8;
+  --project-purple: #c07bff;
+  --project-green: #3dd68c;
+  --project-amber: #ffa23d;
+  --project-blue: #6ea8ff;
+  --project-red: #ff6b5e;
 }
 
 @layer base {

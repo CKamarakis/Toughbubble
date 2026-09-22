@@ -2,7 +2,7 @@
 
 ## Why
 
-Toughbubble has no code yet. Every later phase (tree, notes, attachments, Storms) needs the same base: a deployed Next.js app, sign-in, and a Postgres schema where each user's data is isolated by the database itself. The schema decisions made now (ownership, cascade markers, ordering keys, content storage) are expensive to change once data exists, so they are settled in this phase.
+ToughBubble has no code yet. Every later phase (tree, notes, attachments, Storms) needs the same base: a deployed Next.js app, sign-in, and a Postgres schema where each user's data is isolated by the database itself. The schema decisions made now (ownership, cascade markers, ordering keys, content storage) are expensive to change once data exists, so they are settled in this phase.
 
 ## What Changes
 
@@ -33,6 +33,6 @@ None (no existing specs).
 
 - **New code**: entire Next.js app (`src/`), Drizzle schema and SQL migrations, Supabase auth helpers, `proxy.ts` (Next 16 name for middleware).
 - **New dependencies**: `next`, `react`, `@supabase/ssr`, `@supabase/supabase-js`, `drizzle-orm`, `drizzle-kit`, `postgres`, `fractional-indexing` (installed now, used in Phase 1), `next-themes`, Tailwind CSS, shadcn/ui, Vitest.
-- **External systems**: two Supabase projects (dev, prod) with email auth settings and email templates configured, a Vercel project linked to `github.com/CKamarakis/Toughbubble`.
+- **External systems**: two Supabase projects (dev, prod) with email auth settings and email templates configured, a Vercel project linked to `github.com/CKamarakis/ToughBubble`.
 - **Secrets**: Supabase URL/keys and database URLs in `.env.local` (gitignored) and Vercel environment variables; `.env.example` documents them.
 - **Not in this phase**: Google sign-in (deferred), sidebar tree and item CRUD UI (Phase 1), editor and autosave (Phase 2), attachments/Storage (Phase 3), 30-day purge job (later phase).
