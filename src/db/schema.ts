@@ -113,6 +113,23 @@ export const itemContent = pgTable(
   ],
 ).enableRLS();
 
+// One row per user (design D9). editor_styles: { p?: { size?, color? }, h1?…h6? }
+// with missing keys meaning "built-in default"; saved_colors: custom picker
+// colors, newest first. Validated in src/lib/settings before writing.
+export const userSettings = pgTable(
+  "user_settings",
+  {
+    ownerId: uuid("owner_id")
+      .primaryKey()
+      .default(sql`auth.uid()`)
+      .references(() => authUsers.id, { onDelete: "cascade" }),
+    editorStyles: jsonb("editor_styles").notNull().default({}),
+    savedColors: jsonb("saved_colors").notNull().default([]),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  () => ownerOnlyPolicies("user_settings"),
+).enableRLS();
+
 export type Item = typeof items.$inferSelect;
 export type NewItem = typeof items.$inferInsert;
 export type ItemContent = typeof itemContent.$inferSelect;

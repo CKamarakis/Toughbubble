@@ -37,3 +37,6 @@ desktop.ini
 
 # Claude Code local overrides
 .claude/settings.local.json
+
+# Local reference images and screenshots (never committed)
+design-refs/

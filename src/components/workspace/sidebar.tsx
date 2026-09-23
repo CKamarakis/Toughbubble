@@ -1,6 +1,6 @@
 "use client";
 
-import { Archive, Search, Trash2, X } from "lucide-react";
+import { Archive, Search, Settings, Trash2, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -92,6 +92,7 @@ export function Sidebar() {
       <div className="flex flex-col gap-px border-t border-sidebar-border pt-2">
         {navLink("/archive", "Archive", Archive)}
         {navLink("/trash", "Trash", Trash2)}
+        {navLink("/settings", "Settings", Settings)}
       </div>
 
       <div className="flex flex-col gap-2 border-t border-sidebar-border pt-2">

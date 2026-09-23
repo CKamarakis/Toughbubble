@@ -29,6 +29,13 @@
       "when": 1790065230104,
       "tag": "0003_tree_integrity_triggers",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1790073967767,
+      "tag": "0004_user_settings",
+      "breakpoints": true
     }
   ]
 }

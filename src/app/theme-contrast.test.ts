@@ -1,6 +1,9 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { hardToReadIn, PAGE_BACKGROUNDS } from "@/lib/color";
+import { PRESET_COLORS } from "@/lib/color-presets";
+import { BUILT_IN_SIZES, STYLE_ELEMENTS } from "@/lib/settings/editor-styles";
 
 // Reads the real token values from globals.css so the test fails if a token
 // is later changed to a color that breaks WCAG AA.
@@ -67,4 +70,33 @@ describe.each([
   it.each(["background", "card"])("input border on %s is at least 3:1", (bg) => {
     expect(contrast(t.input, t[bg])).toBeGreaterThanOrEqual(3);
   });
+});
+
+// Note editor (notes design D6): inline code and code blocks sit on --muted,
+// checked items and the placeholder use --muted-foreground on the page.
+describe.each([
+  ["light", ":root"],
+  ["dark", ".dark"],
+])("%s theme editor colors", (theme, selector) => {
+  const t = tokens(selector);
+
+  it("code text on the code background is at least 4.5:1", () => {
+    expect(contrast(t.foreground, t.muted)).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it("the color picker checks contrast against the real page background", () => {
+    expect(PAGE_BACKGROUNDS[theme as "light" | "dark"]).toBe(t.background.toLowerCase());
+  });
+
+  // A preset is flagged "hard to read" exactly when it falls below 4.5:1 on this page.
+  it.each(PRESET_COLORS.map((p) => [p.name, p.hex]))("%s (%s) is flagged correctly", (_name, hex) => {
+    const flagged = hardToReadIn(hex).includes(theme as "light" | "dark");
+    expect(flagged).toBe(contrast(hex, t.background) < 4.5);
+  });
+});
+
+// The CSS fallbacks used before settings load must match the built-in defaults.
+it.each(STYLE_ELEMENTS)("editor %s fallback size matches the built-in default", (el) => {
+  const match = css.match(new RegExp(`var\\(--tb-${el}-size, (\\d+)px\\)`));
+  expect(match?.[1]).toBe(String(BUILT_IN_SIZES[el]));
 });

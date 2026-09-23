@@ -2,9 +2,10 @@
 
 A personal workspace web app for notes and visual boards ("Storms").
 
-> Status: Phase 1 — sign-in, the sidebar tree of projects, folders, notes, and Storms (create,
-> rename, move, search, archive, trash), and project/folder pages with sortable contents. Note
-> and Storm editors come next. See `openspec/changes/` for work in progress.
+> Status: Phase 2 — sign-in, the sidebar tree of projects, folders, notes, and Storms, project
+> and folder pages, the note editor with autosave, and editor settings (element sizes and
+> colors, saved colors). The Storm canvas comes next. See `openspec/changes/` for work in
+> progress.
 
 This repository uses [OpenSpec](https://github.com/Fission-AI/OpenSpec) for spec-driven
 development: requirements are written as plain Markdown and reviewed *before* implementation
@@ -23,6 +24,10 @@ shadcn/ui · Vitest · deployed on Vercel.
 | `src/proxy.ts` | Runs before every request: refreshes the session, redirects visitors without one (Next 16's name for middleware) |
 | `src/db/` | Drizzle schema, `withUserDb()` (the only database entry point for app code), admin client |
 | `src/lib/tree/` | Item tree: pure logic (order, search, destinations), database operations, Server Actions |
+| `src/lib/notes/` | Note editor: shared Tiptap extensions, validation, saving, autosave logic |
+| `src/lib/settings/` | Editor settings and saved colors: validation, database operations, Server Actions |
+| `src/components/notes/` | Note editor, toolbar, link popover, autosave hook |
+| `src/components/color-picker.tsx` | Reusable color picker (saved colors first, presets, custom colors) |
 | `src/components/workspace/` | Sidebar, tree, item page, contents list, Archive/Trash views, drag and drop |
 | `src/lib/` | Auth actions, routing rules, Supabase clients |
 | `drizzle/` | SQL migrations (generated, committed) |
@@ -118,12 +123,27 @@ and is blocked from `src/` by a lint rule; it is for migrations, tests, and back
   Storms, newest first; project and folder pages sort their contents by the viewer's choice.
   `position` is kept but unused.
 - **`edited_at` is set explicitly** by edits (rename, restyle, convert, move) and drives the
-  "Last edited" sort. Any new edit path — including note content saves — must set it too;
+  "Last edited" sort. Note content saves set it too (`saveNoteBody`); any new edit path must as well;
   archive, trash, and restore must not.
 - **Archive and Trash** cascade to the whole subtree and record the item acted on in
   `status_root_id`, so restore brings back exactly what went together.
 - **Drag and drop** only moves items into containers or to the top level; "Move to…" is the
   keyboard alternative.
+
+## Notes
+
+- **One extension list.** `src/lib/notes/extensions.ts` is used by the editor and by the server,
+  which rebuilds each saved document against the same schema and rejects unknown content,
+  unsafe links (only http, https, and mailto), out-of-range font sizes, and bodies over 800 KB.
+- **Autosave** (`src/lib/notes/autosave.ts`, a pure reducer, plus `use-note-autosave.ts`) saves
+  one second after typing stops, on leaving the note, and retries with backoff. The toolbar
+  shows the status; closing the tab with unsaved work asks first.
+- **Versioned saves.** Each body has a `version`. A save based on an older version is refused,
+  and the editor offers *Load latest* or *Keep mine*. Returning to a tab quietly loads a newer
+  version when nothing is unsaved.
+- **Editor settings** live in `user_settings` (one row per user): per-element font size and
+  color for paragraphs and headings 1–6, applied as CSS variables, and the saved custom colors
+  shown first in every color picker. Removing a saved color doesn't change text already using it.
 
 ## Environments
 

@@ -12,9 +12,11 @@ import { ItemMenu } from "./item-menu";
 import { ProjectStylePicker } from "./project-style-picker";
 import { TitleInput } from "./title-input";
 import { useWorkspace } from "./workspace-context";
+import { NoteEditor } from "@/components/notes/note-editor";
+import type { NoteBody } from "@/lib/notes/operations";
 
-/** The main pane for an item: breadcrumb, title, and contents or placeholder. */
-export function ItemView({ id }: { id: string }) {
+/** The main pane for an item: breadcrumb, title, and contents, note body, or placeholder. */
+export function ItemView({ id, note }: { id: string; note?: NoteBody | null }) {
   const ws = useWorkspace();
   const router = useRouter();
   const pathname = usePathname();
@@ -88,19 +90,23 @@ export function ItemView({ id }: { id: string }) {
           )}
           <ItemMenu item={node} onRename={() => setEditing(true)} className="size-8" />
         </div>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <span>{KIND_LABELS[node.kind]}</span>
-          {node.kind === "project" && <ProjectStylePicker item={node} />}
-        </div>
+        {/* The icon and breadcrumb already say what this is, so only projects
+            need this row (for their style picker). */}
+        {node.kind === "project" && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <span>{KIND_LABELS[node.kind]}</span>
+            <ProjectStylePicker item={node} />
+          </div>
+        )}
       </header>
 
       {isContainer(node.kind) ? (
         <ContentsList node={node} />
+      ) : node.kind === "note" && note ? (
+        <NoteEditor itemId={id} initial={note} />
       ) : (
         <div className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">
-          {node.kind === "note"
-            ? "The note editor arrives in the next phase."
-            : "The Storm canvas arrives in a later phase."}
+          The Storm canvas arrives in a later phase.
         </div>
       )}
     </div>

@@ -196,3 +196,131 @@ summary {
     @apply font-sans;
   }
 }
+
+/* Note body (notes design D6). Each element's size and color come from CSS
+   variables set from the user's editor settings; the fallbacks are the
+   built-in defaults and must match BUILT_IN_SIZES in src/lib/settings. An
+   explicit font size on text (inline style from the editor) still wins. */
+@layer components {
+  .tb-editor {
+    color: var(--foreground);
+    font-size: var(--tb-p-size, 16px);
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+  }
+  .tb-editor .ProseMirror {
+    min-height: 12rem;
+    /* Breathing room under the pinned toolbar. */
+    padding-top: 20px;
+    outline: none;
+  }
+  .tb-editor :where(p, li, blockquote) {
+    font-size: var(--tb-p-size, 16px);
+    color: var(--tb-p-color, inherit);
+  }
+  .tb-editor p {
+    margin: 0.5em 0;
+  }
+  .tb-editor :where(h1, h2, h3, h4, h5, h6) {
+    line-height: 1.25;
+    margin: 1.1em 0 0.4em;
+  }
+  .tb-editor :where(h1, h2, h3) {
+    font-weight: 700;
+  }
+  .tb-editor :where(h4, h5, h6) {
+    font-weight: 600;
+  }
+  .tb-editor h1 { font-size: var(--tb-h1-size, 36px); color: var(--tb-h1-color, inherit); }
+  .tb-editor h2 { font-size: var(--tb-h2-size, 30px); color: var(--tb-h2-color, inherit); }
+  .tb-editor h3 { font-size: var(--tb-h3-size, 24px); color: var(--tb-h3-color, inherit); }
+  .tb-editor h4 { font-size: var(--tb-h4-size, 20px); color: var(--tb-h4-color, inherit); }
+  .tb-editor h5 { font-size: var(--tb-h5-size, 18px); color: var(--tb-h5-color, inherit); }
+  .tb-editor h6 { font-size: var(--tb-h6-size, 16px); color: var(--tb-h6-color, inherit); }
+  .tb-editor .ProseMirror > :first-child {
+    margin-top: 0;
+  }
+  .tb-editor ul {
+    list-style: disc;
+    padding-left: 1.5em;
+  }
+  .tb-editor ol {
+    list-style: decimal;
+    padding-left: 1.5em;
+  }
+  .tb-editor li > p {
+    margin: 0.15em 0;
+  }
+  .tb-editor ul[data-type="taskList"] {
+    list-style: none;
+    padding-left: 0.25em;
+  }
+  .tb-editor ul[data-type="taskList"] > li {
+    display: flex;
+    gap: 0.5em;
+    align-items: flex-start;
+  }
+  /* The box sits on the first line of text: the line box is 1.6em tall and the
+     box is 1em, so half the leading centres it. */
+  .tb-editor ul[data-type="taskList"] > li > label {
+    margin-top: calc(0.5em + 0.3em);
+    flex: none;
+    line-height: 1;
+  }
+  .tb-editor ul[data-type="taskList"] > li > label input {
+    width: 1em;
+    height: 1em;
+    accent-color: var(--primary);
+    cursor: pointer;
+  }
+  .tb-editor ul[data-type="taskList"] > li > div {
+    flex: 1;
+    min-width: 0;
+  }
+  /* Ticking a task dims it but doesn't strike it out: strikethrough stays a
+     formatting choice the writer can turn on and off. */
+  .tb-editor ul[data-type="taskList"] > li[data-checked="true"] > div {
+    color: var(--muted-foreground);
+  }
+  .tb-editor blockquote {
+    border-left: 3px solid var(--input);
+    padding-left: 1em;
+    margin: 0.75em 0;
+  }
+  .tb-editor code {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 14px;
+    background: var(--muted);
+    border-radius: 0.3em;
+    padding: 0.1em 0.3em;
+  }
+  .tb-editor pre {
+    background: var(--muted);
+    border-radius: 0.5em;
+    padding: 0.75em 1em;
+    margin: 0.75em 0;
+    overflow-x: auto;
+    font-size: 14px;
+  }
+  .tb-editor pre code {
+    background: none;
+    padding: 0;
+  }
+  .tb-editor hr {
+    border: none;
+    border-top: 1px solid var(--input);
+    margin: 1.5em 0;
+  }
+  .tb-editor a {
+    color: var(--link);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .tb-editor .is-editor-empty:first-child::before {
+    content: attr(data-placeholder);
+    color: var(--muted-foreground);
+    float: left;
+    height: 0;
+    pointer-events: none;
+  }
+}

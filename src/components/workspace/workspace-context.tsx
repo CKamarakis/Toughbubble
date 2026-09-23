@@ -91,6 +91,8 @@ type Workspace = {
   move: (id: string, parentId: string | null) => void;
   archive: (id: string) => void;
   trash: (id: string) => void;
+  /** Records a note body save (its new "last edited" time) without a server refresh. */
+  touch: (id: string, editedAt: string) => void;
 };
 
 const WorkspaceContext = createContext<Workspace | null>(null);
@@ -122,7 +124,17 @@ export function WorkspaceProvider({
   const router = useRouter();
   const pathname = usePathname();
   const [pending, startTransition] = useTransition();
-  const [rows, applyOptimistic] = useOptimistic(serverRows, applyChange);
+  const [optimisticRows, applyOptimistic] = useOptimistic(serverRows, applyChange);
+  // Body saves skip the layout refresh (notes design D4), so their edited times
+  // are patched in here until the next server render catches up.
+  const [touched, setTouched] = useState<Record<string, string>>({});
+  const rows = useMemo(
+    () =>
+      optimisticRows.map((r) =>
+        touched[r.id] && touched[r.id] > r.editedAt ? { ...r, editedAt: touched[r.id] } : r,
+      ),
+    [optimisticRows, touched],
+  );
   const tree = useMemo(() => buildTree(rows), [rows]);
   const currentId = pathname.match(ITEM_PATH)?.[1] ?? null;
 
@@ -212,6 +224,7 @@ export function WorkspaceProvider({
       leaveIfRemoved(id);
       mutate({ type: "remove", id }, () => actions.trashItem(id), () => toast.success("Moved to Trash"));
     },
+    touch: (id, editedAt) => setTouched((prev) => ({ ...prev, [id]: editedAt })),
   };
 
   return <WorkspaceContext.Provider value={value}>{children}</WorkspaceContext.Provider>;
