@@ -34,4 +34,4 @@
 
 - [x] 5.1 Extend the browser check script: formatting controls and shortcuts, Markdown shortcuts, font size (preset, custom, out of range, default, defaults from Settings), links, paste from HTML, sticky toolbar, autosave and persistence, leave-and-return, beforeunload, two-tab conflict (both choices), quiet refresh, Settings page and color picker; verify all checks pass on a production build
 - [x] 5.2 Add editor colors to the contrast test (links, code on muted, color-picker presets flagged correctly) and update README (editor, autosave, `edited_at` on save, settings); verify lint, unit, and integration tests pass
-- [ ] 5.3 Push a branch and verify the preview; apply the `user_settings` migration to prod; merge to `main` and verify writing a note and changing a setting on production
+- [x] 5.3 Push a branch and verify the preview; apply the `user_settings` migration to prod; merge to `main` and verify writing a note and changing a setting on production
