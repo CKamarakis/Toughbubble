@@ -36,6 +36,20 @@
       "when": 1790073967767,
       "tag": "0004_user_settings",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1790170670834,
+      "tag": "0005_attachments",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1790170682507,
+      "tag": "0006_attachments_storage",
+      "breakpoints": true
     }
   ]
 }

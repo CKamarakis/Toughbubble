@@ -16,6 +16,7 @@ import {
   ListChecks,
   ListOrdered,
   Minus,
+  Paperclip,
   Quote,
   Redo2,
   Strikethrough,
@@ -61,12 +62,15 @@ export function NoteToolbar({
   status,
   linkOpen,
   onLinkOpenChange,
+  onAttach,
 }: {
   editor: Editor;
   status: string;
   linkOpen: boolean;
   onLinkOpenChange: (open: boolean) => void;
+  onAttach: (files: File[]) => void;
 }) {
+  const fileInput = useRef<HTMLInputElement>(null);
   const { editorStyles } = useSettings();
   const s = useEditorState({
     editor,
@@ -207,6 +211,29 @@ export function NoteToolbar({
       {toggle("Quote", Quote, s.quote, () => run().toggleBlockquote().run())}
       {toggle("Code block", FileCode, s.codeBlock, () => run().toggleCodeBlock().run())}
       {toggle("Divider", Minus, false, () => run().setHorizontalRule().run())}
+      <button
+        type="button"
+        data-toolbar-item
+        aria-label="Attach files"
+        title="Attach files (or drop or paste them)"
+        onMouseDown={(e) => e.preventDefault()}
+        onClick={() => fileInput.current?.click()}
+        className="flex size-8 items-center justify-center rounded-md text-foreground hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+      >
+        <Paperclip className="size-4" />
+      </button>
+      <input
+        ref={fileInput}
+        type="file"
+        multiple
+        hidden
+        tabIndex={-1}
+        onChange={(e) => {
+          const files = [...(e.target.files ?? [])];
+          e.target.value = ""; // choosing the same file again still fires change
+          if (files.length > 0) onAttach(files);
+        }}
+      />
       {divider}
       <button
         type="button"

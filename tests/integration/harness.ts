@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { randomUUID } from "node:crypto";
 import { createAdminDb } from "@/db/admin";
 import { runAsUser, type UserClaims, type UserTx } from "@/db/rls";
@@ -13,17 +13,31 @@ export type TestUser = {
   id: string;
   /** Run queries as this user, with RLS enforced, exactly as withUserDb does. */
   run: <T>(fn: (tx: UserTx) => Promise<T>) => Promise<T>;
+  /** A Supabase client signed in as this user (Storage RLS applies), created on first use. */
+  client: () => Promise<SupabaseClient>;
 };
 
 /** Creates a throwaway confirmed user in the dev project. */
 export async function createTestUser(): Promise<TestUser> {
-  const { data, error } = await authAdmin().createUser({
-    email: `it-${randomUUID()}@toughbubble.test`,
-    email_confirm: true,
-  });
+  const email = `it-${randomUUID()}@toughbubble.test`;
+  const password = `Aa1!${randomUUID()}`; // meets the password rules (all character classes)
+  const { data, error } = await authAdmin().createUser({ email, password, email_confirm: true });
   if (error || !data.user) throw error ?? new Error("createUser returned no user");
   const claims: UserClaims = { sub: data.user.id, role: "authenticated" };
-  return { id: data.user.id, run: (fn) => runAsUser(claims, fn) };
+
+  let client: Promise<SupabaseClient> | undefined;
+  const signIn = async () => {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+      { auth: { autoRefreshToken: false, persistSession: false } },
+    );
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    return supabase;
+  };
+
+  return { id: data.user.id, run: (fn) => runAsUser(claims, fn), client: () => (client ??= signIn()) };
 }
 
 export async function deleteTestUser(user: TestUser) {
@@ -42,4 +56,11 @@ export async function withAdminDb<T>(fn: (db: ReturnType<typeof createAdminDb>["
   } finally {
     await admin.close();
   }
+}
+
+/** Service-role Storage access, to clean up test files the users can no longer reach. */
+export function storageAdmin() {
+  return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SECRET_KEY!, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  }).storage.from("attachments");
 }

@@ -10,6 +10,12 @@ if (process.env.APP_ENV !== "development") {
     `Integration tests only run against the dev project (APP_ENV=development); got APP_ENV=${process.env.APP_ENV ?? "unset"}.`,
   );
 }
-for (const name of ["DATABASE_URL", "DATABASE_ADMIN_URL", "NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SECRET_KEY"]) {
+for (const name of [
+  "DATABASE_URL",
+  "DATABASE_ADMIN_URL",
+  "NEXT_PUBLIC_SUPABASE_URL",
+  "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+  "SUPABASE_SECRET_KEY",
+]) {
   if (!process.env[name]) throw new Error(`${name} must be set in .env.local for integration tests.`);
 }

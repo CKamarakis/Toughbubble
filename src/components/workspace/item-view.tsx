@@ -15,8 +15,11 @@ import { useWorkspace } from "./workspace-context";
 import { NoteEditor } from "@/components/notes/note-editor";
 import type { NoteBody } from "@/lib/notes/operations";
 
+/** A note's body plus signed links for its attachments, by attachment id. */
+export type NoteData = NoteBody & { links: Record<string, string> };
+
 /** The main pane for an item: breadcrumb, title, and contents, note body, or placeholder. */
-export function ItemView({ id, note }: { id: string; note?: NoteBody | null }) {
+export function ItemView({ id, note }: { id: string; note?: NoteData | null }) {
   const ws = useWorkspace();
   const router = useRouter();
   const pathname = usePathname();

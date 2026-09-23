@@ -98,7 +98,7 @@ describe("validateNoteBody", () => {
   });
 
   it("rejects unknown node and mark types", () => {
-    expect(validateNoteBody({ type: "doc", content: [{ type: "image", attrs: { src: "x" } }] }).ok).toBe(false);
+    expect(validateNoteBody({ type: "doc", content: [{ type: "video", attrs: { src: "x" } }] }).ok).toBe(false);
     expect(
       validateNoteBody({ type: "doc", content: [{ type: "paragraph", content: [text("x", [{ type: "highlight" }])] }] }).ok,
     ).toBe(false);

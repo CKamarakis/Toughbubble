@@ -315,6 +315,7 @@ summary {
     color: var(--link);
     text-decoration: underline;
     text-underline-offset: 2px;
+    cursor: pointer;
   }
   .tb-editor .is-editor-empty:first-child::before {
     content: attr(data-placeholder);

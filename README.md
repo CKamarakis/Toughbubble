@@ -138,12 +138,39 @@ and is blocked from `src/` by a lint rule; it is for migrations, tests, and back
 - **Autosave** (`src/lib/notes/autosave.ts`, a pure reducer, plus `use-note-autosave.ts`) saves
   one second after typing stops, on leaving the note, and retries with backoff. The toolbar
   shows the status; closing the tab with unsaved work asks first.
+- **Links** open in a new tab on a plain click (a drag that selects text doesn't). Hovering a
+  link, or moving the cursor into it, shows a card with its address and Open, Edit, and Remove
+  (`src/components/notes/link-card.tsx`); Tab moves from the link into the card.
 - **Versioned saves.** Each body has a `version`. A save based on an older version is refused,
   and the editor offers *Load latest* or *Keep mine*. Returning to a tab quietly loads a newer
   version when nothing is unsaved.
 - **Editor settings** live in `user_settings` (one row per user): per-element font size and
   color for paragraphs and headings 1–6, applied as CSS variables, and the saved custom colors
   shown first in every color picker. Removing a saved color doesn't change text already using it.
+
+## Attachments
+
+- **Files live in Supabase Storage**, in the private `attachments` bucket at
+  `<owner_id>/<note_id>/<attachment_id>`, with a row per file in `attachments`. The bucket and
+  its owner-only policies (read, upload, delete; no replacing) are created by
+  `drizzle/0006_attachments_storage.sql`. The bucket enforces the 5 MB limit.
+- **The browser uploads directly** with the user's own session, so Storage RLS applies; files
+  never pass through Server Actions (1 MB limit). A row starts `pending` and becomes `ready`
+  once the file is in Storage. No secret key is used in app code.
+- **Bodies store ids, not URLs.** Image and file nodes carry an `attachmentId`; the editor asks
+  for signed links (1 hour) and refreshes them. A save that names another note's file is
+  rejected. Pasted web images (plain `<img src>`) are dropped.
+- **Images are scaled in the browser** before upload (`src/lib/attachments/prepare-image.ts`):
+  PNG, JPEG, and WebP over 2560 px on the longer side are scaled to 2560 px and re-encoded (WebP
+  where the browser supports it); the smaller of the original and the result is stored. GIFs are
+  stored as they are. PNG, JPEG, GIF, and WebP show inline; everything else (SVG included) is a
+  file card.
+- **Deleting files.** Removing a file from the text keeps it (Undo works). *Delete forever*
+  removes the stored files after the rows are gone; a failed removal is logged and left for the
+  purge job. Pasting a file from another note copies it into the target note.
+- **Not handled yet:** unused files and unfinished uploads are only cleaned up by the later
+  purge job, and there is no account deletion. Whoever adds account deletion must also remove
+  the user's `attachments/<owner_id>/` folder: deleting the auth user does not remove files.
 
 ## Environments
 

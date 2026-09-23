@@ -10,7 +10,9 @@ import { validateNoteBody } from "./validate";
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const isId = (v: unknown): v is string => typeof v === "string" && UUID.test(v);
 
-export type SaveNoteResult = ops.SaveResult | { status: "error"; error: string };
+export type SaveNoteResult =
+  | Exclude<ops.SaveResult, { status: "foreign-attachment" }>
+  | { status: "error"; error: string };
 
 function errorResult(error: unknown): { status: "error"; error: string } {
   if (error instanceof UnauthenticatedError) {
@@ -27,7 +29,11 @@ export async function saveNote(itemId: string, body: unknown, baseVersion: numbe
   const valid = validateNoteBody(body);
   if (!valid.ok) return { status: "error", error: valid.error };
   try {
-    return await withUserDb((tx) => ops.saveNoteBody(tx, itemId, valid.doc, baseVersion));
+    const result = await withUserDb((tx) => ops.saveNoteBody(tx, itemId, valid.doc, baseVersion));
+    if (result.status === "foreign-attachment") {
+      return { status: "error", error: "The note contains a file that isn't attached to it." };
+    }
+    return result;
   } catch (error) {
     return errorResult(error);
   }

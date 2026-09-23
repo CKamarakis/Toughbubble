@@ -4,6 +4,7 @@ import TextAlign from "@tiptap/extension-text-align";
 import { FontSize, TextStyle } from "@tiptap/extension-text-style";
 import { Placeholder } from "@tiptap/extensions";
 import StarterKit from "@tiptap/starter-kit";
+import { type AttachmentViews, fileAttachment, noteImage } from "./attachment-nodes";
 import { parseFontSize, toCssSize } from "./font-size";
 import { isAllowedHref } from "./links";
 
@@ -35,7 +36,14 @@ const SafeFontSize = FontSize.extend({
   },
 });
 
-export function noteExtensions({ placeholder = "Start writing…" } = {}): AnyExtension[] {
+/**
+ * `views` adds the editor's React views for attachments; the server leaves
+ * them out, since validation only needs the schema.
+ */
+export function noteExtensions({
+  placeholder = "Start writing…",
+  views = {},
+}: { placeholder?: string; views?: AttachmentViews } = {}): AnyExtension[] {
   return [
     StarterKit.configure({
       heading: { levels: [...HEADING_LEVELS] },
@@ -56,5 +64,7 @@ export function noteExtensions({ placeholder = "Start writing…" } = {}): AnyEx
     TextStyle,
     SafeFontSize,
     Placeholder.configure({ placeholder }),
+    noteImage(views.image),
+    fileAttachment(views.fileAttachment),
   ];
 }

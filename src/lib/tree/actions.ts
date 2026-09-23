@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { withUserDb, type UserTx } from "@/db/client";
+import { attachmentPathsUnder, removeStoredFiles } from "@/lib/attachments/operations";
+import { createClient } from "@/lib/supabase/server";
 import { NOT_FOUND, treeErrorMessage } from "./errors";
 import * as ops from "./operations";
 import { isProjectColor, isProjectIcon } from "./style";
@@ -81,5 +83,15 @@ export async function restoreItem(id: string) {
 
 export async function deleteForever(id: string) {
   if (!isId(id)) return invalid();
-  return run((tx) => ops.deleteForever(tx, id));
+  // Attached files are removed through the Storage API once the rows are gone
+  // (attachments design D8); a failure leaves them for the purge job.
+  let files: string[] = [];
+  const result = await run(async (tx) => {
+    files = await attachmentPathsUnder(tx, id);
+    return ops.deleteForever(tx, id);
+  });
+  if (result.ok && files.length > 0) {
+    await removeStoredFiles((await createClient()).storage.from("attachments"), files);
+  }
+  return result;
 }

@@ -1,8 +1,8 @@
 import type { JSONContent } from "@tiptap/core";
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import type { UserTx } from "@/db/client";
-import { itemContent, items } from "@/db/schema";
-import { EMPTY_DOC } from "./validate";
+import { attachments, itemContent, items } from "@/db/schema";
+import { attachmentIdsIn, EMPTY_DOC } from "./validate";
 
 // Note body storage (design D3), run inside a user transaction (RLS applies).
 // Every save names the version it was based on; the version check sits in the
@@ -13,9 +13,10 @@ export type NoteBody = { body: JSONContent; version: number };
 export type SaveResult =
   | { status: "saved"; version: number; editedAt: string }
   | { status: "conflict"; storedVersion: number }
+  | { status: "foreign-attachment" }
   | { status: "not-found" };
 
-const isActiveNote = async (tx: UserTx, itemId: string) => {
+export const isActiveNote = async (tx: UserTx, itemId: string) => {
   const [item] = await tx
     .select({ kind: items.kind, status: items.status })
     .from(items)
@@ -31,6 +32,16 @@ export async function saveNoteBody(
   baseVersion: number,
 ): Promise<SaveResult> {
   if (!(await isActiveNote(tx, itemId))) return { status: "not-found" };
+
+  // A body may only refer to this note's own attachments (spec: Private files).
+  const ids = attachmentIdsIn(body);
+  if (ids.length > 0) {
+    const own = await tx
+      .select({ id: attachments.id })
+      .from(attachments)
+      .where(and(eq(attachments.itemId, itemId), inArray(attachments.id, ids)));
+    if (own.length !== ids.length) return { status: "foreign-attachment" };
+  }
 
   const saved =
     baseVersion === 0

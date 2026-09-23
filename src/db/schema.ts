@@ -130,6 +130,37 @@ export const userSettings = pgTable(
   () => ownerOnlyPolicies("user_settings"),
 ).enableRLS();
 
+export const attachmentStatus = pgEnum("attachment_status", ["pending", "ready"]);
+
+// Files attached to a note (attachments design D2). The stored object lives in
+// the private "attachments" bucket at <owner_id>/<item_id>/<id>; `name` is only
+// for display and downloads. Rows go with their note; the stored files are
+// removed by deleteForever through the Storage API.
+export const attachments = pgTable(
+  "attachments",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    ownerId: ownerId(),
+    itemId: uuid("item_id").notNull(),
+    name: text("name").notNull(),
+    mimeType: text("mime_type").notNull(),
+    sizeBytes: integer("size_bytes").notNull(),
+    width: integer("width"),
+    height: integer("height"),
+    status: attachmentStatus("status").notNull().default("pending"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    foreignKey({
+      name: "attachments_item_same_owner_fk",
+      columns: [t.itemId, t.ownerId],
+      foreignColumns: [items.id, items.ownerId],
+    }).onDelete("cascade"),
+    index("attachments_item_idx").on(t.itemId),
+    ...ownerOnlyPolicies("attachments"),
+  ],
+).enableRLS();
+
 export type Item = typeof items.$inferSelect;
 export type NewItem = typeof items.$inferInsert;
 export type ItemContent = typeof itemContent.$inferSelect;
