@@ -36,4 +36,5 @@
 
 - [x] 6.1 Extend the browser check script: attach by button, drop, and paste; image inline vs SVG card; oversize refused; photo scaled; resize, align, alt text; download name; upload failure and Retry; close tab mid-upload; copy an image to another note then delete the source forever; trash and restore; delete forever removes files; verify all checks pass on a production build
 - [x] 6.2 Update README (attachments, storage bucket and policies, limits, file deletion and the account-deletion note) and add attachment colors or states to the contrast test if new tokens are introduced; verify lint, unit, and integration tests pass
+- [x] 6.4 Run migrations in the Vercel build per D11 and document it in the README; verify a local build skips it, a Vercel build without `DATABASE_ADMIN_URL` fails, and a simulated preview build applies migrations to dev
 - [ ] 6.3 Push a branch and verify the preview; apply the attachments migrations to prod; merge to `main` and verify attaching an image and a file on production

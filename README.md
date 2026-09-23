@@ -185,8 +185,14 @@ main merge   -->  Vercel prod     -->  Supabase PROD
   production domain).
 - Vercel environment variables mirror `.env.local`: preview uses the dev project's values with
   `APP_ENV=development`; production uses the prod project's values with `APP_ENV=production`.
-- Migrations are applied by hand, dev first, then prod: set `DATABASE_ADMIN_URL` to the target
-  project and run `npm run db:migrate`. They are not run during the Vercel build.
+- **Migrations run during the Vercel build** (`scripts/migrate-on-deploy.mjs`, called by
+  `npm run build`), before the new version goes live: a branch push migrates the dev project,
+  a merge to `main` the prod project. This needs `DATABASE_ADMIN_URL` (the session pooler URL,
+  port 5432) in Vercel for Preview (dev project) and Production (prod project); without it the
+  build fails and the current version stays live. Local builds never migrate; run
+  `npm run db:migrate` for your local database.
+- Migrations must stay additive (new tables, columns, policies): the old version keeps serving
+  while the new one builds, so it must keep working against the migrated schema.
 
 ## Email
 

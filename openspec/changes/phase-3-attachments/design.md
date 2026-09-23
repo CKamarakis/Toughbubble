@@ -93,6 +93,13 @@ See proposal.md for motivation. From Phases 0–2:
 - The mark range comes from `getMarkRange` at the link's position (`view.posAtDOM`).
 - Alternative: Ctrl/Cmd+click to open, plain click to edit (Google Docs). Rejected by the user in favour of plain click.
 
+### D11. Migrations run in the Vercel build
+- Added at release: migrations were applied by hand, which is easy to forget and can ship code ahead of its schema.
+- `npm run build` first runs `scripts/migrate-on-deploy.mjs`: on Vercel (`VERCEL=1`) it runs `drizzle-kit migrate` against `DATABASE_ADMIN_URL`, which is set per Vercel environment (Preview → dev project, Production → prod project). Local builds skip it.
+- The build fails if `DATABASE_ADMIN_URL` is missing, so the current version stays live rather than new code running without its tables.
+- The old version serves traffic while the new one builds, so migrations must stay additive.
+- Alternative: a GitHub Action on push to `main`. Rejected: it races the Vercel deploy, so new code could go live before its migration.
+
 ## Risks / Trade-offs
 
 - [The migration role may not be allowed to insert into `storage.buckets` or create policies on `storage.objects`] → Task 1.2 checks this on dev first. If refused, run the same SQL in the Supabase SQL editor for dev and prod and record that step in the README.
