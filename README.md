@@ -25,13 +25,15 @@ shadcn/ui · Vitest · deployed on Vercel.
 | `src/db/` | Drizzle schema, `withUserDb()` (the only database entry point for app code), admin client |
 | `src/lib/tree/` | Item tree: pure logic (order, search, destinations), database operations, Server Actions |
 | `src/lib/notes/` | Note editor: shared Tiptap extensions, validation, saving, autosave logic |
+| `src/lib/attachments/` | Note attachments: size and type rules, image scaling before upload, database and Storage operations, Server Actions |
 | `src/lib/settings/` | Editor settings and saved colors: validation, database operations, Server Actions |
-| `src/components/notes/` | Note editor, toolbar, link popover, autosave hook |
+| `src/components/notes/` | Note editor, toolbar, link popover and link card, autosave hook; `attachments/` holds the image and file views, upload flow, and image menu |
 | `src/components/color-picker.tsx` | Reusable color picker (saved colors first, presets, custom colors) |
 | `src/components/workspace/` | Sidebar, tree, item page, contents list, Archive/Trash views, drag and drop |
 | `src/lib/` | Auth actions, routing rules, Supabase clients |
-| `drizzle/` | SQL migrations (generated, committed) |
-| `tests/integration/` | Tests against the dev database (row-level security, integrity, cascades) |
+| `drizzle/` | SQL migrations (generated, committed; applied by the Vercel build) |
+| `scripts/` | `migrate-on-deploy.mjs`: runs migrations during Vercel builds |
+| `tests/integration/` | Tests against the dev database (row-level security, Storage policies, integrity, cascades) |
 | `openspec/specs/` | Current requirements, written as concrete scenarios |
 | `openspec/changes/` | In-flight change proposals (proposal, design, tasks) |
 | `openspec/changes/archive/` | Completed changes, organized by date |
