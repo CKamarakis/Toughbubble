@@ -16,4 +16,4 @@
 
 - [x] 3.1 Browser check on a production build: per-theme colors in a note across a theme switch, one theme set only, an old-shape color shown in both themes, picker warnings per theme, Undo, Reset, Reset all; verify all checks pass
 - [x] 3.2 Update the README (editor settings: colors per theme) and run lint, unit, and integration tests; verify they pass
-- [ ] 3.3 Push a branch and check the preview; merge to `main` and verify on production that a heading color differs between the light and dark themes
+- [x] 3.3 Push a branch and check the preview; merge to `main` and verify on production that a heading color differs between the light and dark themes
