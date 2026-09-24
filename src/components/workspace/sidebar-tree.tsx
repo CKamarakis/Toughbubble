@@ -102,6 +102,18 @@ function TreeItem({
             href={`/items/${node.id}`}
             draggable={false}
             aria-current={current ? "page" : undefined}
+            // A project's or folder's name opens and expands it; on the open
+            // one it toggles instead (sidebar-collapse-open-path D3). Clicks
+            // that open a new tab leave the sidebar alone.
+            onClick={(e) => {
+              if (!container || e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+              if (current) {
+                e.preventDefault();
+                ws.setExpanded(node.id, !open);
+              } else {
+                ws.setExpanded(node.id, true);
+              }
+            }}
             className="flex min-w-0 flex-1 items-center gap-2 rounded-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
           >
             <ItemIcon item={node} />

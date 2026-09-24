@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ancestorPath, buildTree, displayTitle } from "./build";
+import { ancestorPath, buildTree, displayTitle, revealAncestors } from "./build";
 import { canMoveTo, moveDestinations } from "./destinations";
 import { contentsCompare, sidebarCompare, sortTree, type ContentsSort } from "./order";
 import { searchTree } from "./search";
@@ -185,5 +185,17 @@ describe("move destinations", () => {
     expect(canMoveTo(tree, "a", "a")).toBe(false); // itself
     expect(canMoveTo(tree, "b", "s")).toBe(false); // a Storm
     expect(canMoveTo(tree, "s", null)).toBe(false); // already at root
+  });
+});
+
+describe("revealAncestors", () => {
+  it("adds ancestors that aren't expanded yet, keeping the rest", () => {
+    expect(revealAncestors(["a", "x"], ["a", "b", "c"])?.sort()).toEqual(["a", "b", "c", "x"]);
+  });
+
+  it("returns null when there is nothing to add", () => {
+    expect(revealAncestors(["a", "b"], ["a", "b"])).toBeNull();
+    expect(revealAncestors(["a"], [])).toBeNull();
+    expect(revealAncestors([], [])).toBeNull();
   });
 });

@@ -54,3 +54,15 @@ export function findNode(roots: TreeNode[], id: string): TreeNode | undefined {
   }
   return undefined;
 }
+
+/**
+ * The expanded ids with the given ancestors added, or null when all of them
+ * are already expanded (nothing to save). Used to reveal an item once when it
+ * is opened (sidebar-collapse-open-path D1).
+ */
+export function revealAncestors(expanded: Iterable<string>, ancestorIds: string[]): string[] | null {
+  const next = new Set(expanded);
+  const before = next.size;
+  for (const id of ancestorIds) next.add(id);
+  return next.size === before ? null : [...next];
+}

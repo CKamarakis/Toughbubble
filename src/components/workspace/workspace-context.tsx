@@ -5,6 +5,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useOptimistic,
   useState,
@@ -12,7 +13,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import * as actions from "@/lib/tree/actions";
-import { ancestorPath, buildTree } from "@/lib/tree/build";
+import { ancestorPath, buildTree, revealAncestors } from "@/lib/tree/build";
 import type { ItemKind, TreeNode, TreeRow } from "@/lib/tree/types";
 import { useStoredValue } from "@/lib/use-stored-value";
 
@@ -70,6 +71,24 @@ function applyChange(rows: TreeRow[], change: Change): TreeRow[] {
 }
 
 const EXPANDED_KEY = "tb:expanded";
+// The item whose ancestors were last revealed, so a reload doesn't reveal again.
+const REVEALED_KEY = "tb:revealed";
+
+function readRevealed(): string | null {
+  try {
+    return localStorage.getItem(REVEALED_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function writeRevealed(id: string) {
+  try {
+    localStorage.setItem(REVEALED_KEY, id);
+  } catch {
+    // Not persisted: a reload may reveal the path again, which is harmless.
+  }
+}
 const ITEM_PATH = /^\/items\/([0-9a-f-]{36})/i;
 
 type Workspace = {
@@ -152,15 +171,23 @@ export function WorkspaceProvider({
     [storeExpanded],
   );
 
-  // Ancestors of the open item are always shown expanded.
-  const openAncestors = useMemo(
-    () => new Set(currentId ? ancestorPath(rows, currentId).map((r) => r.id) : []),
-    [rows, currentId],
-  );
-  const isExpanded = useCallback(
-    (id: string) => expanded.has(id) || openAncestors.has(id),
-    [expanded, openAncestors],
-  );
+  // When an item becomes the open one, expand its ancestors once, into the
+  // saved state, so the user can still collapse them (sidebar-collapse-open-path
+  // D1). Reads localStorage directly: during hydration the hooks still hold
+  // their server values, which would reveal again on every reload.
+  useEffect(() => {
+    if (!currentId || readRevealed() === currentId) return;
+    if (!rows.some((r) => r.id === currentId)) return; // not loaded yet (D2)
+    const ancestors = ancestorPath(rows, currentId).map((r) => r.id);
+    writeRevealed(currentId);
+    if (ancestors.length === 0) return;
+    storeExpanded((current) => {
+      const next = revealAncestors(parseIds(current), ancestors);
+      return next ? JSON.stringify(next) : current;
+    });
+  }, [currentId, rows, storeExpanded]);
+
+  const isExpanded = useCallback((id: string) => expanded.has(id), [expanded]);
 
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [movingId, setMovingId] = useState<string | null>(null);
