@@ -16,4 +16,4 @@
 
 - [x] 3.1 Browser check on a production build: drag a note to the top of its folder (line shown, order saved after reload); no line and no change over folders or another folder's items; dropping on a folder doesn't move the note; Move up / Move down and their disabled ends; a new note appears first after a reorder; Move to… puts the item first in the destination; an untouched folder still shows newest first; search and renaming still disable dragging; verify all checks pass
 - [x] 3.2 Update the README's item-tree notes (order is manual within groups; dragging reorders; Move to… moves) and run lint, unit, and integration tests; verify they pass
-- [ ] 3.3 Push a branch and check the preview; merge to `main` and verify on production that a note dragged to the top of a folder stays there after a reload
+- [x] 3.3 Push a branch and check the preview; merge to `main` and verify on production that a note dragged to the top of a folder stays there after a reload

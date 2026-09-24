@@ -10,4 +10,4 @@
 
 - [x] 2.1 Browser check on a production build: collapse the project and folder containing the open note (both collapse, note stays open); reload (still collapsed); open another note inside from its project page (path expands); open a note by URL in a fresh browser (path expands); search still shows matches inside collapsed containers; clicking a collapsed folder's name opens and expands it, clicking it again collapses it with the page still open, Enter on the focused name does the same, and Ctrl-click opens a new tab without changing the sidebar; Phase 1 behaviors still hold (new item inside a folder expands it, move into a folder expands it); verify all checks pass
 - [x] 2.2 Update the README's item-tree notes if they mention always-expanded ancestors, and run lint, unit, and integration tests; verify they pass
-- [ ] 2.3 Push a branch and check the preview; merge to `main` and verify on production that the project containing an open note collapses
+- [x] 2.3 Push a branch and check the preview; merge to `main` and verify on production that the project containing an open note collapses
