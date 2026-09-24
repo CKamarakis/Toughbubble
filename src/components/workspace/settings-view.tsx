@@ -19,10 +19,14 @@ import {
   effectiveSize,
   ELEMENT_LABELS,
   STYLE_ELEMENTS,
+  THEMES,
   withElementStyle,
   type StyleElement,
+  type Theme,
 } from "@/lib/settings/editor-styles";
 import { useSettings } from "./settings-context";
+
+const THEME_LABELS: Record<Theme, string> = { light: "Light", dark: "Dark" };
 
 const PREVIEW_TEXT: Record<StyleElement, string> = {
   p: "The quick brown fox jumps over the lazy dog.",
@@ -72,8 +76,8 @@ export function SettingsView() {
           <DialogHeader>
             <DialogTitle>Reset all editor settings?</DialogTitle>
             <DialogDescription>
-              Every element goes back to its built-in size and Automatic color. Your saved colors are
-              kept.
+              Every element goes back to its built-in size and Automatic color in both themes. Your
+              saved colors are kept.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -106,12 +110,21 @@ function ElementRow({ element }: { element: StyleElement }) {
   const inputId = `size-${element}`;
 
   return (
-    <li className="flex flex-col gap-3 border-b px-4 py-3 last:border-b-0 md:flex-row md:items-center">
-      <div className="tb-editor min-w-0 flex-1 overflow-hidden">
-        {createElement(element, { className: "!m-0 truncate" }, PREVIEW_TEXT[element])}
+    <li className="flex flex-col gap-3 border-b px-4 py-3 last:border-b-0">
+      {/* The text in each theme, whatever theme the page is in (design D2/D3). */}
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+        {THEMES.map((theme) => (
+          <div
+            key={theme}
+            aria-label={`${label} in ${THEME_LABELS[theme].toLowerCase()} theme`}
+            className={`tb-editor tb-preview-${theme} min-w-0 overflow-hidden rounded-lg border px-3 py-2`}
+          >
+            {createElement(element, { className: "!m-0 truncate" }, PREVIEW_TEXT[element])}
+          </div>
+        ))}
       </div>
       <div className="flex flex-wrap items-center gap-3">
-        <span className="w-20 text-sm text-muted-foreground">{label}</span>
+        <span className="w-20 text-sm font-medium">{label}</span>
         <div className="flex flex-col">
           <div className="flex items-center gap-1.5">
             <input
@@ -129,7 +142,11 @@ function ElementRow({ element }: { element: StyleElement }) {
                 setDraft(text);
                 const n = Number(text);
                 if (Number.isInteger(n) && n >= FONT_SIZE_MIN && n <= FONT_SIZE_MAX) {
-                  settings.setEditorStyles(withElementStyle(settings.editorStyles, element, { size: n }));
+                  settings.setEditorStyles(withElementStyle(settings.editorStyles, element, { size: n }), {
+                    element,
+                    prop: "size",
+                    label: `${label} size changed`,
+                  });
                 }
               }}
               onBlur={() => setDraft(null)}
@@ -143,26 +160,43 @@ function ElementRow({ element }: { element: StyleElement }) {
             </span>
           )}
         </div>
-        <ColorPicker
-          label={`${label} color`}
-          value={style?.color ?? null}
-          allowAutomatic
-          onChange={(color) =>
-            settings.setEditorStyles(withElementStyle(settings.editorStyles, element, { color: color ?? undefined }))
-          }
-          savedColors={settings.savedColors}
-          onAddSavedColor={settings.addSavedColor}
-          onRemoveSavedColor={settings.removeSavedColor}
-        />
+        {THEMES.map((theme) => (
+          <div key={theme} className="flex items-center gap-1.5">
+            <span className="text-xs text-muted-foreground">{THEME_LABELS[theme]}</span>
+            <ColorPicker
+              label={`${label} color, ${THEME_LABELS[theme].toLowerCase()} theme`}
+              value={style?.[theme] ?? null}
+              theme={theme}
+              allowAutomatic
+              onChange={(color) =>
+                settings.setEditorStyles(withElementStyle(settings.editorStyles, element, { [theme]: color ?? undefined }), {
+                  element,
+                  prop: theme,
+                  label: `${label} color changed (${THEME_LABELS[theme]} theme)`,
+                })
+              }
+              savedColors={settings.savedColors}
+              onAddSavedColor={settings.addSavedColor}
+              onRemoveSavedColor={settings.removeSavedColor}
+            />
+          </div>
+        ))}
         <Button
           variant="ghost"
           size="sm"
           disabled={!style}
           aria-label={`Reset ${label}`}
-          title={`Reset to ${BUILT_IN_SIZES[element]} px and Automatic color`}
+          title={`Reset to ${BUILT_IN_SIZES[element]} px and Automatic color in both themes`}
           onClick={() => {
             setDraft(null);
-            settings.setEditorStyles(withElementStyle(settings.editorStyles, element, { size: BUILT_IN_SIZES[element], color: undefined }));
+            settings.setEditorStyles(
+              withElementStyle(settings.editorStyles, element, {
+                size: BUILT_IN_SIZES[element],
+                light: undefined,
+                dark: undefined,
+              }),
+              { element, prop: "all", label: `${label} reset` },
+            );
           }}
         >
           Reset

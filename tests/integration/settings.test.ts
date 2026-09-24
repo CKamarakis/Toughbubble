@@ -1,3 +1,4 @@
+import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { userSettings } from "@/db/schema";
 import * as settings from "@/lib/settings/operations";
@@ -26,9 +27,21 @@ describe("user settings", () => {
       editorStyles: { h1: { size: 40 } },
       savedColors: ["#1a7f5a"],
     });
-    await user.run((tx) => settings.saveSettings(tx, { editorStyles: { h1: { size: 40, color: "#9c00f7" } } }));
+    await user.run((tx) =>
+      settings.saveSettings(tx, { editorStyles: { h1: { size: 40, light: "#1a2b3c", dark: "#f7d000" } } }),
+    );
     expect((await user.run((tx) => settings.loadSettings(tx))).editorStyles).toEqual({
-      h1: { size: 40, color: "#9c00f7" },
+      h1: { size: 40, light: "#1a2b3c", dark: "#f7d000" },
+    });
+  });
+
+  it("reads a color saved before per-theme colors as both themes", async () => {
+    // A row as the previous version wrote it.
+    await user.run((tx) =>
+      tx.update(userSettings).set({ editorStyles: { h2: { color: "#9c00f7" } } }).where(eq(userSettings.ownerId, user.id)),
+    );
+    expect((await user.run((tx) => settings.loadSettings(tx))).editorStyles).toEqual({
+      h2: { light: "#9c00f7", dark: "#9c00f7" },
     });
   });
 

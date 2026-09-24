@@ -24,10 +24,15 @@ export function contrastRatio(a: string, b: string) {
 /** Page backgrounds in light and dark mode (globals.css --background). */
 export const PAGE_BACKGROUNDS = { light: "#fbfbf9", dark: "#333129" } as const;
 
-/** Themes where `color` falls below 4.5:1 against the given backgrounds. */
+/**
+ * Themes where `color` falls below 4.5:1 against the given backgrounds. With
+ * `only`, just that theme is checked (a color used in one theme only).
+ */
 export function hardToReadIn(
   color: string,
   backgrounds: { light: string; dark: string } = PAGE_BACKGROUNDS,
+  only?: "light" | "dark",
 ): ("light" | "dark")[] {
-  return (["light", "dark"] as const).filter((theme) => contrastRatio(color, backgrounds[theme]) < 4.5);
+  const themes = only ? [only] : (["light", "dark"] as const);
+  return themes.filter((theme) => contrastRatio(color, backgrounds[theme]) < 4.5);
 }

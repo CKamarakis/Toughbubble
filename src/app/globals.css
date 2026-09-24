@@ -200,13 +200,56 @@ summary {
 /* Note body (notes design D6). Each element's size and color come from CSS
    variables set from the user's editor settings; the fallbacks are the
    built-in defaults and must match BUILT_IN_SIZES in src/lib/settings. An
-   explicit font size on text (inline style from the editor) still wins. */
+   explicit font size on text (inline style from the editor) still wins.
+   Colors are set per theme (--tb-h1-light, --tb-h1-dark); --tb-h1-color picks
+   the one for the theme shown, and is unset (Automatic) when that theme has
+   none (theme-specific-editor-colors D2). */
 @layer components {
   .tb-editor {
     color: var(--foreground);
     font-size: var(--tb-p-size, 16px);
     line-height: 1.6;
     overflow-wrap: anywhere;
+    --tb-p-color: var(--tb-p-light);
+    --tb-h1-color: var(--tb-h1-light);
+    --tb-h2-color: var(--tb-h2-light);
+    --tb-h3-color: var(--tb-h3-light);
+    --tb-h4-color: var(--tb-h4-light);
+    --tb-h5-color: var(--tb-h5-light);
+    --tb-h6-color: var(--tb-h6-light);
+  }
+  .dark .tb-editor {
+    --tb-p-color: var(--tb-p-dark);
+    --tb-h1-color: var(--tb-h1-dark);
+    --tb-h2-color: var(--tb-h2-dark);
+    --tb-h3-color: var(--tb-h3-dark);
+    --tb-h4-color: var(--tb-h4-dark);
+    --tb-h5-color: var(--tb-h5-dark);
+    --tb-h6-color: var(--tb-h6-dark);
+  }
+  /* Settings previews show one theme whatever the page's theme; "html" makes
+     these win over ".dark .tb-editor". */
+  html .tb-editor.tb-preview-light {
+    background: #fbfbf9;
+    color: #333129;
+    --tb-p-color: var(--tb-p-light);
+    --tb-h1-color: var(--tb-h1-light);
+    --tb-h2-color: var(--tb-h2-light);
+    --tb-h3-color: var(--tb-h3-light);
+    --tb-h4-color: var(--tb-h4-light);
+    --tb-h5-color: var(--tb-h5-light);
+    --tb-h6-color: var(--tb-h6-light);
+  }
+  html .tb-editor.tb-preview-dark {
+    background: #333129;
+    color: #fbfbf9;
+    --tb-p-color: var(--tb-p-dark);
+    --tb-h1-color: var(--tb-h1-dark);
+    --tb-h2-color: var(--tb-h2-dark);
+    --tb-h3-color: var(--tb-h3-dark);
+    --tb-h4-color: var(--tb-h4-dark);
+    --tb-h5-color: var(--tb-h5-dark);
+    --tb-h6-color: var(--tb-h6-dark);
   }
   .tb-editor .ProseMirror {
     min-height: 12rem;

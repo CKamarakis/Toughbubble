@@ -146,9 +146,13 @@ and is blocked from `src/` by a lint rule; it is for migrations, tests, and back
 - **Versioned saves.** Each body has a `version`. A save based on an older version is refused,
   and the editor offers *Load latest* or *Keep mine*. Returning to a tab quietly loads a newer
   version when nothing is unsaved.
-- **Editor settings** live in `user_settings` (one row per user): per-element font size and
-  color for paragraphs and headings 1–6, applied as CSS variables, and the saved custom colors
-  shown first in every color picker. Removing a saved color doesn't change text already using it.
+- **Editor settings** live in `user_settings` (one row per user): per-element font size, and a
+  color per theme (Light and Dark), for paragraphs and headings 1–6, plus the saved custom
+  colors shown first in every color picker. They become CSS variables (`--tb-h1-light`,
+  `--tb-h1-dark`); `globals.css` picks the one for the current theme, so switching themes
+  needs no reload. A color saved before per-theme colors (`{ color }`) is read as both themes
+  and rewritten on the next save, so no migration is needed. Each change shows a message with
+  Undo. Removing a saved color doesn't change text already using it.
 
 ## Attachments
 

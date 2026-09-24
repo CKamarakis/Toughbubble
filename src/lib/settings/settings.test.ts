@@ -34,15 +34,31 @@ describe("contrast warning", () => {
     expect(hardToReadIn("#141310")).toEqual(["dark"]); // near-black on dark page
     expect(hardToReadIn("#8c897d")).toEqual(["light", "dark"]);
   });
+
+  it("checks only one theme for a color used in that theme", () => {
+    expect(hardToReadIn("#f7d000", undefined, "dark")).toEqual([]); // yellow as a Dark color: fine
+    expect(hardToReadIn("#f7d000", undefined, "light")).toEqual(["light"]);
+    expect(hardToReadIn("#141310", undefined, "light")).toEqual([]); // near-black as a Light color: fine
+    expect(hardToReadIn("#141310", undefined, "dark")).toEqual(["dark"]);
+  });
 });
 
 describe("editor styles", () => {
   it("accepts valid styles and lowercases colors", () => {
-    expect(parseEditorStyles({ h1: { size: 40, color: "#9C00F7" }, p: { size: 18 } })).toEqual({
-      h1: { size: 40, color: "#9c00f7" },
+    expect(parseEditorStyles({ h1: { size: 40, light: "#1A2B3C", dark: "#F7D000" }, p: { size: 18 } })).toEqual({
+      h1: { size: 40, light: "#1a2b3c", dark: "#f7d000" },
       p: { size: 18 },
     });
+    expect(parseEditorStyles({ h2: { dark: "#f7d000" } })).toEqual({ h2: { dark: "#f7d000" } });
     expect(parseEditorStyles({})).toEqual({});
+  });
+
+  it("accepts the old single color from an outdated tab, as both themes", () => {
+    expect(parseEditorStyles({ h1: { color: "#9C00F7" } })).toEqual({ h1: { light: "#9c00f7", dark: "#9c00f7" } });
+    // Per-theme colors win over the old one.
+    expect(parseEditorStyles({ h1: { color: "#9c00f7", dark: "#f7d000" } })).toEqual({
+      h1: { light: "#9c00f7", dark: "#f7d000" },
+    });
   });
 
   it.each([
@@ -52,6 +68,8 @@ describe("editor styles", () => {
     [{ p: { size: 16.5 } }],
     [{ p: { color: "purple" } }],
     [{ p: { color: "9c00f7" } }],
+    [{ p: { light: "purple" } }],
+    [{ p: { dark: "f7d000" } }],
     [{ p: { weight: 700 } }],
     [[]],
     [null],
@@ -59,23 +77,35 @@ describe("editor styles", () => {
 
   it("reads stored data leniently", () => {
     expect(readEditorStyles({ h1: { size: 40, color: "bad" }, junk: 1, p: { size: 500 } })).toEqual({ h1: { size: 40 } });
+    expect(readEditorStyles({ h1: { light: "#1a2b3c", dark: "bad" } })).toEqual({ h1: { light: "#1a2b3c" } });
     expect(readEditorStyles(null)).toEqual({});
+  });
+
+  it("reads a color saved before per-theme colors as both themes", () => {
+    expect(readEditorStyles({ h2: { color: "#9c00f7" } })).toEqual({ h2: { light: "#9c00f7", dark: "#9c00f7" } });
+    // Once per-theme colors exist, they win and the old color is ignored.
+    expect(readEditorStyles({ h2: { color: "#9c00f7", dark: "#f7d000" } })).toEqual({ h2: { dark: "#f7d000" } });
   });
 
   it("updates one element and resets by removing the key", () => {
     let s = withElementStyle({}, "h1", { size: 40 });
-    s = withElementStyle(s, "h1", { color: "#9c00f7" });
-    expect(s).toEqual({ h1: { size: 40, color: "#9c00f7" } });
+    s = withElementStyle(s, "h1", { light: "#1a2b3c" });
+    s = withElementStyle(s, "h1", { dark: "#f7d000" });
+    expect(s).toEqual({ h1: { size: 40, light: "#1a2b3c", dark: "#f7d000" } });
     expect(effectiveSize(s, "h1")).toBe(40);
     expect(effectiveSize(s, "h2")).toBe(30);
-    s = withElementStyle(s, "h1", { size: 36, color: undefined }); // back to built-in
+    s = withElementStyle(s, "h1", { dark: undefined }); // one theme back to Automatic
+    expect(s).toEqual({ h1: { size: 40, light: "#1a2b3c" } });
+    s = withElementStyle(s, "h1", { size: 36, light: undefined, dark: undefined }); // back to built-in
     expect(s).toEqual({});
   });
 
   it("produces CSS variables only for changed elements", () => {
-    expect(editorStyleVariables({ h1: { size: 40, color: "#9c00f7" }, p: { size: 18 } })).toEqual({
+    expect(editorStyleVariables({ h1: { size: 40, light: "#1a2b3c", dark: "#f7d000" }, h3: { dark: "#3dd68c" }, p: { size: 18 } })).toEqual({
       "--tb-h1-size": "40px",
-      "--tb-h1-color": "#9c00f7",
+      "--tb-h1-light": "#1a2b3c",
+      "--tb-h1-dark": "#f7d000",
+      "--tb-h3-dark": "#3dd68c",
       "--tb-p-size": "18px",
     });
   });

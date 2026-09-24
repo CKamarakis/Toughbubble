@@ -3,7 +3,13 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { saveEditorStyles, saveSavedColors } from "@/lib/settings/actions";
-import { editorStyleVariables, type EditorStyles } from "@/lib/settings/editor-styles";
+import {
+  editorStyleVariables,
+  withElementStyle,
+  type EditorStyles,
+  type ElementStyle,
+  type StyleElement,
+} from "@/lib/settings/editor-styles";
 import type { UserSettings } from "@/lib/settings/operations";
 import { addSavedColor, removeSavedColor } from "@/lib/settings/saved-colors";
 
@@ -13,11 +19,19 @@ import { addSavedColor, removeSavedColor } from "@/lib/settings/saved-colors";
 
 const SAVE_DELAY_MS = 500;
 
+/**
+ * Describes a change for its Undo message (theme-specific-editor-colors D5):
+ * one message per element property ("all" for a Reset), which remembers the
+ * value from before the first change while it's shown.
+ */
+export type StyleChange = { element: StyleElement; prop: "size" | "light" | "dark" | "all"; label: string };
+
 type Settings = {
   editorStyles: EditorStyles;
   /** CSS custom properties for the editor root. */
   editorVars: React.CSSProperties;
-  setEditorStyles: (next: EditorStyles) => void;
+  /** Saves new styles; with `change`, shows a message with Undo. */
+  setEditorStyles: (next: EditorStyles, change?: StyleChange) => void;
   savedColors: string[];
   addSavedColor: (hex: string) => void;
   removeSavedColor: (hex: string) => void;
@@ -36,6 +50,9 @@ export function SettingsProvider({ initial, children }: { initial: UserSettings;
   const [savedColors, setColors] = useState(initial.savedColors);
   const pending = useRef<EditorStyles | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const latest = useRef(initial.editorStyles);
+  // Value before the first change of each message still showing, by message key.
+  const undoFrom = useRef(new Map<string, ElementStyle | number | string | undefined>());
 
   const flush = useCallback(async () => {
     const next = pending.current;
@@ -45,14 +62,55 @@ export function SettingsProvider({ initial, children }: { initial: UserSettings;
     if (!result.ok) toast.error(result.error);
   }, []);
 
-  const setEditorStyles = useCallback(
+  const save = useCallback(
     (next: EditorStyles) => {
+      latest.current = next;
       setStyles(next);
       pending.current = next;
       if (timer.current) clearTimeout(timer.current);
       timer.current = setTimeout(flush, SAVE_DELAY_MS);
     },
     [flush],
+  );
+
+  const setEditorStyles = useCallback(
+    (next: EditorStyles, change?: StyleChange) => {
+      if (!change) {
+        // A change without a message (Reset all) ends any pending Undo.
+        for (const key of undoFrom.current.keys()) toast.dismiss(key);
+        undoFrom.current.clear();
+        save(next);
+        return;
+      }
+      const { element, prop, label } = change;
+      const key = `style:${element}:${prop}`;
+      const before = latest.current[element];
+      if (!undoFrom.current.has(key)) undoFrom.current.set(key, prop === "all" ? before : before?.[prop]);
+      save(next);
+      const end = () => undoFrom.current.delete(key);
+      toast(label, {
+        id: key,
+        onAutoClose: end,
+        onDismiss: end,
+        action: {
+          label: "Undo",
+          onClick: () => {
+            const previous = undoFrom.current.get(key);
+            end();
+            const current = latest.current;
+            if (prop === "all") {
+              const restored = { ...current };
+              if (previous) restored[element] = previous as ElementStyle;
+              else delete restored[element];
+              save(restored);
+            } else {
+              save(withElementStyle(current, element, { [prop]: previous }));
+            }
+          },
+        },
+      });
+    },
+    [save],
   );
 
   // Don't drop a pending change when leaving the page.

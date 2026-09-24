@@ -29,6 +29,8 @@ export type ColorPickerProps = {
   allowAutomatic?: boolean;
   /** Backgrounds to check readability against; defaults to the page backgrounds. */
   contrastAgainst?: { light: string; dark: string };
+  /** For a color used in one theme only: the warning checks just that theme. */
+  theme?: "light" | "dark";
   /** Accessible name of the trigger, e.g. "Heading 1 color". */
   label: string;
 };
@@ -41,13 +43,14 @@ export function ColorPicker({
   onRemoveSavedColor,
   allowAutomatic = false,
   contrastAgainst = PAGE_BACKGROUNDS,
+  theme,
   label,
 }: ColorPickerProps) {
   const [open, setOpen] = useState(false);
   const [adding, setAdding] = useState(false);
 
   const current = value ? describe(value, savedColors) : "Automatic";
-  const hardIn = value ? hardToReadIn(value, contrastAgainst) : [];
+  const hardIn = value ? hardToReadIn(value, contrastAgainst, theme) : [];
 
   return (
     <Popover
