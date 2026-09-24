@@ -1,6 +1,8 @@
-import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull, min, ne, sql } from "drizzle-orm";
+import { generateKeyBetween, generateNKeysBetween } from "fractional-indexing";
 import type { UserTx } from "@/db/client";
 import { items } from "@/db/schema";
+import { GROUP_KINDS, kindGroup, type KindGroup } from "./order";
 import type { ItemKind, TreeRow } from "./types";
 
 // Database work for the tree, run inside a user transaction (RLS applies).
@@ -14,6 +16,7 @@ const treeColumns = {
   title: items.title,
   icon: items.icon,
   color: items.color,
+  position: items.position,
   createdAt: items.createdAt,
   editedAt: items.editedAt,
 };
@@ -25,6 +28,7 @@ const toRow = (r: {
   title: string;
   icon: string | null;
   color: string | null;
+  position: string;
   createdAt: Date;
   editedAt: Date;
 }): TreeRow => ({ ...r, createdAt: r.createdAt.toISOString(), editedAt: r.editedAt.toISOString() });
@@ -62,8 +66,31 @@ export async function loadStatusRoots(
   }));
 }
 
+const sameParent = (parentId: string | null) => (parentId ? eq(items.parentId, parentId) : isNull(items.parentId));
+
+/**
+ * A position before every active item of `kind`'s group under `parentId`, so
+ * a new or moved item comes first (sidebar-manual-order D3). `except` leaves
+ * out the item being moved.
+ */
+async function topPosition(tx: UserTx, parentId: string | null, kind: ItemKind, except?: string) {
+  const [row] = await tx
+    .select({ first: min(items.position) })
+    .from(items)
+    .where(
+      and(
+        sameParent(parentId),
+        eq(items.status, "active"),
+        inArray(items.kind, GROUP_KINDS[kindGroup(kind)]),
+        except ? ne(items.id, except) : undefined,
+      ),
+    );
+  return row?.first ? generateKeyBetween(null, row.first) : "a0";
+}
+
 export async function createItem(tx: UserTx, kind: ItemKind, parentId: string | null) {
-  const [row] = await tx.insert(items).values({ kind, parentId }).returning({ id: items.id });
+  const position = await topPosition(tx, parentId, kind);
+  const [row] = await tx.insert(items).values({ kind, parentId, position }).returning({ id: items.id });
   return row.id;
 }
 
@@ -106,14 +133,50 @@ export async function convertItem(tx: UserTx, id: string, to: "project" | "folde
   return rows.length > 0;
 }
 
-/** Moves into a container or to the root (null). Tree rules are enforced by triggers. */
+/**
+ * Moves into a container or to the root (null), first in its group there.
+ * Tree rules are enforced by triggers.
+ */
 export async function moveItem(tx: UserTx, id: string, parentId: string | null) {
+  const [item] = await tx.select({ kind: items.kind }).from(items).where(activeItem(id));
+  if (!item) return false;
+  const position = await topPosition(tx, parentId, item.kind, id);
   const rows = await tx
     .update(items)
-    .set({ parentId, editedAt: sql`now()` })
+    .set({ parentId, position, editedAt: sql`now()` })
     .where(activeItem(id))
     .returning({ id: items.id });
   return rows.length > 0;
+}
+
+/**
+ * Rewrites the order of one kind group under one parent (sidebar-manual-order
+ * D2). `orderedIds` must be exactly the group's active items; otherwise
+ * nothing changes and false is returned (the list changed elsewhere). The
+ * whole group gets fresh keys, since untouched groups all share 'a0'.
+ * Reordering isn't an edit, so edited_at stays.
+ */
+export async function reorderGroup(
+  tx: UserTx,
+  parentId: string | null,
+  group: KindGroup,
+  orderedIds: string[],
+): Promise<boolean> {
+  const siblings = await tx
+    .select({ id: items.id })
+    .from(items)
+    .where(and(sameParent(parentId), eq(items.status, "active"), inArray(items.kind, GROUP_KINDS[group])))
+    .for("update");
+  const current = new Set(siblings.map((s) => s.id));
+  const wanted = new Set(orderedIds);
+  if (wanted.size !== orderedIds.length || wanted.size !== current.size || orderedIds.some((id) => !current.has(id))) {
+    return false;
+  }
+  const keys = generateNKeysBetween(null, null, orderedIds.length);
+  for (const [i, id] of orderedIds.entries()) {
+    await tx.update(items).set({ position: keys[i] }).where(eq(items.id, id));
+  }
+  return true;
 }
 
 // Archive and trash change the item and the descendants reached through items

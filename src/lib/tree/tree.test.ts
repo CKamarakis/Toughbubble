@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { ancestorPath, buildTree, displayTitle, revealAncestors } from "./build";
 import { canMoveTo, moveDestinations } from "./destinations";
 import { contentsCompare, sidebarCompare, sortTree, type ContentsSort } from "./order";
+import { canReorderNextTo, groupOf, movedOneStep, reorderedIds } from "./reorder";
 import { searchTree } from "./search";
 import type { ItemKind, TreeNode, TreeRow } from "./types";
 
@@ -15,6 +16,7 @@ function row(kind: ItemKind, title: string, opts: Partial<TreeRow> = {}): TreeRo
     title,
     icon: null,
     color: null,
+    position: "a0",
     createdAt: opts.createdAt ?? `2026-01-${String(n).padStart(2, "0")}T00:00:00.000Z`,
     editedAt: opts.editedAt ?? opts.createdAt ?? `2026-01-${String(n).padStart(2, "0")}T00:00:00.000Z`,
     ...opts,
@@ -57,6 +59,26 @@ describe("buildTree and the sidebar order", () => {
       row("project", "A", { id: "a", createdAt: t }),
     ];
     expect(titles(buildTree(rows))).toEqual(["A", "B", "Old"]);
+  });
+
+  it("orders a rearranged group by position, before creation time", () => {
+    const rows = [
+      row("note", "Newest", { createdAt: "2026-03-03T00:00:00.000Z", position: "a2" }),
+      row("note", "Middle", { createdAt: "2026-03-02T00:00:00.000Z", position: "a0" }),
+      row("note", "Oldest", { createdAt: "2026-03-01T00:00:00.000Z", position: "a1" }),
+      row("folder", "Folder", { position: "a9" }),
+    ];
+    // Kind groups still come first; within the notes, positions win.
+    expect(titles(buildTree(rows))).toEqual(["Folder", "Middle", "Oldest", "Newest"]);
+  });
+
+  it("puts a key below 'a0' (a new item in an untouched group) first", () => {
+    const rows = [
+      row("note", "Old A", { createdAt: "2026-03-02T00:00:00.000Z" }),
+      row("note", "Old B", { createdAt: "2026-03-03T00:00:00.000Z" }),
+      row("note", "New", { createdAt: "2026-03-01T00:00:00.000Z", position: "Zz" }),
+    ];
+    expect(titles(buildTree(rows))).toEqual(["New", "Old B", "Old A"]);
   });
 
   it("nests children and shows orphans at the root", () => {
@@ -197,5 +219,46 @@ describe("revealAncestors", () => {
     expect(revealAncestors(["a", "b"], ["a", "b"])).toBeNull();
     expect(revealAncestors(["a"], [])).toBeNull();
     expect(revealAncestors([], [])).toBeNull();
+  });
+});
+
+describe("reordering helpers", () => {
+  const rows = [
+    row("project", "P", { id: "p" }),
+    row("folder", "F1", { id: "f1", parentId: "p" }),
+    row("folder", "F2", { id: "f2", parentId: "p" }),
+    row("note", "A", { id: "a", parentId: "p", position: "a0" }),
+    row("storm", "B", { id: "b", parentId: "p", position: "a1" }),
+    row("note", "C", { id: "c", parentId: "p", position: "a2" }),
+    row("note", "In F1", { id: "x", parentId: "f1" }),
+  ];
+  const tree = buildTree(rows);
+
+  it("finds an item's group in sidebar order, notes and Storms together", () => {
+    expect(groupOf(tree, "b")).toEqual({ parentId: "p", group: 2, ids: ["a", "b", "c"] });
+    expect(groupOf(tree, "p")).toEqual({ parentId: null, group: 0, ids: ["p"] });
+    expect(groupOf(tree, "missing")).toBeNull();
+  });
+
+  it("only allows places in the same parent and group", () => {
+    expect(canReorderNextTo(tree, "c", "a")).toBe(true);
+    expect(canReorderNextTo(tree, "c", "c")).toBe(false);
+    expect(canReorderNextTo(tree, "c", "f1")).toBe(false); // another group
+    expect(canReorderNextTo(tree, "c", "x")).toBe(false); // another parent
+  });
+
+  it("moves an item above or below another, or reports no change", () => {
+    expect(reorderedIds(["a", "b", "c"], "c", "a", "above")).toEqual(["c", "a", "b"]);
+    expect(reorderedIds(["a", "b", "c"], "a", "c", "below")).toEqual(["b", "c", "a"]);
+    expect(reorderedIds(["a", "b", "c"], "a", "b", "above")).toBeNull(); // already there
+    expect(reorderedIds(["a", "b", "c"], "b", "a", "below")).toBeNull();
+    expect(reorderedIds(["a", "b"], "a", "z", "above")).toBeNull();
+  });
+
+  it("moves one step up or down, not past the ends", () => {
+    expect(movedOneStep(["a", "b", "c"], "b", "up")).toEqual(["b", "a", "c"]);
+    expect(movedOneStep(["a", "b", "c"], "b", "down")).toEqual(["a", "c", "b"]);
+    expect(movedOneStep(["a", "b", "c"], "a", "up")).toBeNull();
+    expect(movedOneStep(["a", "b", "c"], "c", "down")).toBeNull();
   });
 });

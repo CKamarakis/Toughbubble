@@ -8,6 +8,8 @@ export type TreeRow = {
   title: string;
   icon: string | null;
   color: string | null;
+  /** Manual order within the item's kind group (fractional-indexing key; 'a0' until reordered). */
+  position: string;
   createdAt: string;
   editedAt: string;
 };

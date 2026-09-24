@@ -2,7 +2,9 @@
 
 import {
   Archive,
+  ArrowDown,
   ArrowRightLeft,
+  ArrowUp,
   Ellipsis,
   FolderInput,
   Pencil,
@@ -19,6 +21,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { displayTitle } from "@/lib/tree/build";
+import { groupOf, movedOneStep } from "@/lib/tree/reorder";
 import { isContainer, type ItemKind, type TreeRow } from "@/lib/tree/types";
 import { KIND_LABELS } from "./item-icon";
 import { useWorkspace } from "./workspace-context";
@@ -37,6 +40,14 @@ export function ItemMenu({
 }) {
   const ws = useWorkspace();
   const container = isContainer(item.kind);
+  // Keyboard reorder within the item's group (sidebar-manual-order D5).
+  const group = groupOf(ws.tree, item.id);
+  const moveStep = (direction: "up" | "down") => {
+    const ids = group && movedOneStep(group.ids, item.id, direction);
+    if (group && ids) ws.reorder(group.parentId, group.group, ids);
+  };
+  const canMoveUp = !!group && movedOneStep(group.ids, item.id, "up") !== null;
+  const canMoveDown = !!group && movedOneStep(group.ids, item.id, "down") !== null;
   // Rename and Move put focus somewhere else; don't pull it back to the trigger.
   const keepFocusAway = useRef(false);
 
@@ -80,6 +91,14 @@ export function ItemMenu({
         >
           <FolderInput />
           Move to…
+        </DropdownMenuItem>
+        <DropdownMenuItem disabled={!canMoveUp} onClick={() => moveStep("up")}>
+          <ArrowUp />
+          Move up
+        </DropdownMenuItem>
+        <DropdownMenuItem disabled={!canMoveDown} onClick={() => moveStep("down")}>
+          <ArrowDown />
+          Move down
         </DropdownMenuItem>
         {container && (
           <DropdownMenuItem

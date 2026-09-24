@@ -121,16 +121,20 @@ and is blocked from `src/` by a lint rule; it is for migrations, tests, and back
   and folders can contain items; the database enforces that, rejects cycles, and keeps active
   items under active parents (triggers in `drizzle/0003_tree_integrity_triggers.sql`, errors
   mapped to messages in `src/lib/tree/errors.ts`).
-- **Order is computed, not stored.** The sidebar is always projects, folders, then notes and
-  Storms, newest first; project and folder pages sort their contents by the viewer's choice.
-  `position` is kept but unused.
+- **Order within groups is the user's.** The sidebar groups projects, folders, then notes and
+  Storms; within a group items follow `position` (fractional-indexing keys, byte-order
+  collation), then newest first. Untouched groups all hold the default `'a0'`, so they show
+  newest first. Reordering rewrites the whole group's keys (`reorderGroup`); new and moved items
+  get a key before the group's first. Project and folder pages sort their contents by the
+  viewer's choice and ignore `position`.
 - **`edited_at` is set explicitly** by edits (rename, restyle, convert, move) and drives the
   "Last edited" sort. Note content saves set it too (`saveNoteBody`); any new edit path must as well;
   archive, trash, and restore must not.
 - **Archive and Trash** cascade to the whole subtree and record the item acted on in
   `status_root_id`, so restore brings back exactly what went together.
-- **Drag and drop** only moves items into containers or to the top level; "Move to…" is the
-  keyboard alternative.
+- **Drag and drop** only reorders an item within its group (same parent, same kind group), with a
+  line where it will land; "Move up" / "Move down" in the item menu do the same from the
+  keyboard. Moving to another project, folder, or the top level is "Move to…" only.
 
 ## Notes
 

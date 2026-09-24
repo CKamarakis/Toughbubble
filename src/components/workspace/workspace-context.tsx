@@ -13,7 +13,9 @@ import {
 } from "react";
 import { toast } from "sonner";
 import * as actions from "@/lib/tree/actions";
+import { generateNKeysBetween } from "fractional-indexing";
 import { ancestorPath, buildTree, revealAncestors } from "@/lib/tree/build";
+import type { KindGroup } from "@/lib/tree/order";
 import type { ItemKind, TreeNode, TreeRow } from "@/lib/tree/types";
 import { useStoredValue } from "@/lib/use-stored-value";
 
@@ -22,6 +24,7 @@ type Change =
   | { type: "style"; id: string; icon: string | null; color: string | null }
   | { type: "convert"; id: string; to: "project" | "folder" }
   | { type: "move"; id: string; parentId: string | null }
+  | { type: "reorder"; positions: Record<string, string> }
   | { type: "remove"; id: string };
 
 function subtree(rows: TreeRow[], id: string) {
@@ -60,9 +63,13 @@ function applyChange(rows: TreeRow[], change: Change): TreeRow[] {
           : r,
       );
     case "move":
+      // " " sorts before every key, so the item shows first in its group until
+      // the server's position arrives.
       return rows.map((r) =>
-        r.id === change.id ? { ...r, parentId: change.parentId, editedAt: now } : r,
+        r.id === change.id ? { ...r, parentId: change.parentId, position: " ", editedAt: now } : r,
       );
+    case "reorder":
+      return rows.map((r) => (r.id in change.positions ? { ...r, position: change.positions[r.id] } : r));
     case "remove": {
       const gone = subtree(rows, change.id);
       return rows.filter((r) => !gone.has(r.id));
@@ -108,6 +115,8 @@ type Workspace = {
   setStyle: (id: string, icon: string | null, color: string | null) => void;
   convert: (id: string, to: "project" | "folder") => void;
   move: (id: string, parentId: string | null) => void;
+  /** Saves a new order for one kind group under one parent (sidebar-manual-order D2). */
+  reorder: (parentId: string | null, group: KindGroup, orderedIds: string[]) => void;
   archive: (id: string) => void;
   trash: (id: string) => void;
   /** Records a note body save (its new "last edited" time) without a server refresh. */
@@ -147,13 +156,31 @@ export function WorkspaceProvider({
   // Body saves skip the layout refresh (notes design D4), so their edited times
   // are patched in here until the next server render catches up.
   const [touched, setTouched] = useState<Record<string, string>>({});
+  // Positions from saved reorders, kept until the server's rows show them, so
+  // a server render that started before the save can't put the old order back.
+  const [reordered, setReordered] = useState<Record<string, string>>({});
   const rows = useMemo(
     () =>
-      optimisticRows.map((r) =>
-        touched[r.id] && touched[r.id] > r.editedAt ? { ...r, editedAt: touched[r.id] } : r,
-      ),
-    [optimisticRows, touched],
+      optimisticRows.map((r) => {
+        let row = r;
+        if (touched[r.id] && touched[r.id] > r.editedAt) row = { ...row, editedAt: touched[r.id] };
+        if (reordered[r.id] !== undefined) row = { ...row, position: reordered[r.id] };
+        return row;
+      }),
+    [optimisticRows, touched, reordered],
   );
+  // Once new server rows carry a saved position, that override is no longer
+  // needed (adjusted during render, as React recommends for derived state).
+  const [seenServerRows, setSeenServerRows] = useState(serverRows);
+  if (seenServerRows !== serverRows) {
+    setSeenServerRows(serverRows);
+    const caughtUp = serverRows.filter((r) => reordered[r.id] === r.position);
+    if (caughtUp.length > 0) {
+      const next = { ...reordered };
+      for (const r of caughtUp) delete next[r.id];
+      setReordered(next);
+    }
+  }
   const tree = useMemo(() => buildTree(rows), [rows]);
   const currentId = pathname.match(ITEM_PATH)?.[1] ?? null;
 
@@ -243,6 +270,16 @@ export function WorkspaceProvider({
       mutate({ type: "move", id, parentId }, () => actions.moveItem(id, parentId), () => {
         if (parentId) setExpanded(parentId, true);
       }),
+    reorder: (parentId, group, orderedIds) => {
+      // The same keys the server writes, so the optimistic order matches.
+      const keys = generateNKeysBetween(null, null, orderedIds.length);
+      const positions = Object.fromEntries(orderedIds.map((id, i) => [id, keys[i]]));
+      mutate(
+        { type: "reorder", positions },
+        () => actions.reorderItems(parentId, group, orderedIds),
+        () => setReordered((current) => ({ ...current, ...positions })),
+      );
+    },
     archive: (id) => {
       leaveIfRemoved(id);
       mutate({ type: "remove", id }, () => actions.archiveItem(id), () => toast.success("Moved to Archive"));

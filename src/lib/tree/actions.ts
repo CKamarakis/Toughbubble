@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { NOT_FOUND, treeErrorMessage } from "./errors";
 import * as ops from "./operations";
 import { isProjectColor, isProjectIcon } from "./style";
+import type { KindGroup } from "./order";
 import type { ItemKind } from "./types";
 
 export type ActionResult<T = undefined> = { ok: true; value: T } | { ok: false; error: string };
@@ -36,6 +37,28 @@ async function run<T>(
 const invalid = (error = "That request was not valid."): ActionResult<never> => ({ ok: false, error });
 const isId = (v: unknown): v is string => typeof v === "string" && UUID.test(v);
 const isParent = (v: unknown): v is string | null => v === null || isId(v);
+
+const GROUPS = [0, 1, 2] as const;
+const MAX_GROUP = 1000;
+
+/** Saves a new order for one kind group under one parent (sidebar-manual-order D2). */
+export async function reorderItems(parentId: string | null, group: KindGroup, orderedIds: string[]) {
+  if (
+    !isParent(parentId) ||
+    !GROUPS.includes(group) ||
+    !Array.isArray(orderedIds) ||
+    orderedIds.length === 0 ||
+    orderedIds.length > MAX_GROUP ||
+    !orderedIds.every(isId)
+  ) {
+    return invalid();
+  }
+  const result = await run((tx) => ops.reorderGroup(tx, parentId, group, orderedIds));
+  // "Not found" here means the group changed (an item added or removed elsewhere).
+  return result.ok || result.error !== NOT_FOUND
+    ? result
+    : invalid("The list changed in the meantime. Reload and try again.");
+}
 
 export async function createItem(kind: ItemKind, parentId: string | null) {
   if (!KINDS.includes(kind) || !isParent(parentId)) return invalid();

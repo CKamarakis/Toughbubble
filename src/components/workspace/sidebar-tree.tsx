@@ -47,7 +47,7 @@ function TreeItem({
   const renaming = ws.renamingId === node.id;
   const title = displayTitle(node);
   // No dragging while searching (filtered tree) or renaming.
-  const { setRowRef, dragProps, isDragging, isDropTarget } = useTreeRowDnd(
+  const { setRowRef, dragProps, isDragging, dropSide } = useTreeRowDnd(
     node,
     !!forceOpen || renaming,
   );
@@ -64,14 +64,25 @@ function TreeItem({
         ref={setRowRef}
         {...dragProps}
         className={cn(
-          "group/row flex h-7 items-center gap-1 rounded-md pr-1 text-sm hover:bg-sidebar-accent",
+          "group/row relative flex h-7 items-center gap-1 rounded-md pr-1 text-sm hover:bg-sidebar-accent",
           current && "bg-sidebar-accent font-medium",
           isDragging && "opacity-50",
-          isDropTarget && "bg-sidebar-accent ring-2 ring-ring",
         )}
-        data-drop-target={isDropTarget || undefined}
+        data-drop-side={dropSide ?? undefined}
         style={{ paddingLeft: `${depth * 12 + 4}px` }}
       >
+        {dropSide && (
+          // Where a dragged item will land among its siblings.
+          <span
+            aria-hidden
+            data-drop-line
+            className={cn(
+              "pointer-events-none absolute right-1 h-0.5 rounded-full bg-ring",
+              dropSide === "above" ? "-top-px" : "-bottom-px",
+            )}
+            style={{ left: `${depth * 12 + 4}px` }}
+          />
+        )}
         {container ? (
           <button
             type="button"
