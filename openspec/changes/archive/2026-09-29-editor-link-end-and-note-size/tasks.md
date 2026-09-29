@@ -13,4 +13,4 @@
 
 - [x] 3.1 Browser check on a production build: type after a link (plain text), typed "example.com " becomes a link; Ctrl+A then 18, then type on an empty line and in a new paragraph (18 px), a new heading keeps its Settings size, another note unaffected, reload keeps it, Ctrl+A then Default removes it, undo restores it; existing editor checks (links, attachments) still pass; verify all checks pass
 - [x] 3.2 Update the README notes section (links end at their text; a note's own body size) and run lint, unit, and integration tests; verify they pass
-- [ ] 3.3 Push a branch and check the preview; merge to `main` and verify on production that text typed after a link is plain and a note sized with Ctrl+A keeps new text at that size
+- [x] 3.3 Push a branch and check the preview; merge to `main` and verify on production that text typed after a link is plain and a note sized with Ctrl+A keeps new text at that size
