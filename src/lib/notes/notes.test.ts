@@ -1,4 +1,6 @@
+import { getSchema } from "@tiptap/core";
 import { describe, expect, it } from "vitest";
+import { noteExtensions } from "./extensions";
 import { parseFontSize } from "./font-size";
 import { isAllowedHref, normalizeLink } from "./links";
 import { MAX_NOTE_BYTES, validateNoteBody } from "./validate";
@@ -125,5 +127,27 @@ describe("validateNoteBody", () => {
     expect(validateNoteBody({ type: "paragraph" }).ok).toBe(false);
     const huge = { type: "doc", content: [{ type: "paragraph", content: [text("x".repeat(MAX_NOTE_BYTES))] }] };
     expect(validateNoteBody(huge)).toMatchObject({ ok: false, error: expect.stringMatching(/too long/) });
+  });
+});
+
+describe("links end at their text", () => {
+  it("doesn't extend the link mark to text typed after it", () => {
+    const schema = getSchema(noteExtensions());
+    expect(schema.marks.link.spec.inclusive).toBe(false);
+  });
+});
+
+describe("the note's own body size", () => {
+  const body = (bodySize: unknown) => ({ type: "doc", attrs: { bodySize }, content: [{ type: "paragraph" }] });
+
+  it("round-trips a valid size and reads a missing one as null", () => {
+    const ok = validateNoteBody(body("18px"));
+    expect(ok.ok && ok.doc.attrs).toEqual({ bodySize: "18px" });
+    const old = validateNoteBody({ type: "doc", content: [{ type: "paragraph" }] });
+    expect(old.ok && old.doc.attrs).toEqual({ bodySize: null });
+  });
+
+  it.each([["120px"], ["7px"], ["18"], ["18pt"], ["big"], [18]])("rejects %j", (size) => {
+    expect(validateNoteBody(body(size)).ok).toBe(false);
   });
 });

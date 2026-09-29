@@ -144,6 +144,13 @@ and is blocked from `src/` by a lint rule; it is for migrations, tests, and back
 - **Autosave** (`src/lib/notes/autosave.ts`, a pure reducer, plus `use-note-autosave.ts`) saves
   one second after typing stops, on leaving the note, and retries with backoff. The toolbar
   shows the status; closing the tab with unsaved work asks first.
+- **Links end at their text**: the link mark is not inclusive, so typing after a link gives
+  plain text (Tiptap makes it inclusive whenever autolink is on). Typed `https://…` addresses
+  still become links; bare "example.com" doesn't, because the allow-check needs a scheme.
+- **A note's own body size**: sizing with the whole note selected also sets the document
+  attribute `bodySize` (in the body JSON, validated on save), which the editor applies as
+  `--tb-p-size` for paragraphs, lists, and quotes; headings keep their Settings sizes. Default
+  with the whole note selected clears it.
 - **Links** open in a new tab on a plain click (a drag that selects text doesn't). Hovering a
   link, or moving the cursor into it, shows a card with its address and Open, Edit, and Remove
   (`src/components/notes/link-card.tsx`); Tab moves from the link into the card.

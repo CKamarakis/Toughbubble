@@ -81,6 +81,12 @@ export function validateNoteBody(body: unknown): ValidationResult {
     return { ok: false, error: "The note contains content that can't be saved." };
   }
 
+  // The note's own body size (editor-link-end-and-note-size D2).
+  const bodySize: unknown = doc.attrs.bodySize;
+  if (bodySize !== null && (typeof bodySize !== "string" || !/^\d+px$/.test(bodySize) || !parseFontSize(bodySize))) {
+    return { ok: false, error: "The note's text size must be 8–96 px." };
+  }
+
   let problem: string | null = null;
   doc.descendants((node) => {
     if (node.type.name === "image" || node.type.name === "fileAttachment") {

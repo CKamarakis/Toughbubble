@@ -11,6 +11,7 @@ const B = "22222222-2222-4222-8222-222222222222";
 
 const DOC: JSONContent = {
   type: "doc",
+  attrs: { bodySize: null },
   content: [
     { type: "image", attrs: { attachmentId: A, copyOf: null, alt: "Sales chart", width: 300, align: "center" } },
     { type: "fileAttachment", attrs: { attachmentId: B, copyOf: null, name: "report.pdf", mimeType: "application/pdf", size: 1234 } },

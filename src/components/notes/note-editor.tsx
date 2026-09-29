@@ -2,7 +2,7 @@
 
 import type { JSONContent } from "@tiptap/core";
 import { NodeSelection } from "@tiptap/pm/state";
-import { EditorContent, ReactNodeViewRenderer, useEditor } from "@tiptap/react";
+import { EditorContent, ReactNodeViewRenderer, useEditor, useEditorState } from "@tiptap/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { noteExtensions } from "@/lib/notes/extensions";
@@ -103,6 +103,16 @@ export function NoteEditor({ itemId, initial }: { itemId: string; initial: { bod
   });
 
   const autosave = useNoteAutosave(editor, itemId, initial.version);
+  // The note's own body size replaces the Settings paragraph size in this note
+  // (editor-link-end-and-note-size D4). Read from the current state on every
+  // render (the subscription only re-renders on changes, so it would miss the
+  // size a note is loaded with); undo and Load latest update it too.
+  useEditorState({ editor, selector: ({ editor: e }) => (e?.state.doc.attrs.bodySize as string | null) ?? null });
+  const bodySize = (editor?.state.doc.attrs.bodySize as string | null | undefined) ?? null;
+  const editorStyle = useMemo(
+    () => (bodySize ? { ...editorVars, "--tb-p-size": bodySize } : editorVars) as React.CSSProperties,
+    [editorVars, bodySize],
+  );
   const attachFiles = useAttachFiles(editor, store);
   useEffect(() => {
     attachRef.current = (files, at) => void attachFiles(files, at);
@@ -141,7 +151,7 @@ export function NoteEditor({ itemId, initial }: { itemId: string; initial: { bod
             </span>
           </div>
         )}
-        <EditorContent editor={editor} className="tb-editor" style={editorVars} />
+        <EditorContent editor={editor} className="tb-editor" style={editorStyle} />
         {editor && <AttachmentMenu editor={editor} />}
         {editor && <LinkCard editor={editor} hidden={linkOpen} onEdit={() => setLinkOpen(true)} />}
       </div>

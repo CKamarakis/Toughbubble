@@ -17,3 +17,12 @@ export function parseFontSize(input: string | number | null | undefined): number
 }
 
 export const toCssSize = (px: number) => `${px}px`;
+
+/**
+ * Whether a selection covers the whole note (Ctrl+A, or dragging from the very
+ * start to the very end). Sizing it then also sets the note's own body size
+ * (editor-link-end-and-note-size D3).
+ */
+export function coversWholeDoc(selection: { from: number; to: number }, docSize: number) {
+  return selection.from <= 1 && selection.to >= docSize - 1;
+}

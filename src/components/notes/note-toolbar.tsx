@@ -36,7 +36,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { ALIGNMENTS, HEADING_LEVELS } from "@/lib/notes/extensions";
-import { FONT_SIZE_MAX, FONT_SIZE_MIN, FONT_SIZE_PRESETS, parseFontSize, toCssSize } from "@/lib/notes/font-size";
+import {
+  coversWholeDoc,
+  FONT_SIZE_MAX,
+  FONT_SIZE_MIN,
+  FONT_SIZE_PRESETS,
+  parseFontSize,
+  toCssSize,
+} from "@/lib/notes/font-size";
 import { effectiveSize, type StyleElement } from "@/lib/settings/editor-styles";
 import { useSettings } from "@/components/workspace/settings-context";
 import { LinkPopover } from "./link-popover";
@@ -78,6 +85,8 @@ export function NoteToolbar({
       heading: HEADING_LEVELS.find((level) => e.isActive("heading", { level })) ?? 0,
       align: ALIGNMENTS.find((a) => e.isActive({ textAlign: a })) ?? "left",
       fontSize: parseFontSize(e.getAttributes("textStyle").fontSize as string | undefined),
+      bodySize: parseFontSize(e.state.doc.attrs.bodySize as string | null),
+      wholeDoc: coversWholeDoc(e.state.selection, e.state.doc.content.size),
       bold: e.isActive("bold"),
       italic: e.isActive("italic"),
       underline: e.isActive("underline"),
@@ -96,7 +105,16 @@ export function NoteToolbar({
   });
 
   const element: StyleElement = s.heading ? (`h${s.heading}` as StyleElement) : "p";
-  const shownSize = s.fontSize ?? effectiveSize(editorStyles, element);
+  // Body text follows the note's own size when it has one; headings keep Settings.
+  const shownSize = s.fontSize ?? (element === "p" && s.bodySize ? s.bodySize : effectiveSize(editorStyles, element));
+  /** With the whole note selected, sizing also sets (or clears) the note's own body size, in the same undo step. */
+  const withNoteSize = (chain: ReturnType<typeof run>, size: string | null) =>
+    s.wholeDoc
+      ? chain.command(({ tr }) => {
+          tr.setDocAttribute("bodySize", size);
+          return true;
+        })
+      : chain;
   const run = () => editor.chain().focus();
 
   const toolbarRef = useRef<HTMLDivElement>(null);
@@ -174,8 +192,8 @@ export function NoteToolbar({
       <FontSizeControl
         size={shownSize}
         explicit={s.fontSize !== null}
-        onApply={(px) => run().setFontSize(toCssSize(px)).run()}
-        onDefault={() => run().unsetFontSize().run()}
+        onApply={(px) => withNoteSize(run().setFontSize(toCssSize(px)), toCssSize(px)).run()}
+        onDefault={() => withNoteSize(run().unsetFontSize(), null).run()}
       />
       {divider}
       {toggle("Bold", Bold, s.bold, () => run().toggleBold().run(), "Ctrl+B")}
