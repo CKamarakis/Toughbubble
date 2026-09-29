@@ -1,20 +1,30 @@
 # ToughBubble
 
-A personal workspace web app for notes and visual boards ("Storms").
+A personal workspace for notes and visual boards: Notion-style notes and Miro-style canvases
+("Storms") in one place.
 
-> Status: Phase 2 — sign-in, the sidebar tree of projects, folders, notes, and Storms, project
-> and folder pages, the note editor with autosave, and editor settings (element sizes and
-> colors, saved colors). The Storm canvas comes next. See `openspec/changes/` for work in
-> progress.
+> Early days: a work in progress, built in the open.
 
-This repository uses [OpenSpec](https://github.com/Fission-AI/OpenSpec) for spec-driven
-development: requirements are written as plain Markdown and reviewed *before* implementation
-begins, so the specs — not the code — are the source of truth.
+## What it does
+
+- **Notes**: a rich-text editor with headings, lists, checklists, font sizes, colors, links, and
+  images or files dropped right into the page. Everything saves automatically.
+- **Organize**: projects and folders in a sidebar tree; drag to reorder, move items anywhere,
+  archive what's done, and restore from the trash.
+- **Make it yours**: light and dark themes, with your own sizes and colors for text and headings.
+- **Storms** *(coming next)*: an infinite canvas with stickies, text, shapes, and connectors.
 
 ## Stack
 
-Next.js 16 (App Router, TypeScript) · Supabase (Auth, Postgres) · Drizzle ORM · Tailwind CSS +
-shadcn/ui · Vitest · deployed on Vercel.
+Next.js 16 (App Router, TypeScript) · Supabase (Auth, Postgres, Storage) · Drizzle ORM · Tiptap ·
+Tailwind CSS + shadcn/ui · Vitest · deployed on Vercel.
+
+## How it's built
+
+Features are specified before they're coded, with
+[OpenSpec](https://github.com/Fission-AI/OpenSpec): requirements live as plain Markdown in
+`openspec/specs/`, and each change goes through a proposal, design, and tasks before
+implementation. The rest of this README is the developer guide.
 
 ## Layout
 
