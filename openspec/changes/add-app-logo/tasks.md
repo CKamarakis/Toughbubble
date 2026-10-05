@@ -19,8 +19,8 @@
 ## 3. Show the logo
 
 - [x] 3.1 Add an `AppLogo` component that renders both variants with `dark:hidden` / `hidden dark:block`, `alt=""`, `aria-hidden` and `loading="eager"`, plus a `className` for sizing, per D3; verify types and lint pass
-- [x] 3.2 Put the logo above the wordmark in `src/app/(auth)/layout.tsx` as the 120px disc variant, with the wordmark at 32px (not a heading) and a 24px gap, per D4; verify in the browser on sign-in, sign-up and forgot-password in both themes that it is centred above the wordmark, with no layout shift on load
-- [ ] 3.3 Put the logo inside the sidebar home `Link` in `src/components/workspace/sidebar.tsx`, with `h-5 w-auto` and `gap-1.5`, per D4; verify in the browser that it is centred vertically on "ToughBubble", the header row height is unchanged, clicking the logo goes home, and the focus ring wraps logo and name
+- [x] 3.2 Put the logo above the wordmark in `src/app/(auth)/layout.tsx` as the 40px disc variant left of the wordmark (32px, light weight, not a heading), per D4; verify in the browser on sign-in, sign-up and forgot-password in both themes that it is centred vertically on the wordmark, with no layout shift on load
+- [ ] 3.3 Put the logo inside the sidebar home `Link` in `src/components/workspace/sidebar.tsx`, with `h-5 w-auto` and `gap-1.5`, and the name in a light weight, per D4; verify in the browser that it is centred vertically on "ToughBubble", the header row height is unchanged, clicking the logo goes home, and the focus ring wraps logo and name
 
 ## 4. Verification and release
 

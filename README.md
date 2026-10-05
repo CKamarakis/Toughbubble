@@ -45,7 +45,7 @@ implementation. The rest of this README is the developer guide.
 | `src/lib/attachments/` | Note attachments: size and type rules, image scaling before upload, database and Storage operations, Server Actions |
 | `src/lib/settings/` | Editor settings and saved colors: validation, database operations, Server Actions |
 | `src/components/notes/` | Note editor, toolbar, link popover and link card, autosave hook; `attachments/` holds the image and file views, upload flow, and image menu |
-| `src/components/app-logo.tsx` | The logo: light and dark variants swapped by the theme (CSS only), or the black-disc variant used on the auth pages |
+| `src/components/app-logo.tsx` | The logo: light and dark variants swapped by the theme (CSS only), or the black-disc variant beside the wordmark on the auth pages |
 | `src/components/color-picker.tsx` | Reusable color picker (saved colors first, presets, custom colors) |
 | `src/components/workspace/` | Sidebar, tree, item page, contents list, Archive/Trash views, drag and drop |
 | `src/lib/brand/` | Pixel helpers for generating the brand images (crop, de-matte, recolor, .ico packing) |

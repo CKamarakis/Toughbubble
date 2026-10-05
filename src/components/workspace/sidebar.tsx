@@ -37,7 +37,7 @@ export function Sidebar() {
   return (
     <div className="flex h-full flex-col gap-3 bg-sidebar p-3 text-sidebar-foreground">
       <div className="flex items-center justify-between gap-2 px-1">
-        <Link href="/" className="flex items-center gap-1.5 font-semibold text-highlight-text">
+        <Link href="/" className="flex items-center gap-1.5 font-light text-highlight-text">
           <AppLogo className="h-5 w-auto" />
           ToughBubble
         </Link>

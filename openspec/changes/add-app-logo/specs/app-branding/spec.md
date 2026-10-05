@@ -7,11 +7,11 @@ Gives ToughBubble a visible identity: where its logo appears in the app, how the
 ## ADDED Requirements
 
 ### Requirement: Logo on the auth pages
-The sign-in, sign-up, and forgot-password pages SHALL show the ToughBubble logo on its black disc, about 120px tall, centred above the "ToughBubble" wordmark with about 24px between them. The wordmark SHALL be about 32px and SHALL NOT be a heading: each page keeps its own level-1 heading naming the task (for example "Sign in").
+The sign-in, sign-up, and forgot-password pages SHALL show the ToughBubble logo on its black disc to the left of the "ToughBubble" wordmark, sized to the wordmark (about 40px) and centred vertically on it. The wordmark SHALL be about 32px in a light (300) weight and SHALL NOT be a heading: each page keeps its own level-1 heading naming the task (for example "Sign in").
 
 #### Scenario: Signed-out visitor opens sign-in
 - **WHEN** a signed-out visitor opens the sign-in page
-- **THEN** the disc logo is shown above the "ToughBubble" wordmark, centred on the same axis as the form card, and reads clearly in both the light and dark themes
+- **THEN** the disc logo is shown left of the "ToughBubble" wordmark, the pair centred above the form card, and reads clearly in both the light and dark themes
 
 #### Scenario: Other auth pages
 - **WHEN** a visitor opens the sign-up or forgot-password page
@@ -22,7 +22,7 @@ The sign-in, sign-up, and forgot-password pages SHALL show the ToughBubble logo 
 - **THEN** they land on "Sign in", not on the wordmark
 
 ### Requirement: Logo in the sidebar header
-The workspace sidebar header SHALL show the logo to the left of the "ToughBubble" name, no taller than the name's line height and centred vertically on it. Logo and name SHALL form one link to the workspace home.
+The workspace sidebar header SHALL show the logo to the left of the "ToughBubble" name (in a light, 300 weight), no taller than the name's line height and centred vertically on it. Logo and name SHALL form one link to the workspace home.
 
 #### Scenario: Logo aligns with the name
 - **WHEN** a signed-in user views the sidebar

@@ -6,8 +6,8 @@ ToughBubble now has a logo, but the app still shows a text-only wordmark and the
 
 ## What Changes
 
-- Add the logo on its black disc above the "ToughBubble" wordmark on the auth pages (sign-in, sign-up, forgot password), at about 120px, with the wordmark enlarged to 32px.
-- Add the logo without the disc to the left of the "ToughBubble" name in the sidebar header. It is sized to the text's line height and centred vertically, and it is part of the same home link.
+- Add the logo on its black disc to the left of the "ToughBubble" wordmark on the auth pages (sign-in, sign-up, forgot password), sized to the wordmark, which becomes 32px in a light weight.
+- Add the logo without the disc, and the same light weight, to the left of the "ToughBubble" name in the sidebar header. It is sized to the text's line height and centred vertically, and it is part of the same home link.
 - Ship two variants of that logo. Its connector lines are pure white, so they disappear on light backgrounds:
   - dark theme: white lines (as drawn)
   - light theme: lines recoloured to the text colour `#333129`
