@@ -1,3 +1,10 @@
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="public/brand/logo-dark.png">
+    <img src="public/brand/logo-light.png" alt="ToughBubble logo" height="120">
+  </picture>
+</p>
+
 # ToughBubble
 
 A personal workspace for notes and visual boards: Notion-style notes and Miro-style canvases
@@ -38,11 +45,14 @@ implementation. The rest of this README is the developer guide.
 | `src/lib/attachments/` | Note attachments: size and type rules, image scaling before upload, database and Storage operations, Server Actions |
 | `src/lib/settings/` | Editor settings and saved colors: validation, database operations, Server Actions |
 | `src/components/notes/` | Note editor, toolbar, link popover and link card, autosave hook; `attachments/` holds the image and file views, upload flow, and image menu |
+| `src/components/app-logo.tsx` | The logo, light and dark variants swapped by the theme (CSS only) |
 | `src/components/color-picker.tsx` | Reusable color picker (saved colors first, presets, custom colors) |
 | `src/components/workspace/` | Sidebar, tree, item page, contents list, Archive/Trash views, drag and drop |
+| `src/lib/brand/` | Pixel helpers for generating the brand images (crop, de-matte, recolor, .ico packing) |
 | `src/lib/` | Auth actions, routing rules, Supabase clients |
 | `drizzle/` | SQL migrations (generated, committed; applied by the Vercel build) |
-| `scripts/` | `migrate-on-deploy.mjs`: runs migrations during Vercel builds |
+| `scripts/` | `migrate-on-deploy.mjs`: runs migrations during Vercel builds; `generate-brand-assets.mts`: builds the logo and app icons |
+| `src/toughbubble_assets/` | Logo masters (1024px PNGs); every image in `public/brand/` and the `src/app` icons is generated from these |
 | `tests/integration/` | Tests against the dev database (row-level security, Storage policies, integrity, cascades) |
 | `openspec/specs/` | Current requirements, written as concrete scenarios |
 | `openspec/changes/` | In-flight change proposals (proposal, design, tasks) |
@@ -117,6 +127,7 @@ Requires [Node.js](https://nodejs.org/) 24+ and npm.
 | `npm run test:integration` | Tests against the dev database. Creates and deletes throwaway users; refuses to run unless `APP_ENV=development` |
 | `npm run db:generate` | Generate a migration from changes to `src/db/schema.ts` |
 | `npm run db:migrate` | Apply pending migrations to the database in `DATABASE_ADMIN_URL` |
+| `npm run brand:generate` | Regenerate `public/brand/logo-{light,dark}.png`, `src/app/favicon.ico`, `icon.png`, and `apple-icon.png` from the masters in `src/toughbubble_assets/`. Commit the outputs; never edit them by hand |
 
 ## Database access
 

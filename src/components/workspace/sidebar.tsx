@@ -4,6 +4,7 @@ import { Archive, Search, Settings, Trash2, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useMemo, useState } from "react";
+import { AppLogo } from "@/components/app-logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -36,7 +37,8 @@ export function Sidebar() {
   return (
     <div className="flex h-full flex-col gap-3 bg-sidebar p-3 text-sidebar-foreground">
       <div className="flex items-center justify-between gap-2 px-1">
-        <Link href="/" className="font-semibold text-highlight-text">
+        <Link href="/" className="flex items-center gap-1.5 font-semibold text-highlight-text">
+          <AppLogo className="h-5 w-auto" />
           ToughBubble
         </Link>
         <NewItemMenu round />
