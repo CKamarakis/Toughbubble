@@ -7,15 +7,19 @@ Gives ToughBubble a visible identity: where its logo appears in the app, how the
 ## ADDED Requirements
 
 ### Requirement: Logo on the auth pages
-The sign-in, sign-up, and forgot-password pages SHALL show the ToughBubble logo centred directly above the "ToughBubble" wordmark, with the logo's box about 200px tall.
+The sign-in, sign-up, and forgot-password pages SHALL show the ToughBubble logo on its black disc, about 120px tall, centred above the "ToughBubble" wordmark with about 24px between them. The wordmark SHALL be about 32px and SHALL NOT be a heading: each page keeps its own level-1 heading naming the task (for example "Sign in").
 
 #### Scenario: Signed-out visitor opens sign-in
 - **WHEN** a signed-out visitor opens the sign-in page
-- **THEN** the logo is shown above the "ToughBubble" wordmark, centred on the same axis as the form card
+- **THEN** the disc logo is shown above the "ToughBubble" wordmark, centred on the same axis as the form card, and reads clearly in both the light and dark themes
 
 #### Scenario: Other auth pages
 - **WHEN** a visitor opens the sign-up or forgot-password page
 - **THEN** the same logo appears in the same position as on sign-in
+
+#### Scenario: Page heading
+- **WHEN** a screen-reader user jumps to the first heading on the sign-in page
+- **THEN** they land on "Sign in", not on the wordmark
 
 ### Requirement: Logo in the sidebar header
 The workspace sidebar header SHALL show the logo to the left of the "ToughBubble" name, no taller than the name's line height and centred vertically on it. Logo and name SHALL form one link to the workspace home.
@@ -29,7 +33,7 @@ The workspace sidebar header SHALL show the logo to the left of the "ToughBubble
 - **THEN** the app navigates to the workspace home, just as clicking the name does
 
 ### Requirement: Logo adapts to the theme
-The in-app logo's connector lines SHALL be light in the dark theme and dark in the light theme, so the dots stay visibly connected on either background. The correct variant SHALL be shown from first paint, with no flash of the other variant, including right after the user switches theme.
+The sidebar logo's connector lines SHALL be light in the dark theme and dark in the light theme, so the dots stay visibly connected on either background. The correct variant SHALL be shown from first paint, with no flash of the other variant, including right after the user switches theme.
 
 #### Scenario: Light theme
 - **WHEN** the app renders in the light theme

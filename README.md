@@ -45,7 +45,7 @@ implementation. The rest of this README is the developer guide.
 | `src/lib/attachments/` | Note attachments: size and type rules, image scaling before upload, database and Storage operations, Server Actions |
 | `src/lib/settings/` | Editor settings and saved colors: validation, database operations, Server Actions |
 | `src/components/notes/` | Note editor, toolbar, link popover and link card, autosave hook; `attachments/` holds the image and file views, upload flow, and image menu |
-| `src/components/app-logo.tsx` | The logo, light and dark variants swapped by the theme (CSS only) |
+| `src/components/app-logo.tsx` | The logo: light and dark variants swapped by the theme (CSS only), or the black-disc variant used on the auth pages |
 | `src/components/color-picker.tsx` | Reusable color picker (saved colors first, presets, custom colors) |
 | `src/components/workspace/` | Sidebar, tree, item page, contents list, Archive/Trash views, drag and drop |
 | `src/lib/brand/` | Pixel helpers for generating the brand images (crop, de-matte, recolor, .ico packing) |
@@ -127,7 +127,7 @@ Requires [Node.js](https://nodejs.org/) 24+ and npm.
 | `npm run test:integration` | Tests against the dev database. Creates and deletes throwaway users; refuses to run unless `APP_ENV=development` |
 | `npm run db:generate` | Generate a migration from changes to `src/db/schema.ts` |
 | `npm run db:migrate` | Apply pending migrations to the database in `DATABASE_ADMIN_URL` |
-| `npm run brand:generate` | Regenerate `public/brand/logo-{light,dark}.png`, `src/app/favicon.ico`, `icon.png`, and `apple-icon.png` from the masters in `src/toughbubble_assets/`. Commit the outputs; never edit them by hand |
+| `npm run brand:generate` | Regenerate `public/brand/logo-{light,dark,disc}.png`, `src/app/favicon.ico`, `icon.png`, and `apple-icon.png` from the masters in `src/toughbubble_assets/`. Commit the outputs; never edit them by hand |
 
 ## Database access
 

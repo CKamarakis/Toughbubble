@@ -46,7 +46,8 @@ The palette is sampled from the master's solid interiors rather than hard-coded,
 
 ### D2. Crop to the artwork plus a small even margin
 Trim to the alpha bounding box, then pad to a fixed aspect ratio with about 4% margin so no shape touches the edge. Export:
-- `public/brand/logo-light.png` and `public/brand/logo-dark.png`, about 400px tall (2× the 200px display, so it stays sharp on HiDPI screens).
+- `public/brand/logo-light.png` and `public/brand/logo-dark.png`, about 400px tall, ample for the sidebar on any screen.
+- `public/brand/logo-disc.png`: the disc logo at 240px (2× the 120px auth-page display).
 
 The sidebar uses the same files scaled down. A dedicated 40px export is unnecessary at this file size.
 
@@ -63,7 +64,7 @@ Both load eagerly so switching theme doesn't leave a blank gap while the second 
 - CSS `filter: invert()`: it would invert the brand colours too.
 
 ### D4. Sizing at each mount point
-- **Auth page:** `h-[200px] w-auto`, placed above the wordmark in the existing `gap-6` column.
+- **Auth page:** the disc variant (`AppLogo disc`) at `size-[120px]`, grouped with the wordmark in a `gap-6` column (24px). The black disc reads in both themes, so this page needs no light/dark swap. The wordmark is `text-[32px]` but stays a `<p>`: each auth page already has an `h1` naming its task, and one `h1` per page keeps the heading outline about the task, not the brand.
 - **Sidebar:** `h-5 w-auto` (20px, inside the 24px line box) with `gap-1.5`, placed inside the existing `Link` so the click target and focus ring cover both. `items-center` on the link centres it vertically. 20px matches the font's visual height (cap height plus descender) without growing the row. Nudge to `h-[18px]` if it looks heavy during the visual check.
 
 ### D5. App icons from the disc masters

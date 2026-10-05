@@ -3,6 +3,7 @@
 //
 //   public/brand/logo-dark.png   logo without the disc, white lines (dark theme)
 //   public/brand/logo-light.png  same, lines in the light theme's text color
+//   public/brand/logo-disc.png   disc logo, 240 (2x the 120px on the auth pages)
 //   src/app/favicon.ico          disc logo, 16/32/48
 //   src/app/icon.png             disc logo, 512
 //   src/app/apple-icon.png       disc on its black square, 180
@@ -25,8 +26,9 @@ const LOGO = `${MASTERS}/toughbubble-logo-no-circle-transparent-1024.png`;
 const DISC = `${MASTERS}/toughbubble-logo-transparent.png`;
 const DISC_ON_BLACK = `${MASTERS}/toughbubble-logo-black.png`;
 
-const LOGO_HEIGHT = 400; // 2x the 200px shown on the auth pages
+const LOGO_HEIGHT = 400; // ample for the 20px sidebar logo on any screen
 const LOGO_MARGIN = 0.04;
+const DISC_SIZE = 240; // 2x the 120px shown on the auth pages
 const LIGHT_LINE = hexToRgb("#333129"); // --foreground in the light theme
 const WHITE = [255, 255, 255] as const;
 
@@ -55,10 +57,12 @@ async function main() {
     await encode(img).resize({ height: LOGO_HEIGHT }).png().toFile(`public/brand/logo-${theme}.png`);
   }
 
-  // App icons: the disc fills the whole icon.
+  // Disc logo (auth pages and app icons): the disc fills the whole image.
   const disc = await load(DISC);
   const discBox = alphaBoundingBox(disc)!;
   const discOnly = cropWithMargin(disc, discBox, 0);
+  await writeFile("public/brand/logo-disc.png", await squarePng(discOnly, DISC_SIZE));
+
   const sizes = [16, 32, 48];
   const pngs = await Promise.all(sizes.map((size) => squarePng(discOnly, size)));
   await writeFile("src/app/favicon.ico", packIco(sizes.map((size, i) => ({ size, png: pngs[i] }))));
