@@ -20,15 +20,15 @@
 
 - [x] 3.1 Add an `AppLogo` component that renders both variants with `dark:hidden` / `hidden dark:block`, `alt=""`, `aria-hidden` and `loading="eager"`, plus a `className` for sizing, per D3; verify types and lint pass
 - [x] 3.2 Put the logo above the wordmark in `src/app/(auth)/layout.tsx` as the 40px disc variant left of the wordmark (32px, light weight, not a heading), per D4; verify in the browser on sign-in, sign-up and forgot-password in both themes that it is centred vertically on the wordmark, with no layout shift on load
-- [ ] 3.3 Put the logo inside the sidebar home `Link` in `src/components/workspace/sidebar.tsx`, with `h-5 w-auto` and `gap-1.5`, and the name in a light weight, per D4; verify in the browser that it is centred vertically on "ToughBubble", the header row height is unchanged, clicking the logo goes home, and the focus ring wraps logo and name
+- [x] 3.3 Put the logo inside the sidebar home `Link` in `src/components/workspace/sidebar.tsx`, with `h-5 w-auto` and `gap-1.5`, and the name in a light weight, per D4; verify in the browser that it is centred vertically on "ToughBubble", the header row height is unchanged, clicking the logo goes home, and the focus ring wraps logo and name
 
 ## 4. Verification and release
 
-- [ ] 4.1 Browser check on a production build (`next build && next start`):
+- [x] 4.1 Browser check on a production build (`next build && next start`):
   - switching Light, Dark and System swaps the logo instantly, with no flash on reload in either theme
   - signed out, `/favicon.ico`, the `icon` and the `apple-icon` load with no redirect, and `<head>` has the `icon` and `apple-touch-icon` links
   - the tab shows the disc icon on both a light and a dark browser theme
   - a screen reader or the accessibility tree reads the sidebar link as just "ToughBubble"
   Verify all checks pass
 - [x] 4.2 Update the README: add the logo to the product intro, and add a short dev note that brand images are generated from `src/toughbubble_assets/` with `npm run brand:generate` (never edited by hand). Run lint and unit tests; verify they pass
-- [ ] 4.3 Push a branch and check the Vercel preview; merge to `main` and verify on production that the logo shows on sign-in and in the sidebar, and the tab shows the new favicon
+- [x] 4.3 Push a branch and check the Vercel preview; merge to `main` and verify on production that the logo shows on sign-in and in the sidebar, and the tab shows the new favicon (Done by pushing straight to `main` at the user's request, without a branch or preview; Vercel deploy confirmed and the user checked the live site.)
