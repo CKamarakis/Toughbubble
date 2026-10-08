@@ -26,11 +26,9 @@ import {
 import { cn } from "@/lib/utils";
 import { displayTitle } from "@/lib/tree/build";
 import { groupOf, movedOneStep } from "@/lib/tree/reorder";
-import { isContainer, type ItemKind, type TreeRow } from "@/lib/tree/types";
-import { ItemIcon, KIND_LABELS } from "./item-icon";
+import { isContainer, type TreeRow } from "@/lib/tree/types";
+import { CREATE_ORDER, ItemIcon, KIND_LABELS } from "./item-icon";
 import { useWorkspace } from "./workspace-context";
-
-const CREATE_ORDER: ItemKind[] = ["note", "storm", "folder", "project"];
 
 /**
  * "⋯" menu for an item row. `onRename` starts inline rename where the menu

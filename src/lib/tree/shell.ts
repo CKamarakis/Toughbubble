@@ -33,3 +33,17 @@ export function topBarTitle(pathname: string, rows: TreeRow[]) {
   }
   return PAGE_NAMES[pathname] ?? "ToughBubble";
 }
+
+const MAX_TITLE = 40;
+
+/**
+ * The archive or trash confirmation, naming the item (shell-hardening 6.3):
+ * `"Budget" moved to Archive`. Long titles are shortened.
+ */
+export function removedMessage(rows: TreeRow[], id: string, place: "Archive" | "Trash") {
+  const row = rows.find((r) => r.id === id);
+  if (!row) return `Moved to ${place}`;
+  const title = displayTitle(row);
+  const short = title.length > MAX_TITLE ? `${title.slice(0, MAX_TITLE - 1).trimEnd()}…` : title;
+  return `"${short}" moved to ${place}`;
+}

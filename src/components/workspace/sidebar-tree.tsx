@@ -25,7 +25,7 @@ export function SidebarTree({
   forceOpen?: Set<string>;
 }) {
   return (
-    <ul role="tree" aria-label="Workspace" className="flex flex-col gap-px">
+    <ul aria-label="Workspace" className="flex flex-col gap-px">
       {nodes.map((node) => (
         <TreeItem key={node.id} node={node} depth={0} forceOpen={forceOpen} />
       ))}
@@ -69,10 +69,6 @@ function TreeItem({
 
   return (
     <li
-      role="treeitem"
-      aria-level={depth + 1}
-      aria-expanded={container ? open : undefined}
-      aria-selected={current}
       data-item-id={node.id}
     >
       <div
@@ -169,7 +165,7 @@ function TreeItem({
       </div>
 
       {open && (
-        <ul role="group" className="flex flex-col gap-px">
+        <ul className="flex flex-col gap-px">
           {node.children.length === 0 ? (
             <li
               className="h-6 text-xs leading-6 text-muted-foreground"

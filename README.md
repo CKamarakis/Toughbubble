@@ -153,18 +153,21 @@ and is blocked from `src/` by a lint rule; it is for migrations, tests, and back
   archive, trash, and restore must not.
 - **Archive and Trash** cascade to the whole subtree and record the item acted on in
   `status_root_id`, so restore brings back exactly what went together. The confirmation toast
-  offers Undo, which is a plain `restoreItem` (shown only after the save succeeded, so it can't
+  names the item (`removedMessage`) and offers Undo, which is a plain `restoreItem` (shown only after the save succeeded, so it can't
   race it) and reopens the page the removal left (`undoReturnTarget` in `src/lib/tree/shell.ts`).
 - **Drag and drop** only reorders an item within its group (same parent, same kind group), with a
   line where it will land; Reorder > "Move up" / "Move down" in the item menu do the same from the
   keyboard. Moving to another project, folder, or the top level is "Move to…" only. Only mouse
   and pen drag (`MouseSensor` plus a pen-only `PointerSensor`); touch never drags, so swipes
   scroll the sidebar.
-- **Touch screens** (`pointer-coarse:`) get 40px rows with the "⋯" button always shown, and a
+- **Touch screens** (`pointer-coarse:`) get 40px rows with the "⋯" button always shown, 44px
+  targets for the top bar and panel header buttons, and a
   long press on a row opens its menu once the finger lifts (`use-long-press.ts`; opening it
   mid-press would be closed again by the release's click).
 - **Below 768px** the sidebar is a Base UI dialog side panel (focus trap, Escape, close button,
   page inert), opened from a top bar that names the open item or page (`topBarTitle`).
+- **The sidebar list is a plain list**, not an ARIA tree: arrow-key tree navigation isn't offered,
+  so it doesn't claim it. Every New menu uses `CREATE_ORDER` (Note, Storm, Folder, Project).
 - **Dates** (`FormatDate`) render only in the browser, in its locale: the server's locale can
   differ, and hydration would keep the server's text.
 

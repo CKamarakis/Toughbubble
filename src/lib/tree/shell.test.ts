@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { topBarTitle, undoReturnTarget } from "./shell";
+import { removedMessage, topBarTitle, undoReturnTarget } from "./shell";
+import { displayTitle } from "./build";
 import type { ItemKind, TreeRow } from "./types";
 
 const P = "00000000-0000-4000-8000-000000000001";
@@ -60,5 +61,25 @@ describe("topBarTitle", () => {
 
   it("falls back to the app name for an item not in the active tree", () => {
     expect(topBarTitle("/items/00000000-0000-4000-8000-0000000000ff", rows)).toBe("ToughBubble");
+  });
+});
+
+describe("removedMessage", () => {
+  it("names the item and the place", () => {
+    expect(removedMessage(rows, OTHER, "Archive")).toBe('"Budget" moved to Archive');
+    expect(removedMessage(rows, F, "Trash")).toBe('"Kitchen" moved to Trash');
+  });
+
+  it("uses the default title for an untitled item", () => {
+    expect(removedMessage(rows, N, "Archive")).toBe(`"${displayTitle(rows[2])}" moved to Archive`);
+  });
+
+  it("shortens long titles", () => {
+    const long = [row(OTHER, "note", "A very long note title that keeps going and going")];
+    expect(removedMessage(long, OTHER, "Trash")).toBe('"A very long note title that keeps going…" moved to Trash');
+  });
+
+  it("falls back to a plain message for an unknown item", () => {
+    expect(removedMessage(rows, "00000000-0000-4000-8000-0000000000ff", "Trash")).toBe("Moved to Trash");
   });
 });

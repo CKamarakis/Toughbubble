@@ -50,7 +50,7 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
         <div className="flex min-w-0 flex-1 flex-col">
           <div className="flex items-center gap-1 border-b px-2 py-1 md:hidden">
             <DialogPrimitive.Trigger
-              render={<Button variant="ghost" size="icon-sm" aria-label="Open sidebar" />}
+              render={<Button variant="ghost" size="icon-sm" aria-label="Open sidebar" className="pointer-coarse:size-11" />}
             >
               <PanelLeft />
             </DialogPrimitive.Trigger>
@@ -69,7 +69,7 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
             <Sidebar
               closeButton={
                 <DialogPrimitive.Close
-                  render={<Button variant="ghost" size="icon-sm" aria-label="Close sidebar" />}
+                  render={<Button variant="ghost" size="icon-sm" aria-label="Close sidebar" className="pointer-coarse:size-11" />}
                 >
                   <X />
                 </DialogPrimitive.Close>

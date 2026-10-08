@@ -8,11 +8,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import type { ItemKind } from "@/lib/tree/types";
-import { ItemIcon, KIND_LABELS } from "./item-icon";
+import { CREATE_ORDER, ItemIcon, KIND_LABELS } from "./item-icon";
 import { useWorkspace } from "./workspace-context";
-
-const KINDS: ItemKind[] = ["project", "folder", "note", "storm"];
 
 /**
  * "New" menu creating an item at the root level. `round` is the compact
@@ -34,7 +31,9 @@ export function NewItemMenu({
       aria-label={label}
       title={label}
       disabled={ws.creating}
-      className="flex size-7 items-center justify-center rounded-full bg-warm-950 text-brand-yellow ring-1 ring-warm-700 transition-transform hover:scale-105 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:opacity-50"
+      // On touch screens an invisible ::after grows the target to 44px while
+      // the circle keeps its size.
+      className="relative flex size-7 items-center justify-center rounded-full bg-warm-950 text-brand-yellow ring-1 ring-warm-700 transition-transform hover:scale-105 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:opacity-50 pointer-coarse:after:absolute pointer-coarse:after:-inset-2 pointer-coarse:after:content-['']"
     />
   ) : (
     <Button size={size} disabled={ws.creating} />
@@ -47,7 +46,7 @@ export function NewItemMenu({
         {!round && label}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-44">
-        {KINDS.map((kind) => (
+        {CREATE_ORDER.map((kind) => (
           <DropdownMenuItem key={kind} onClick={() => ws.create(kind, null)}>
             <ItemIcon item={{ kind }} />
             {KIND_LABELS[kind]}

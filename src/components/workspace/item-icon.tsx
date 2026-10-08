@@ -50,6 +50,9 @@ const KIND_ICONS: Record<ItemKind, LucideIcon> = {
   storm: Shapes,
 };
 
+/** The order every New menu lists the kinds in (shell-hardening 6.1). */
+export const CREATE_ORDER: ItemKind[] = ["note", "storm", "folder", "project"];
+
 export const KIND_LABELS: Record<ItemKind, string> = {
   project: "Project",
   folder: "Folder",

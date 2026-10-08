@@ -3,7 +3,11 @@
 ## ADDED Requirements
 
 ### Requirement: Small-screen sidebar
-Below the medium breakpoint (768px) the sidebar SHALL be hidden behind an open button in a top bar, and SHALL open as a modal panel over the page. While open: focus SHALL move into the panel and stay within it, the page behind SHALL NOT be reachable by keyboard or screen reader, and the panel SHALL be announced as a dialog named "Sidebar". The panel SHALL close with Escape, with a visible close button, by tapping outside it, and when the user opens an item. On close, focus SHALL return to the open button. The top bar SHALL show, next to the open button, the title of the open item, or the page's name (Home, Archive, Trash, Settings) when no item is open.
+Below the medium breakpoint (768px) the sidebar SHALL be hidden behind an open button in a top bar, and SHALL open as a modal panel over the page. While open: focus SHALL move into the panel and stay within it, the page behind SHALL NOT be reachable by keyboard or screen reader, and the panel SHALL be announced as a dialog named "Sidebar". The panel SHALL close with Escape, with a visible close button, by tapping outside it, and when the user opens an item. On close, focus SHALL return to the open button. The top bar SHALL show, next to the open button, the title of the open item, or the page's name (Home, Archive, Trash, Settings) when no item is open. On touch screens the open button and the panel's header buttons (New and close) SHALL be at least 44px square, with at least 8px between neighbouring buttons.
+
+#### Scenario: Thumb-sized header buttons
+- **WHEN** a user opens the sidebar on a phone
+- **THEN** the open button, New and close are each at least 44px square and New and close are at least 8px apart
 
 #### Scenario: Close with Escape
 - **WHEN** a user on a 390px-wide screen opens the sidebar and presses Escape
@@ -80,7 +84,7 @@ Every date shown in the workspace (contents view, Archive view, Trash view) SHAL
 ## MODIFIED Requirements
 
 ### Requirement: Create items
-A user SHALL be able to create a project, folder, note, or Storm at the root level or inside a project or folder. A new item SHALL appear at the top of its kind's group, get a default title for its kind, be selected, and have its title ready to edit. The New buttons SHALL stay available while another change (such as a rename, move, or archive) is saving.
+A user SHALL be able to create a project, folder, note, or Storm at the root level or inside a project or folder. A new item SHALL appear at the top of its kind's group, get a default title for its kind, be selected, and have its title ready to edit. The New buttons SHALL stay available while another change (such as a rename, move, or archive) is saving. Every New menu SHALL list the kinds in the same order: Note, Storm, Folder, Project.
 
 #### Scenario: Create at the root
 - **WHEN** a user chooses New > Project from the sidebar
@@ -89,6 +93,10 @@ A user SHALL be able to create a project, folder, note, or Storm at the root lev
 #### Scenario: Create inside a container
 - **WHEN** a user chooses New inside > Note from a folder's menu
 - **THEN** a note appears first among the notes and Storms inside that folder, the folder expands, and the note opens
+
+#### Scenario: Same order in every New menu
+- **WHEN** a user opens the sidebar New menu and a folder's New inside submenu
+- **THEN** both list Note, Storm, Folder, Project in that order
 
 #### Scenario: Notes and Storms cannot contain items
 - **WHEN** a user opens the menu of a note or a Storm

@@ -15,7 +15,7 @@ import { toast } from "sonner";
 import * as actions from "@/lib/tree/actions";
 import { generateNKeysBetween } from "fractional-indexing";
 import { ancestorPath, buildTree, revealAncestors } from "@/lib/tree/build";
-import { undoReturnTarget } from "@/lib/tree/shell";
+import { removedMessage, undoReturnTarget } from "@/lib/tree/shell";
 import type { KindGroup } from "@/lib/tree/order";
 import type { ItemKind, TreeNode, TreeRow } from "@/lib/tree/types";
 import { useStoredValue } from "@/lib/use-stored-value";
@@ -315,8 +315,8 @@ export function WorkspaceProvider({
         () => setReordered((current) => ({ ...current, ...positions })),
       );
     },
-    archive: (id) => removeWithUndo(id, () => actions.archiveItem(id), "Moved to Archive"),
-    trash: (id) => removeWithUndo(id, () => actions.trashItem(id), "Moved to Trash"),
+    archive: (id) => removeWithUndo(id, () => actions.archiveItem(id), removedMessage(rows, id, "Archive")),
+    trash: (id) => removeWithUndo(id, () => actions.trashItem(id), removedMessage(rows, id, "Trash")),
     touch: (id, editedAt) => setTouched((prev) => ({ ...prev, [id]: editedAt })),
   };
 

@@ -42,7 +42,8 @@ export function Sidebar({ closeButton }: { closeButton?: React.ReactNode }) {
           <AppLogo className="h-5 w-auto" />
           ToughBubble
         </Link>
-        <div className="flex items-center gap-1">
+        {/* On touch screens New and close get 44px targets, 8px apart. */}
+        <div className="flex items-center gap-1 pointer-coarse:gap-4">
           <NewItemMenu round />
           {closeButton}
         </div>

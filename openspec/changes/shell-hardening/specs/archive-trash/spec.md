@@ -3,7 +3,7 @@
 ## ADDED Requirements
 
 ### Requirement: Undo archive and trash
-After a user archives or trashes an active item from the sidebar or an item page, the confirmation SHALL offer Undo for as long as it is shown (at least 5 seconds). Undo SHALL restore the item and everything archived or trashed together with it to their places, as Restore does. The confirmation SHALL appear only once the archive or trash has been saved, so Undo never races the save. Undo SHALL act at most once per confirmation. If the user was viewing the item, or an item inside it, when they archived or trashed it, Undo SHALL also take them back to that page.
+After a user archives or trashes an active item from the sidebar or an item page, the confirmation SHALL offer Undo for as long as it is shown (at least 5 seconds). Undo SHALL restore the item and everything archived or trashed together with it to their places, as Restore does. The confirmation SHALL appear only once the archive or trash has been saved, so Undo never races the save. The confirmation SHALL name the item, for example '"Budget" moved to Archive'. Undo SHALL act at most once per confirmation. If the user was viewing the item, or an item inside it, when they archived or trashed it, Undo SHALL also take them back to that page.
 
 #### Scenario: Undo an archive
 - **WHEN** a user archives a project containing a folder with two notes and chooses Undo in the confirmation
@@ -16,6 +16,10 @@ After a user archives or trashes an active item from the sidebar or an item page
 #### Scenario: Back to the page they were on
 - **WHEN** a user viewing a note archives it from the page's menu, is taken to the workspace home, and chooses Undo
 - **THEN** the note is restored and opens again
+
+#### Scenario: Confirmation names the item
+- **WHEN** a user archives the note "Budget"
+- **THEN** the confirmation reads '"Budget" moved to Archive' and offers Undo
 
 #### Scenario: Undo only once
 - **WHEN** a user chooses Undo twice in quick succession

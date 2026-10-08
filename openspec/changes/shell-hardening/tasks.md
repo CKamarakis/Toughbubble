@@ -27,9 +27,16 @@
 
 - [x] 5.1 Restructure `ItemMenu` per D8: a "New inside" submenu (Note, Storm, Folder, Project) for containers and a "Reorder" submenu (Move up/down with today's disabled rules); keep Rename, Move to…, Convert, Archive and Move to Trash at the top; verify in the browser that a folder's menu has 7 top-level entries and a note's has 5, that the right arrow key opens a submenu with focus on its first available entry, and that New inside > Note and Reorder > Move up still work from both the sidebar and the page menu
 
-## 6. Verification and release
+## 6. Re-critique follow-ups
 
-- [x] 6.1 Run lint, unit and integration tests; verify they all pass
-- [ ] 6.2 Run `/impeccable critique` on the app shell + sidebar again with the test user, at desktop and mobile in both themes; verify the two P1 issues and the current-row, light-control and menu issues from the 2026-10-08 critique no longer appear, and record the new score
-- [x] 6.3 Update the README notes for the shell (Undo, small-screen panel, touch long press, no touch drag); verify the README describes the shipped behavior
-- [ ] 6.4 Push the branch and check the preview deployment on a real phone if available (long press, panel, swipe scroll); after the user approves, merge to `main` and verify on production that archive Undo works
+- [x] 6.1 Use one New order (Note, Storm, Folder, Project) in the sidebar New menu, the row menu's New inside and the page's New inside, from one shared constant; verify all three menus list that order
+- [x] 6.2 On touch screens make the top bar's open button and the panel's New and close buttons 44px square with 8px between them; verify in touch emulation at 390×844 by measuring them, and that desktop sizes are unchanged
+- [x] 6.3 Name the item in the archive and trash confirmations ('"Budget" moved to Archive', long titles shortened); verify in the browser
+- [x] 6.4 Drop the tree / treeitem / group roles and aria-selected from the sidebar list (plain list; the chevron and link keep their labels and aria-current), since arrow-key tree navigation is not offered; verify lint, types and the existing tests pass
+
+## 7. Verification and release
+
+- [x] 7.1 Run lint, unit and integration tests; verify they all pass
+- [x] 7.2 Run `/impeccable critique` on the app shell + sidebar again with the test user, at desktop and mobile in both themes; verify the two P1 issues and the current-row, light-control and menu issues from the 2026-10-08 critique no longer appear, and record the new score
+- [x] 7.3 Update the README notes for the shell (Undo, small-screen panel, touch long press, no touch drag); verify the README describes the shipped behavior
+- [ ] 7.4 Push the branch and check the preview deployment on a real phone if available (long press, panel, swipe scroll); after the user approves, merge to `main` and verify on production that archive Undo works

@@ -8,11 +8,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { ItemKind } from "@/lib/tree/types";
-import { ItemIcon, KIND_LABELS } from "./item-icon";
+import { CREATE_ORDER, ItemIcon, KIND_LABELS } from "./item-icon";
 import { useWorkspace } from "./workspace-context";
-
-const KINDS: ItemKind[] = ["note", "storm", "folder", "project"];
 
 /** "New" menu creating an item inside a project or folder. */
 export function NewInsideMenu({ parentId, label = "New" }: { parentId: string; label?: string }) {
@@ -24,7 +21,7 @@ export function NewInsideMenu({ parentId, label = "New" }: { parentId: string; l
         {label}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-40">
-        {KINDS.map((kind) => (
+        {CREATE_ORDER.map((kind) => (
           <DropdownMenuItem key={kind} onClick={() => ws.create(kind, parentId)}>
             <ItemIcon item={{ kind }} />
             {KIND_LABELS[kind]}
