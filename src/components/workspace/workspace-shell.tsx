@@ -40,7 +40,9 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
 
   return (
     <DialogPrimitive.Root open={open} onOpenChange={setOpen}>
-      <div className="flex h-dvh min-h-0">
+      {/* While the panel is open the page behind is inert, so screen readers
+          can't browse it either; the panel itself is portaled outside. */}
+      <div className="flex h-dvh min-h-0" inert={open}>
         <aside aria-label="Sidebar" className="hidden h-full w-64 shrink-0 border-r border-sidebar-border md:block">
           <Sidebar />
         </aside>
@@ -61,6 +63,7 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
           <DialogPrimitive.Backdrop className="fixed inset-0 z-40 bg-warm-950/30 duration-150 data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0 motion-reduce:animate-none md:hidden" />
           <DialogPrimitive.Popup
             aria-label="Sidebar"
+            aria-modal="true"
             className="fixed inset-y-0 left-0 z-50 w-64 max-w-[85vw] border-r border-sidebar-border shadow-lg outline-none duration-150 data-open:animate-in data-open:slide-in-from-left data-closed:animate-out data-closed:slide-out-to-left motion-reduce:animate-none md:hidden"
           >
             <Sidebar
