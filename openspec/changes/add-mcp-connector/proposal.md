@@ -1,6 +1,6 @@
 # Proposal
 
-> **Status: parked (2026-10-06).** Captured from an explore session and an auth spike. Only `proposal.md` and `design.md` exist; specs and tasks come when the work is picked up (`/opsx:continue` or `/opsx:propose`). Rough size: 1.5–2 weeks of focused work, so it was deferred.
+> **Status: parked (2026-10-06).** Captured from an explore session and an auth spike. Only `proposal.md` and `design.md` exist; specs and tasks come when the work is picked up (`/opsx:continue` or `/opsx:propose`). Rough size: 2–3 weeks of focused work (revised 2026-10-08 after a design review), so it was deferred.
 
 ## Why
 
