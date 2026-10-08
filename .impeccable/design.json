@@ -1,0 +1,408 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-08T13:20:38.048Z",
+  "title": "Design System: ToughBubble",
+  "extensions": {
+    "colorMeta": {
+      "highlighter-yellow": {
+        "role": "primary",
+        "displayName": "Highlighter Yellow",
+        "canonical": "#F7D000",
+        "tonalRamp": [
+          "oklch(15% 0.085 95)",
+          "oklch(27% 0.085 95)",
+          "oklch(39% 0.170 95)",
+          "oklch(51% 0.170 95)",
+          "oklch(63% 0.170 95)",
+          "oklch(75% 0.170 95)",
+          "oklch(87% 0.170 95)",
+          "oklch(95% 0.085 95)"
+        ]
+      },
+      "marker-magenta": {
+        "role": "secondary",
+        "displayName": "Marker Magenta",
+        "canonical": "#F700A8",
+        "tonalRamp": [
+          "oklch(15% 0.135 350)",
+          "oklch(27% 0.135 350)",
+          "oklch(39% 0.270 350)",
+          "oklch(51% 0.270 350)",
+          "oklch(63% 0.270 350)",
+          "oklch(75% 0.270 350)",
+          "oklch(87% 0.270 350)",
+          "oklch(95% 0.135 350)"
+        ]
+      },
+      "marker-magenta-text": {
+        "role": "secondary",
+        "displayName": "Marker Magenta Text",
+        "canonical": "#C4007F"
+      },
+      "ink-violet": {
+        "role": "tertiary",
+        "displayName": "Ink Violet",
+        "canonical": "#9C00F7",
+        "tonalRamp": [
+          "oklch(15% 0.145 305)",
+          "oklch(27% 0.145 305)",
+          "oklch(39% 0.290 305)",
+          "oklch(51% 0.290 305)",
+          "oklch(63% 0.290 305)",
+          "oklch(75% 0.290 305)",
+          "oklch(87% 0.290 305)",
+          "oklch(95% 0.145 305)"
+        ]
+      },
+      "ink-violet-dark": {
+        "role": "tertiary",
+        "displayName": "Ink Violet Dark",
+        "canonical": "#C07BFF"
+      },
+      "warm-50": {
+        "role": "neutral",
+        "displayName": "Warm 50",
+        "canonical": "#FBFBF9",
+        "tonalRamp": [
+          "#141310",
+          "#22211B",
+          "#333129",
+          "#514E43",
+          "#8C897D",
+          "#D9D8D3",
+          "#F5F4F2",
+          "#FBFBF9"
+        ]
+      },
+      "warm-100": {
+        "role": "neutral",
+        "displayName": "Warm 100",
+        "canonical": "#F5F4F2",
+        "tonalRamp": [
+          "#141310",
+          "#22211B",
+          "#333129",
+          "#514E43",
+          "#8C897D",
+          "#D9D8D3",
+          "#F5F4F2",
+          "#FBFBF9"
+        ]
+      },
+      "warm-200": {
+        "role": "neutral",
+        "displayName": "Warm 200",
+        "canonical": "#EAE9E6",
+        "tonalRamp": [
+          "#141310",
+          "#22211B",
+          "#333129",
+          "#514E43",
+          "#8C897D",
+          "#D9D8D3",
+          "#F5F4F2",
+          "#FBFBF9"
+        ]
+      },
+      "warm-300": {
+        "role": "neutral",
+        "displayName": "Warm 300",
+        "canonical": "#D9D8D3",
+        "tonalRamp": [
+          "#141310",
+          "#22211B",
+          "#333129",
+          "#514E43",
+          "#8C897D",
+          "#D9D8D3",
+          "#F5F4F2",
+          "#FBFBF9"
+        ]
+      },
+      "warm-400": {
+        "role": "neutral",
+        "displayName": "Warm 400",
+        "canonical": "#B2B0A9",
+        "tonalRamp": [
+          "#141310",
+          "#22211B",
+          "#333129",
+          "#514E43",
+          "#8C897D",
+          "#D9D8D3",
+          "#F5F4F2",
+          "#FBFBF9"
+        ]
+      },
+      "warm-500": {
+        "role": "neutral",
+        "displayName": "Warm 500",
+        "canonical": "#8C897D",
+        "tonalRamp": [
+          "#141310",
+          "#22211B",
+          "#333129",
+          "#514E43",
+          "#8C897D",
+          "#D9D8D3",
+          "#F5F4F2",
+          "#FBFBF9"
+        ]
+      },
+      "warm-600": {
+        "role": "neutral",
+        "displayName": "Warm 600",
+        "canonical": "#6E6B5E",
+        "tonalRamp": [
+          "#141310",
+          "#22211B",
+          "#333129",
+          "#514E43",
+          "#8C897D",
+          "#D9D8D3",
+          "#F5F4F2",
+          "#FBFBF9"
+        ]
+      },
+      "warm-700": {
+        "role": "neutral",
+        "displayName": "Warm 700",
+        "canonical": "#514E43",
+        "tonalRamp": [
+          "#141310",
+          "#22211B",
+          "#333129",
+          "#514E43",
+          "#8C897D",
+          "#D9D8D3",
+          "#F5F4F2",
+          "#FBFBF9"
+        ]
+      },
+      "warm-800": {
+        "role": "neutral",
+        "displayName": "Warm 800",
+        "canonical": "#333129",
+        "tonalRamp": [
+          "#141310",
+          "#22211B",
+          "#333129",
+          "#514E43",
+          "#8C897D",
+          "#D9D8D3",
+          "#F5F4F2",
+          "#FBFBF9"
+        ]
+      },
+      "warm-900": {
+        "role": "neutral",
+        "displayName": "Warm 900",
+        "canonical": "#22211B",
+        "tonalRamp": [
+          "#141310",
+          "#22211B",
+          "#333129",
+          "#514E43",
+          "#8C897D",
+          "#D9D8D3",
+          "#F5F4F2",
+          "#FBFBF9"
+        ]
+      },
+      "warm-950": {
+        "role": "neutral",
+        "displayName": "Warm 950",
+        "canonical": "#141310",
+        "tonalRamp": [
+          "#141310",
+          "#22211B",
+          "#333129",
+          "#514E43",
+          "#8C897D",
+          "#D9D8D3",
+          "#F5F4F2",
+          "#FBFBF9"
+        ]
+      },
+      "surface-raised": {
+        "role": "neutral",
+        "displayName": "Surface Raised",
+        "canonical": "#FFFFFF"
+      }
+    },
+    "typographyMeta": {
+      "wordmark": {
+        "displayName": "Wordmark",
+        "purpose": "The ToughBubble name beside the logo; light weight in magenta. Never a heading."
+      },
+      "page-title": {
+        "displayName": "Page title",
+        "purpose": "Item titles at the top of the main pane."
+      },
+      "note-h1": {
+        "displayName": "Note H1",
+        "purpose": "Default top heading in notes; user-adjustable in Settings."
+      },
+      "note-body": {
+        "displayName": "Note body",
+        "purpose": "Default note text; user-adjustable size and colour."
+      },
+      "ui": {
+        "displayName": "UI",
+        "purpose": "Sidebar, menus, buttons, breadcrumbs."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Menu group labels, save status, small metadata."
+      },
+      "mono": {
+        "displayName": "Mono",
+        "purpose": "Inline code and code blocks in notes."
+      }
+    },
+    "shadows": [
+      {
+        "name": "float-md",
+        "value": "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
+        "purpose": "Menus and popovers."
+      },
+      {
+        "name": "float-lg",
+        "value": "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)",
+        "purpose": "The mobile sidebar drawer."
+      }
+    ],
+    "motion": [
+      {
+        "name": "menu-open",
+        "value": "100ms",
+        "purpose": "Menus and popovers opening and closing."
+      },
+      {
+        "name": "state-change",
+        "value": "150ms ease",
+        "purpose": "Hover and colour changes on buttons and rows."
+      },
+      {
+        "name": "press",
+        "value": "translateY(1px)",
+        "purpose": "Buttons nudge down when pressed."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "md",
+        "value": "768px",
+        "purpose": "Sidebar switches from overlay drawer to fixed column."
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The main action on a screen; dark text on Highlighter Yellow.",
+      "html": "<button class=\"ds-btn-primary\">New note</button>",
+      "css": ".ds-btn-primary { font-family: var(--font-geist-sans, Geist, system-ui, sans-serif); font-size: 14px; font-weight: 500; height: 32px; padding: 0 10px; border-radius: 10px; border: 1px solid transparent; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; background: #F7D000; color: #141310; transition: background-color .15s, transform .1s, box-shadow .15s; } .ds-btn-primary:hover { background: rgb(247 208 0 / .8); } .ds-btn-primary:focus-visible { outline: none; border-color: #9C00F7; box-shadow: 0 0 0 3px rgb(156 0 247 / .5); } .ds-btn-primary:active { transform: translateY(1px); }"
+    },
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Secondary actions; paper with a hairline border.",
+      "html": "<button class=\"ds-btn-outline\">Cancel</button>",
+      "css": ".ds-btn-outline { font-family: var(--font-geist-sans, Geist, system-ui, sans-serif); font-size: 14px; font-weight: 500; height: 32px; padding: 0 10px; border-radius: 10px; border: 1px solid transparent; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; background: #FBFBF9; color: #333129; border-color: #EAE9E6; transition: background-color .15s, transform .1s, box-shadow .15s; } .ds-btn-outline:hover { background: #F5F4F2; } .ds-btn-outline:focus-visible { outline: none; border-color: #9C00F7; box-shadow: 0 0 0 3px rgb(156 0 247 / .5); } .ds-btn-outline:active { transform: translateY(1px); }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Low-emphasis actions; no fill until hover.",
+      "html": "<button class=\"ds-btn-ghost\">More</button>",
+      "css": ".ds-btn-ghost { font-family: var(--font-geist-sans, Geist, system-ui, sans-serif); font-size: 14px; font-weight: 500; height: 32px; padding: 0 10px; border-radius: 10px; border: 1px solid transparent; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; background: transparent; color: #333129; transition: background-color .15s, transform .1s, box-shadow .15s; } .ds-btn-ghost:hover { background: #F5F4F2; } .ds-btn-ghost:focus-visible { outline: none; border-color: #9C00F7; box-shadow: 0 0 0 3px rgb(156 0 247 / .5); } .ds-btn-ghost:active { transform: translateY(1px); }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Single-line fields; warm-500 border for 3:1.",
+      "html": "<input class=\"ds-input\" placeholder=\"Email\" />",
+      "css": ".ds-input { font-family: var(--font-geist-sans, Geist, system-ui, sans-serif); font-size: 14px; height: 32px; width: 240px; padding: 4px 10px; border-radius: 10px; border: 1px solid #8C897D; background: transparent; color: #333129; transition: border-color .15s, box-shadow .15s; } .ds-input::placeholder { color: #6E6B5E; } .ds-input:focus-visible { outline: none; border-color: #9C00F7; box-shadow: 0 0 0 3px rgb(156 0 247 / .5); }"
+    },
+    {
+      "name": "Sidebar Row",
+      "kind": "nav",
+      "refersTo": "sidebar-row",
+      "description": "One item in the workspace tree; the current one is filled and medium weight.",
+      "html": "<nav class=\"ds-side\"><a class=\"ds-row\" href=\"#\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#6E6B5E\" stroke-width=\"2\"><path d=\"M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z\"/><polyline points=\"14 2 14 8 20 8\"/></svg>Groceries</a><a class=\"ds-row ds-row-current\" href=\"#\" aria-current=\"page\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#6E6B5E\" stroke-width=\"2\"><path d=\"M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z\"/><polyline points=\"14 2 14 8 20 8\"/></svg>Trip ideas</a></nav>",
+      "css": ".ds-side { display: flex; flex-direction: column; gap: 1px; width: 232px; padding: 12px; background: #F5F4F2; } .ds-row { display: flex; align-items: center; gap: 8px; height: 28px; padding: 0 8px; border-radius: 8px; font-family: var(--font-geist-sans, Geist, system-ui, sans-serif); font-size: 14px; color: #333129; text-decoration: none; transition: background-color .15s; } .ds-row:hover { background: #EAE9E6; } .ds-row:focus-visible { outline: none; box-shadow: 0 0 0 2px #9C00F7; } .ds-row-current { background: #EAE9E6; font-weight: 500; }"
+    },
+    {
+      "name": "Toolbar Button",
+      "kind": "button",
+      "refersTo": "toolbar-button",
+      "description": "Icon buttons in the sticky note toolbar.",
+      "html": "<div class=\"ds-toolbar\"><button class=\"ds-tool\" aria-label=\"Bold\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M6 12h9a4 4 0 0 1 0 8H6V4h8a4 4 0 0 1 0 8\"/></svg></button><button class=\"ds-tool\" aria-label=\"Italic\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><line x1=\"19\" y1=\"4\" x2=\"10\" y2=\"4\"/><line x1=\"14\" y1=\"20\" x2=\"5\" y2=\"20\"/><line x1=\"15\" y1=\"4\" x2=\"9\" y2=\"20\"/></svg></button><span class=\"ds-divider\"></span><span class=\"ds-status\">Saved</span></div>",
+      "css": ".ds-toolbar { display: flex; align-items: center; gap: 2px; padding: 6px 8px; border-bottom: 1px solid #EAE9E6; background: rgb(251 251 249 / .95); backdrop-filter: blur(8px); width: 320px; } .ds-tool { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: 0; border-radius: 8px; background: transparent; color: #333129; cursor: pointer; transition: background-color .15s; } .ds-tool:hover { background: #F5F4F2; } .ds-tool:focus-visible { outline: none; box-shadow: 0 0 0 2px #9C00F7; } .ds-divider { width: 1px; height: 20px; margin: 0 4px; background: #EAE9E6; } .ds-status { margin-left: auto; font-family: var(--font-geist-sans, Geist, system-ui, sans-serif); font-size: 12px; color: #6E6B5E; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Quiet Studio",
+    "overview": "A calm room with bright tools. The walls are warm paper and soft graphite; the tools (a highlighter yellow, a marker magenta, an ink violet) sit on the desk and only come out when something needs attention. The room stays quiet so the user's own notes and boards are the loudest thing in it.\n\nDensity is moderate and desktop-first: a 256px sidebar tree on warm grey, a centred work column up to 896px wide, 14px interface text and 32px controls. Both themes are first-class. Dark mode is warm graphite, never black.\n\nThe chosen component feel is **tactile and playful**: controls should feel like things you can press and pick up. Today the components are close to the shadcn defaults (flat, tidy, a 1px press-down on buttons). That gap between the current look and the chosen feel is deliberate direction for future work, not a description of what ships now.\n\n**Quiet first, with small moments of fun.** Motion and colour reward actions (create, drop, finish); surfaces and layout stay calm. Examples of the right amount: the yellow \"+\" squishes when pressed, a dragged item lifts and settles with a small bounce, a new item pops in once, empty states get one short friendly line. Too much: bouncing icons, confetti, colourful section backgrounds, emoji in the interface, jokes in the copy.\n\n**The Small Reward Rule.** If it repeats, loops or decorates, it's too much. Fun happens once, at the moment the user did something.",
+    "keyCharacteristics": [
+      "Warm neutrals (hue 48) everywhere; no cold greys, no pure black.",
+      "Three bright accents, each with one job, used sparingly.",
+      "Flat surfaces at rest; shadows only on things that float.",
+      "Rounded but not bubbly: a 10px base radius.",
+      "Accessibility is built into the palette: AA body text, 3:1 for icons and field borders."
+    ],
+    "rules": [
+      {
+        "name": "The Small Reward Rule",
+        "body": "If it repeats, loops or decorates, it's too much. Fun happens once, at the moment the user did something.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Yellow Is Paper Rule",
+        "body": "Highlighter Yellow is a background under dark text (CTAs, selection), or text and icons on dark surfaces, where it reads at about 8.7:1. Never yellow text or icons on a light surface (about 1.5:1).",
+        "section": "colors"
+      },
+      {
+        "name": "The One Job Rule",
+        "body": "Each accent has one job: yellow acts, magenta marks, violet links and focuses. Don't borrow an accent for another job because it looks nice.",
+        "section": "colors"
+      },
+      {
+        "name": "The Warm Graphite Rule",
+        "body": "Dark mode surfaces come from the warm scale (800, 900, 700). Pure #000 is never a surface.",
+        "section": "colors"
+      },
+      {
+        "name": "The Writer Decides Rule",
+        "body": "Note text sizes and colours belong to the user's settings. Product UI never overrides them; it only supplies the defaults.",
+        "section": "typography"
+      },
+      {
+        "name": "The Only Floating Things Cast Shadows Rule",
+        "body": "If it doesn't float over other content, it has no shadow. Tone and borders do the layering.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** put dark text (warm-950) on Highlighter Yellow, always.",
+      "**Do** use Marker Magenta Text (#C4007F) rather than raw magenta for text on light backgrounds.",
+      "**Do** use Ink Violet for links and focus rings, switching to #C07BFF in dark mode.",
+      "**Do** keep body text at 4.5:1 and icons and field borders at 3:1 in both themes.",
+      "**Do** build dark surfaces from warm-800, warm-900 and warm-700.",
+      "**Do** keep controls at 32px and sidebar rows at 28px for a consistent rhythm."
+    ],
+    "donts": [
+      "**Don't** use Highlighter Yellow as text or as an icon colour on a light surface; on dark surfaces it's welcome.",
+      "**Don't** use the brand yellow for warnings; warnings are amber (#A65A00 / #FFA23D).",
+      "**Don't** use pure black (#000) for any surface.",
+      "**Don't** put shadows on things that don't float.",
+      "**Don't** override the user's note text sizes or colours from product UI."
+    ]
+  }
+}

@@ -1,3 +1,12 @@
+---
+title: "MCP connector: design (parked)"
+date: 2026-10-08
+tags:
+  - mcp
+  - parked
+source: design.md
+---
+
 # Design
 
 ## Context

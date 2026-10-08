@@ -1,0 +1,12 @@
+{
+  "kit_version": "0.5.3",
+  "setup_date": "2026-10-08",
+  "knowledge_dir": "knowledge",
+  "project_type": "web-ui",
+  "opted_in": [],
+  "tools": [
+    "context7",
+    "impeccable",
+    "playwright-cli"
+  ]
+}

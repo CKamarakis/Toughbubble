@@ -40,3 +40,13 @@ desktop.ini
 
 # Local reference images and screenshots (never committed)
 design-refs/
+
+# kit:start (managed by the kit; edit outside this block)
+# Personal Claude Code settings (not shared)
+.claude/settings.local.json
+# kit:end
+# Playwright CLI output (may contain credentials)
+.playwright-cli/
+
+# Impeccable binary (downloaded on first run)
+.claude/skills/impeccable/scripts/bin/

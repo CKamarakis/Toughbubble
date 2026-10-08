@@ -70,8 +70,9 @@ context: |
   2 Notes: Tiptap editor, autosave.
   3 Attachments: upload, list, delete (Supabase Storage).
   4 Storms v1: canvas, stickies, text, shapes, drag, resize.
-  5 Storms v2: connectors, z-order, lock/unlock.
+  5 Storms v2: connectors, z-order, lock/unlock, grids/tables.
   6 Refinement: full-text search, trash/archive UI, slash menu, drag handles.
+  7 Tasks: light Kanban board for tasks (scope not yet defined).
 
   Design:
   - Notes/app shell follow Notion: left sidebar tree (search, new, projects,
@@ -95,6 +96,7 @@ context: |
     success #0B7F3E / #3DD68C, error #D92D20 / #FF6B5E,
     warning #A65A00 / #FFA23D (amber, not brand yellow), info = purple.
   - Body text must meet WCAG AA (4.5:1).
+  Project context, decisions and open ideas: docs/project-context.md. Read it before any proposal.
 
 # Per-artifact rules (optional)
 # Add custom rules for specific artifacts.
