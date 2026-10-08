@@ -14,7 +14,8 @@ import { SidebarTree } from "./sidebar-tree";
 import { TreeDnd } from "./tree-dnd";
 import { useWorkspace } from "./workspace-context";
 
-export function Sidebar() {
+/** `closeButton` is shown at the end of the header (the small-screen panel). */
+export function Sidebar({ closeButton }: { closeButton?: React.ReactNode }) {
   const ws = useWorkspace();
   const pathname = usePathname();
   const [query, setQuery] = useState("");
@@ -41,7 +42,10 @@ export function Sidebar() {
           <AppLogo className="h-5 w-auto" />
           ToughBubble
         </Link>
-        <NewItemMenu round />
+        <div className="flex items-center gap-1">
+          <NewItemMenu round />
+          {closeButton}
+        </div>
       </div>
 
       <div className="relative">
@@ -101,7 +105,7 @@ export function Sidebar() {
         <div className="flex items-center gap-2 px-1">
           <span
             aria-hidden
-            className="flex size-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-medium"
+            className="flex size-6 shrink-0 items-center justify-center rounded-full bg-warm-700 text-xs font-medium text-warm-50 dark:bg-warm-300 dark:text-warm-950"
           >
             {ws.email.charAt(0).toUpperCase()}
           </span>

@@ -5,6 +5,7 @@ import {
   ArrowDown,
   ArrowRightLeft,
   ArrowUp,
+  ArrowUpDown,
   Ellipsis,
   FolderInput,
   Pencil,
@@ -17,26 +18,37 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { displayTitle } from "@/lib/tree/build";
 import { groupOf, movedOneStep } from "@/lib/tree/reorder";
 import { isContainer, type ItemKind, type TreeRow } from "@/lib/tree/types";
-import { KIND_LABELS } from "./item-icon";
+import { ItemIcon, KIND_LABELS } from "./item-icon";
 import { useWorkspace } from "./workspace-context";
 
 const CREATE_ORDER: ItemKind[] = ["note", "storm", "folder", "project"];
 
-/** "⋯" menu for an item row. `onRename` starts inline rename where the menu lives. */
+/**
+ * "⋯" menu for an item row. `onRename` starts inline rename where the menu
+ * lives. `open` / `onOpenChange` let a row open it from a long press
+ * (shell-hardening D3).
+ */
 export function ItemMenu({
   item,
   onRename,
   className,
+  open,
+  onOpenChange,
 }: {
   item: TreeRow;
   onRename: () => void;
   className?: string;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) {
   const ws = useWorkspace();
   const container = isContainer(item.kind);
@@ -52,7 +64,13 @@ export function ItemMenu({
   const keepFocusAway = useRef(false);
 
   return (
-    <DropdownMenu onOpenChange={(open) => open && (keepFocusAway.current = false)}>
+    <DropdownMenu
+      open={open}
+      onOpenChange={(next) => {
+        if (next) keepFocusAway.current = false;
+        onOpenChange?.(next);
+      }}
+    >
       <DropdownMenuTrigger
         aria-label={`Actions for ${displayTitle(item)}`}
         className={cn(
@@ -65,12 +83,20 @@ export function ItemMenu({
       <DropdownMenuContent align="start" className="w-48" finalFocus={() => !keepFocusAway.current}>
         {container && (
           <>
-            {CREATE_ORDER.map((kind) => (
-              <DropdownMenuItem key={kind} onClick={() => ws.create(kind, item.id)}>
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>
                 <Plus />
-                New {KIND_LABELS[kind].toLowerCase()} inside
-              </DropdownMenuItem>
-            ))}
+                New inside
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent>
+                {CREATE_ORDER.map((kind) => (
+                  <DropdownMenuItem key={kind} onClick={() => ws.create(kind, item.id)}>
+                    <ItemIcon item={{ kind, icon: null, color: null }} className="size-4" />
+                    {KIND_LABELS[kind]}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
             <DropdownMenuSeparator />
           </>
         )}
@@ -92,14 +118,22 @@ export function ItemMenu({
           <FolderInput />
           Move to…
         </DropdownMenuItem>
-        <DropdownMenuItem disabled={!canMoveUp} onClick={() => moveStep("up")}>
-          <ArrowUp />
-          Move up
-        </DropdownMenuItem>
-        <DropdownMenuItem disabled={!canMoveDown} onClick={() => moveStep("down")}>
-          <ArrowDown />
-          Move down
-        </DropdownMenuItem>
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger>
+            <ArrowUpDown />
+            Reorder
+          </DropdownMenuSubTrigger>
+          <DropdownMenuSubContent>
+            <DropdownMenuItem disabled={!canMoveUp} onClick={() => moveStep("up")}>
+              <ArrowUp />
+              Move up
+            </DropdownMenuItem>
+            <DropdownMenuItem disabled={!canMoveDown} onClick={() => moveStep("down")}>
+              <ArrowDown />
+              Move down
+            </DropdownMenuItem>
+          </DropdownMenuSubContent>
+        </DropdownMenuSub>
         {container && (
           <DropdownMenuItem
             onClick={() => ws.convert(item.id, item.kind === "folder" ? "project" : "folder")}

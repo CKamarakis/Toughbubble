@@ -2,6 +2,7 @@
 
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { displayTitle } from "@/lib/tree/build";
 import { isContainer, type TreeNode } from "@/lib/tree/types";
@@ -9,6 +10,7 @@ import { ItemIcon } from "./item-icon";
 import { ItemMenu } from "./item-menu";
 import { TitleInput } from "./title-input";
 import { useTreeRowDnd } from "./tree-dnd";
+import { useLongPress } from "./use-long-press";
 import { useWorkspace } from "./workspace-context";
 
 /**
@@ -51,6 +53,19 @@ function TreeItem({
     node,
     !!forceOpen || renaming,
   );
+  // A touch long press opens the row's menu (shell-hardening D3).
+  const [menuOpen, setMenuOpen] = useState(false);
+  const longPress = useLongPress(() => {
+    if (!renaming) setMenuOpen(true);
+  });
+  const rowHandlers = {
+    ...dragProps,
+    ...longPress,
+    onPointerDown: (e: React.PointerEvent<HTMLDivElement>) => {
+      longPress.onPointerDown(e);
+      (dragProps as { onPointerDown?: (e: React.PointerEvent<HTMLDivElement>) => void }).onPointerDown?.(e);
+    },
+  };
 
   return (
     <li
@@ -62,15 +77,23 @@ function TreeItem({
     >
       <div
         ref={setRowRef}
-        {...dragProps}
+        {...rowHandlers}
         className={cn(
-          "group/row relative flex h-7 items-center gap-1 rounded-md pr-1 text-sm hover:bg-sidebar-accent",
+          "group/row relative flex h-7 items-center gap-1 rounded-md pr-1 text-sm hover:bg-sidebar-accent pointer-coarse:h-10 pointer-coarse:select-none pointer-coarse:[-webkit-touch-callout:none]",
           current && "bg-sidebar-accent font-medium",
           isDragging && "opacity-50",
         )}
         data-drop-side={dropSide ?? undefined}
         style={{ paddingLeft: `${depth * 12 + 4}px` }}
       >
+        {current && (
+          // "You are here": a magenta bookmark that grows in once (shell-hardening D4).
+          <span
+            aria-hidden
+            data-current-mark
+            className="pointer-events-none absolute top-1/2 left-0 -mt-2 h-4 w-[3px] rounded-full bg-highlight animate-tb-mark motion-reduce:animate-none"
+          />
+        )}
         {dropSide && (
           // Where a dragged item will land among its siblings.
           <span
@@ -89,12 +112,12 @@ function TreeItem({
             aria-label={`${open ? "Collapse" : "Expand"} ${title}`}
             onClick={() => ws.setExpanded(node.id, !open)}
             disabled={!!forceOpen}
-            className="flex size-5 shrink-0 items-center justify-center rounded-sm text-muted-foreground hover:bg-background/60 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+            className="flex size-5 shrink-0 items-center justify-center rounded-sm text-muted-foreground hover:bg-background/60 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none pointer-coarse:size-8"
           >
             <ChevronRight className={cn("size-3.5 transition-transform", open && "rotate-90")} />
           </button>
         ) : (
-          <span className="size-5 shrink-0" aria-hidden />
+          <span className="size-5 shrink-0 pointer-coarse:size-8" aria-hidden />
         )}
 
         {renaming ? (
@@ -138,7 +161,9 @@ function TreeItem({
           <ItemMenu
             item={node}
             onRename={() => ws.setRenamingId(node.id)}
-            className="opacity-0 group-hover/row:opacity-100 focus-visible:opacity-100 data-[popup-open]:opacity-100"
+            open={menuOpen}
+            onOpenChange={setMenuOpen}
+            className="opacity-0 group-hover/row:opacity-100 focus-visible:opacity-100 data-[popup-open]:opacity-100 pointer-coarse:size-8 pointer-coarse:opacity-100"
           />
         )}
       </div>

@@ -4,6 +4,7 @@ import {
   DndContext,
   DragOverlay,
   MeasuringStrategy,
+  MouseSensor,
   PointerSensor,
   pointerWithin,
   useDraggable,
@@ -13,6 +14,7 @@ import {
   type DragEndEvent,
   type DragMoveEvent,
   type DragStartEvent,
+  type PointerSensorOptions,
 } from "@dnd-kit/core";
 import { createContext, useCallback, useContext, useState } from "react";
 import { displayTitle, findNode } from "@/lib/tree/build";
@@ -31,6 +33,23 @@ type Indicator = { targetId: string; side: Side } | null;
 
 const IndicatorContext = createContext<Indicator>(null);
 
+/** PointerSensor that only reacts to a pen (mouse has MouseSensor; touch doesn't drag). */
+class PenSensor extends PointerSensor {
+  static activators = [
+    {
+      eventName: "onPointerDown" as const,
+      handler: (
+        { nativeEvent: event }: React.PointerEvent,
+        { onActivation }: PointerSensorOptions,
+      ) => {
+        if (event.pointerType !== "pen" || !event.isPrimary || event.button !== 0) return false;
+        onActivation?.({ event });
+        return true;
+      },
+    },
+  ];
+}
+
 /** The pointer's y during a drag: where it started plus how far it moved. */
 function pointerY(event: DragMoveEvent | DragEndEvent) {
   const start = event.activatorEvent as PointerEvent | undefined;
@@ -41,8 +60,13 @@ export function TreeDnd({ children }: { children: React.ReactNode }) {
   const ws = useWorkspace();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [indicator, setIndicator] = useState<Indicator>(null);
-  // A small distance keeps plain clicks working as clicks.
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
+  // Mouse and pen only: touch never drags, so swipes scroll and a long press
+  // opens the row menu (shell-hardening D3). A small distance keeps plain
+  // clicks working as clicks.
+  const sensors = useSensors(
+    useSensor(MouseSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(PenSensor, { activationConstraint: { distance: 6 } }),
+  );
 
   /** The allowed landing place under the pointer, if any. */
   const placeFor = (event: DragMoveEvent | DragEndEvent): Indicator => {

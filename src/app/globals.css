@@ -22,6 +22,14 @@
   --color-brand-yellow: #f7d000;
   --color-brand-magenta: #f700a8;
   --color-brand-purple: #9c00f7;
+
+  /* The current sidebar row's mark grows in once (shell-hardening D4). */
+  --animate-tb-mark: tb-mark 150ms ease-out;
+  @keyframes tb-mark {
+    from {
+      transform: scaleY(0);
+    }
+  }
 }
 
 @theme inline {

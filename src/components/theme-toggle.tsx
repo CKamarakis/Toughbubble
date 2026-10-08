@@ -28,7 +28,8 @@ export function ThemeToggle({ className }: { className?: string }) {
     <div
       role="radiogroup"
       aria-label="Theme"
-      className={cn("inline-flex gap-0.5 rounded-lg bg-muted p-0.5", className)}
+      // The edge, not the fill, carries the 3:1 against light surfaces (shell-hardening D5).
+      className={cn("inline-flex gap-0.5 rounded-lg border border-input bg-warm-200 p-0.5 dark:bg-muted", className)}
     >
       {options.map(({ value, label, Icon }) => (
         <Button
@@ -41,7 +42,7 @@ export function ThemeToggle({ className }: { className?: string }) {
           size="icon-sm"
           className={cn(
             "text-muted-foreground",
-            current === value && "bg-background text-foreground shadow-sm",
+            current === value && "bg-background text-foreground shadow-sm ring-1 ring-input",
           )}
           onClick={() => setTheme(value)}
         >

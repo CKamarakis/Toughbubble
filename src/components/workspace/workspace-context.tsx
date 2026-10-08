@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import * as actions from "@/lib/tree/actions";
 import { generateNKeysBetween } from "fractional-indexing";
 import { ancestorPath, buildTree, revealAncestors } from "@/lib/tree/build";
+import { undoReturnTarget } from "@/lib/tree/shell";
 import type { KindGroup } from "@/lib/tree/order";
 import type { ItemKind, TreeNode, TreeRow } from "@/lib/tree/types";
 import { useStoredValue } from "@/lib/use-stored-value";
@@ -104,6 +105,8 @@ type Workspace = {
   tree: TreeNode[];
   currentId: string | null;
   pending: boolean;
+  /** A create is in flight (the New buttons wait only for this). */
+  creating: boolean;
   isExpanded: (id: string) => boolean;
   setExpanded: (id: string, open: boolean) => void;
   renamingId: string | null;
@@ -152,6 +155,9 @@ export function WorkspaceProvider({
   const router = useRouter();
   const pathname = usePathname();
   const [pending, startTransition] = useTransition();
+  // Creating has its own pending state so the New buttons stay usable while
+  // another change saves (shell-hardening D7).
+  const [creating, startCreate] = useTransition();
   const [optimisticRows, applyOptimistic] = useOptimistic(serverRows, applyChange);
   // Body saves skip the layout refresh (notes design D4), so their edited times
   // are patched in here until the next server render catches up.
@@ -239,12 +245,41 @@ export function WorkspaceProvider({
     [currentId, rows, router],
   );
 
+  /**
+   * Archives or trashes an item. The confirmation, shown once the save
+   * succeeded, offers Undo: a restore that also reopens the page the removal
+   * left (shell-hardening D1).
+   */
+  const removeWithUndo = (id: string, run: () => Promise<actions.ActionResult<unknown>>, message: string) => {
+    const returnTo = undoReturnTarget(rows, id, currentId);
+    leaveIfRemoved(id);
+    mutate({ type: "remove", id }, run, () => {
+      let used = false;
+      toast.success(message, {
+        duration: 6000,
+        action: {
+          label: "Undo",
+          onClick: () => {
+            if (used) return;
+            used = true;
+            startTransition(async () => {
+              const result = await actions.restoreItem(id);
+              if (!result.ok) toast.error(result.error);
+              else if (returnTo) router.push(`/items/${returnTo}`);
+            });
+          },
+        },
+      });
+    });
+  };
+
   const value: Workspace = {
     email,
     rows,
     tree,
     currentId,
     pending,
+    creating,
     isExpanded,
     setExpanded,
     renamingId,
@@ -252,7 +287,7 @@ export function WorkspaceProvider({
     movingId,
     setMovingId,
     create: (kind, parentId) =>
-      startTransition(async () => {
+      startCreate(async () => {
         const result = await actions.createItem(kind, parentId);
         if (!result.ok) {
           toast.error(result.error);
@@ -280,14 +315,8 @@ export function WorkspaceProvider({
         () => setReordered((current) => ({ ...current, ...positions })),
       );
     },
-    archive: (id) => {
-      leaveIfRemoved(id);
-      mutate({ type: "remove", id }, () => actions.archiveItem(id), () => toast.success("Moved to Archive"));
-    },
-    trash: (id) => {
-      leaveIfRemoved(id);
-      mutate({ type: "remove", id }, () => actions.trashItem(id), () => toast.success("Moved to Trash"));
-    },
+    archive: (id) => removeWithUndo(id, () => actions.archiveItem(id), "Moved to Archive"),
+    trash: (id) => removeWithUndo(id, () => actions.trashItem(id), "Moved to Trash"),
     touch: (id, editedAt) => setTouched((prev) => ({ ...prev, [id]: editedAt })),
   };
 

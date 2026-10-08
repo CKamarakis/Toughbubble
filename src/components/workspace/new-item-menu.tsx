@@ -33,11 +33,11 @@ export function NewItemMenu({
       type="button"
       aria-label={label}
       title={label}
-      disabled={ws.pending}
+      disabled={ws.creating}
       className="flex size-7 items-center justify-center rounded-full bg-warm-950 text-brand-yellow ring-1 ring-warm-700 transition-transform hover:scale-105 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:opacity-50"
     />
   ) : (
-    <Button size={size} disabled={ws.pending} />
+    <Button size={size} disabled={ws.creating} />
   );
 
   return (

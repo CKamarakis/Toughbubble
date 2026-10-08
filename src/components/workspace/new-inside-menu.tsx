@@ -19,7 +19,7 @@ export function NewInsideMenu({ parentId, label = "New" }: { parentId: string; l
   const ws = useWorkspace();
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger render={<Button size="sm" disabled={ws.pending} />}>
+      <DropdownMenuTrigger render={<Button size="sm" disabled={ws.creating} />}>
         <Plus />
         {label}
       </DropdownMenuTrigger>
