@@ -51,4 +51,4 @@
 
 - [x] 5.1 Update the README's attachments notes (viewer, ways to open it, gestures). Verify that they match the code.
 - [x] 5.2 Run types, lint, unit and integration tests. Verify that all pass.
-- [ ] 5.3 Push the branch. After the user approves, merge to `main`. Ask the user to check on a phone: double-tap, swipe, pinch and drag, and closing.
+- [x] 5.3 Push the branch. After the user approves, merge to `main`. Ask the user to check on a phone: double-tap, swipe, pinch and drag, and closing.
