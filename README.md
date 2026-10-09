@@ -156,7 +156,8 @@ and is blocked from `src/` by a lint rule; it is for migrations, tests, and back
   names the item (`removedMessage`) and offers Undo, which is a plain `restoreItem` (shown only after the save succeeded, so it can't
   race it) and reopens the page the removal left (`undoReturnTarget` in `src/lib/tree/shell.ts`).
 - **Drag and drop** only reorders an item within its group (same parent, same kind group), with a
-  line where it will land; Reorder > "Move up" / "Move down" in the item menu do the same from the
+  line where it will land; Reorder > "Move to top" / "Move up" / "Move down" / "Move to bottom"
+  (`movedOneStep`, `movedToEnd`) in the item menu do the same from the
   keyboard. Moving to another project, folder, or the top level is "Move to…" only. Only mouse
   and pen drag (`MouseSensor` plus a pen-only `PointerSensor`); touch never drags, so swipes
   scroll the sidebar.
@@ -168,6 +169,9 @@ and is blocked from `src/` by a lint rule; it is for migrations, tests, and back
   page inert), opened from a top bar that names the open item or page (`topBarTitle`).
 - **The sidebar list is a plain list**, not an ARIA tree: arrow-key tree navigation isn't offered,
   so it doesn't claim it. Every New menu uses `CREATE_ORDER` (Note, Storm, Folder, Project).
+- **Creating and converting**: project and folder rows have a "+" (`RowNewMenu`) beside "⋯" for New inside
+  in one tap. Convert isn't in "⋯": a project's or folder's page shows its kind as a switch (`KindSwitch`),
+  whose Folder option says folders have no icon or colour.
 - **Sidebar footer**: Archive and Trash links, then the account row (`account-menu.tsx`), a menu with
   Settings, the theme (Light, Dark, System) and Sign out. Sign out submits a hidden `POST /auth/sign-out`
   form kept outside the menu, because the menu popup unmounts on close. The sign-in page keeps `ThemeToggle`.

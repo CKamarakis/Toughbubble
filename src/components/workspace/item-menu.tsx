@@ -3,9 +3,10 @@
 import {
   Archive,
   ArrowDown,
-  ArrowRightLeft,
+  ArrowDownToLine,
   ArrowUp,
   ArrowUpDown,
+  ArrowUpToLine,
   Ellipsis,
   FolderInput,
   Pencil,
@@ -25,7 +26,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { displayTitle } from "@/lib/tree/build";
-import { groupOf, movedOneStep } from "@/lib/tree/reorder";
+import { groupOf, movedOneStep, movedToEnd } from "@/lib/tree/reorder";
 import { isContainer, type TreeRow } from "@/lib/tree/types";
 import { CREATE_ORDER, ItemIcon, KIND_LABELS } from "./item-icon";
 import { useWorkspace } from "./workspace-context";
@@ -54,6 +55,10 @@ export function ItemMenu({
   const group = groupOf(ws.tree, item.id);
   const moveStep = (direction: "up" | "down") => {
     const ids = group && movedOneStep(group.ids, item.id, direction);
+    if (group && ids) ws.reorder(group.parentId, group.group, ids);
+  };
+  const moveToEnd = (end: "top" | "bottom") => {
+    const ids = group && movedToEnd(group.ids, item.id, end);
     if (group && ids) ws.reorder(group.parentId, group.group, ids);
   };
   const canMoveUp = !!group && movedOneStep(group.ids, item.id, "up") !== null;
@@ -122,6 +127,10 @@ export function ItemMenu({
             Reorder
           </DropdownMenuSubTrigger>
           <DropdownMenuSubContent>
+            <DropdownMenuItem disabled={!canMoveUp} onClick={() => moveToEnd("top")}>
+              <ArrowUpToLine />
+              Move to top
+            </DropdownMenuItem>
             <DropdownMenuItem disabled={!canMoveUp} onClick={() => moveStep("up")}>
               <ArrowUp />
               Move up
@@ -130,16 +139,12 @@ export function ItemMenu({
               <ArrowDown />
               Move down
             </DropdownMenuItem>
+            <DropdownMenuItem disabled={!canMoveDown} onClick={() => moveToEnd("bottom")}>
+              <ArrowDownToLine />
+              Move to bottom
+            </DropdownMenuItem>
           </DropdownMenuSubContent>
         </DropdownMenuSub>
-        {container && (
-          <DropdownMenuItem
-            onClick={() => ws.convert(item.id, item.kind === "folder" ? "project" : "folder")}
-          >
-            <ArrowRightLeft />
-            Convert to {item.kind === "folder" ? "project" : "folder"}
-          </DropdownMenuItem>
-        )}
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => ws.archive(item.id)}>
           <Archive />

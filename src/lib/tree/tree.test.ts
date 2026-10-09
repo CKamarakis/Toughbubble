@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { ancestorPath, buildTree, displayTitle, revealAncestors } from "./build";
 import { canMoveTo, moveDestinations } from "./destinations";
 import { contentsCompare, sidebarCompare, sortTree, type ContentsSort } from "./order";
-import { canReorderNextTo, groupOf, movedOneStep, reorderedIds } from "./reorder";
+import { canReorderNextTo, groupOf, movedOneStep, movedToEnd, reorderedIds } from "./reorder";
 import { searchTree } from "./search";
 import type { ItemKind, TreeNode, TreeRow } from "./types";
 
@@ -260,5 +260,14 @@ describe("reordering helpers", () => {
     expect(movedOneStep(["a", "b", "c"], "b", "down")).toEqual(["a", "c", "b"]);
     expect(movedOneStep(["a", "b", "c"], "a", "up")).toBeNull();
     expect(movedOneStep(["a", "b", "c"], "c", "down")).toBeNull();
+  });
+
+  it("moves to the top or bottom of the group, or nothing when already there", () => {
+    expect(movedToEnd(["a", "b", "c", "d"], "d", "top")).toEqual(["d", "a", "b", "c"]);
+    expect(movedToEnd(["a", "b", "c", "d"], "a", "bottom")).toEqual(["b", "c", "d", "a"]);
+    expect(movedToEnd(["a", "b", "c", "d"], "b", "bottom")).toEqual(["a", "c", "d", "b"]);
+    expect(movedToEnd(["a", "b", "c"], "a", "top")).toBeNull();
+    expect(movedToEnd(["a", "b", "c"], "c", "bottom")).toBeNull();
+    expect(movedToEnd(["a", "b", "c"], "z", "top")).toBeNull();
   });
 });

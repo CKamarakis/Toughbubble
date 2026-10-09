@@ -8,6 +8,7 @@ import { displayTitle } from "@/lib/tree/build";
 import { isContainer, type TreeNode } from "@/lib/tree/types";
 import { ItemIcon } from "./item-icon";
 import { ItemMenu } from "./item-menu";
+import { RowNewMenu } from "./new-inside-menu";
 import { TitleInput } from "./title-input";
 import { useTreeRowDnd } from "./tree-dnd";
 import { useLongPress } from "./use-long-press";
@@ -153,6 +154,10 @@ function TreeItem({
           </Link>
         )}
 
+        {!renaming && container && (
+          // Create inside in one tap (item-menu-actions D2).
+          <RowNewMenu parentId={node.id} title={title} className="opacity-0 group-hover/row:opacity-100 focus-visible:opacity-100 data-[popup-open]:opacity-100 pointer-coarse:size-10 pointer-coarse:opacity-100" />
+        )}
         {!renaming && (
           <ItemMenu
             item={node}

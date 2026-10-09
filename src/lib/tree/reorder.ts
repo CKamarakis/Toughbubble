@@ -50,3 +50,11 @@ export function movedOneStep(ids: string[], id: string, direction: "up" | "down"
   [next[i], next[j]] = [next[j], next[i]];
   return next;
 }
+
+/** The group's ids with `id` moved first or last (Move to top / bottom), or null when it already is there (item-menu-actions D1). */
+export function movedToEnd(ids: string[], id: string, end: "top" | "bottom"): string[] | null {
+  const i = ids.indexOf(id);
+  if (i < 0 || i === (end === "top" ? 0 : ids.length - 1)) return null;
+  const rest = ids.filter((x) => x !== id);
+  return end === "top" ? [id, ...rest] : [...rest, id];
+}

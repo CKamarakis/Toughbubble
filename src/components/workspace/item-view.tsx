@@ -7,8 +7,9 @@ import { cn } from "@/lib/utils";
 import { ancestorPath, displayTitle, findNode } from "@/lib/tree/build";
 import { isContainer } from "@/lib/tree/types";
 import { ContentsList } from "./contents-list";
-import { ItemIcon, KIND_LABELS } from "./item-icon";
+import { ItemIcon } from "./item-icon";
 import { ItemMenu } from "./item-menu";
+import { KindSwitch } from "./kind-switch";
 import { ProjectStylePicker } from "./project-style-picker";
 import { TitleInput } from "./title-input";
 import { useWorkspace } from "./workspace-context";
@@ -93,12 +94,12 @@ export function ItemView({ id, note }: { id: string; note?: NoteData | null }) {
           )}
           <ItemMenu item={node} onRename={() => setEditing(true)} className="size-8 pointer-coarse:size-10" />
         </div>
-        {/* The icon and breadcrumb already say what this is, so only projects
-            need this row (for their style picker). */}
-        {node.kind === "project" && (
+        {/* Projects and folders show their kind as a switch (item-menu-actions
+            D3); only projects have a style. */}
+        {(node.kind === "project" || node.kind === "folder") && (
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span>{KIND_LABELS[node.kind]}</span>
-            <ProjectStylePicker item={node} />
+            <KindSwitch item={{ ...node, kind: node.kind }} />
+            {node.kind === "project" && <ProjectStylePicker item={node} />}
           </div>
         )}
       </header>
