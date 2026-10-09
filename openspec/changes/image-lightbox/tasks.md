@@ -39,8 +39,15 @@
   - No button shows while the image is uploading.
 - [x] 3.2 Make the image menu's "Open full size" open the viewer, and remove the new-tab code per D3. Verify in the browser that it opens the viewer and that no new tab opens.
 
-## 4. Docs and release
+## 4. Follow-ups from the phone check
 
-- [x] 4.1 Update the README's attachments notes (viewer, ways to open it, gestures). Verify that they match the code.
-- [x] 4.2 Run types, lint, unit and integration tests. Verify that all pass.
-- [ ] 4.3 Push the branch. After the user approves, merge to `main`. Ask the user to check on a phone: double-tap, swipe, pinch and drag, and closing.
+- [x] 4.1 Make the in-note resize handles work with a finger: `touch-none`, a 44px target on touch screens, and `pointercancel` ending the resize. Verify in touch emulation that dragging the right handle 140 px left narrows the image, the page does not scroll, and Undo restores it.
+- [x] 4.2 Make ← → work wherever focus is in the viewer (window listener, capture phase). Verify in the browser that the keys work after clicking the next button and after clicking the image.
+- [x] 4.3 Put the ‹ › buttons next to the fitted image on desktop. Verify that they are 12px from a 1200 px image and stay on screen for a full-width image.
+- [x] 4.4 Light backdrop in the light theme. Verify by screenshot at desktop and phone in both themes.
+
+## 5. Docs and release
+
+- [x] 5.1 Update the README's attachments notes (viewer, ways to open it, gestures). Verify that they match the code.
+- [x] 5.2 Run types, lint, unit and integration tests. Verify that all pass.
+- [ ] 5.3 Push the branch. After the user approves, merge to `main`. Ask the user to check on a phone: double-tap, swipe, pinch and drag, and closing.

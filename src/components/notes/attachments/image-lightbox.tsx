@@ -63,12 +63,15 @@ export function LightboxProvider({ editor, children }: { editor: Editor | null; 
   );
 }
 
+const arrowClass =
+  "absolute top-1/2 -translate-y-1/2 bg-warm-50/80 shadow-sm ring-1 ring-warm-200 dark:bg-warm-900/70 dark:ring-0 pointer-coarse:size-11";
+
 const FITTED: View = { scale: 1, offset: { x: 0, y: 0 } };
 
 const iconButton =
-  "flex size-10 items-center justify-center rounded-full text-warm-50 hover:bg-warm-50/15 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:pointer-events-none disabled:opacity-30 pointer-coarse:size-11";
+  "flex size-10 items-center justify-center rounded-full text-warm-800 hover:bg-warm-800/10 dark:text-warm-50 dark:hover:bg-warm-50/15 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:pointer-events-none disabled:opacity-30 pointer-coarse:size-11";
 
-/** The full-screen viewer (image-lightbox D2, D4, D5, D6). It is its own dark backdrop. */
+/** The full-screen viewer (image-lightbox D2, D4, D5, D6). It is its own backdrop: light in the light theme, dark in the dark one. */
 function Viewer({
   images,
   index,
@@ -99,6 +102,22 @@ function Viewer({
     setView(FITTED);
     onIndex(next);
   };
+
+  // ← → browse wherever focus is in the viewer, even after a click on the image (D5).
+  const stepRef = useRef(step);
+  useEffect(() => {
+    stepRef.current = step;
+  });
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.altKey || e.ctrlKey || e.metaKey || (e.key !== "ArrowRight" && e.key !== "ArrowLeft")) return;
+      e.preventDefault();
+      stepRef.current(e.key === "ArrowRight" ? 1 : -1);
+    };
+    // Capture phase: the dialog stops key events from bubbling past it.
+    window.addEventListener("keydown", onKey, true);
+    return () => window.removeEventListener("keydown", onKey, true);
+  }, []);
 
   useEffect(() => {
     const el = areaRef.current;
@@ -221,6 +240,10 @@ function Viewer({
     }
   };
 
+  // The arrows sit 12px outside the fitted image, never closer than 8px to the
+  // screen edge (both bars are centred on the same middle as the image).
+  const arrowSide = fitted ? { left: `max(0.5rem, calc(50% - ${fitted.w / 2}px - 3.25rem))` } : undefined;
+
   // A click on the bars' empty space closes, like the dark area around the image.
   const closeOnSelf = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) onClose();
@@ -229,18 +252,12 @@ function Viewer({
   return (
     <DialogPrimitive.Popup
       initialFocus={closeRef}
-      onKeyDown={(e) => {
-        if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
-          e.preventDefault();
-          step(e.key === "ArrowRight" ? 1 : -1);
-        }
-      }}
-      className="fixed inset-0 z-50 flex flex-col bg-warm-950/95 text-warm-50 backdrop-blur-md outline-none duration-100 data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0"
+      className="fixed inset-0 z-50 flex flex-col bg-warm-50/95 text-warm-800 backdrop-blur-md dark:bg-warm-950/95 dark:text-warm-50 outline-none duration-100 data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0"
     >
       <DialogPrimitive.Title className="sr-only">Image viewer</DialogPrimitive.Title>
       <div onClick={closeOnSelf} className="flex h-14 shrink-0 items-center justify-between gap-2 px-2 sm:px-4">
         {several ? (
-          <span className="px-2 text-sm tabular-nums text-warm-200">
+          <span className="px-2 text-sm tabular-nums text-warm-600 dark:text-warm-200">
             <span aria-hidden>
               {index + 1} / {images.length}
             </span>
@@ -297,7 +314,7 @@ function Viewer({
               )}
             />
           ) : (
-            <p className="absolute inset-0 flex items-center justify-center text-sm text-warm-300">Loading…</p>
+            <p className="absolute inset-0 flex items-center justify-center text-sm text-warm-600 dark:text-warm-300">Loading…</p>
           )}
         </div>
         {several && (
@@ -308,7 +325,8 @@ function Viewer({
               title="Previous image"
               disabled={index === 0}
               onClick={() => step(-1)}
-              className={cn(iconButton, "absolute top-1/2 left-2 -translate-y-1/2 bg-warm-900/70 sm:left-3")}
+              style={arrowSide}
+              className={cn(iconButton, arrowClass, "left-2")}
             >
               <ChevronLeft className="size-6" />
             </button>
@@ -318,7 +336,8 @@ function Viewer({
               title="Next image"
               disabled={index === images.length - 1}
               onClick={() => step(1)}
-              className={cn(iconButton, "absolute top-1/2 right-2 -translate-y-1/2 bg-warm-900/70 sm:right-3")}
+              style={arrowSide && { right: arrowSide.left }}
+              className={cn(iconButton, arrowClass, "right-2")}
             >
               <ChevronRight className="size-6" />
             </button>
@@ -327,7 +346,7 @@ function Viewer({
       </div>
 
       <div onClick={closeOnSelf} className="flex min-h-12 shrink-0 items-center justify-center px-4 py-3">
-        {image.alt && <p className="line-clamp-2 max-w-prose text-center text-sm text-warm-200">{image.alt}</p>}
+        {image.alt && <p className="line-clamp-2 max-w-prose text-center text-sm text-warm-600 dark:text-warm-200">{image.alt}</p>}
       </div>
     </DialogPrimitive.Popup>
   );

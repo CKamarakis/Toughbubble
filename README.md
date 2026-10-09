@@ -233,7 +233,9 @@ and is blocked from `src/` by a lint rule; it is for migrations, tests, and back
   (one detector for mouse and touch; a single tap still selects), or the image menu's "Open full
   size". It steps through the note's uploaded images in note order (buttons, ← →, swipe). A click
   toggles fitted and actual size, two fingers pinch, and a drag pans while zoomed; the area has
-  `touch-action: none`, so the page itself never zooms.
+  `touch-action: none`, so the page itself never zooms. ← → are read on the window in the capture
+  phase (the dialog stops key events). The in-note resize handles are `touch-none` with a 44px
+  target on touch screens, so a finger resizes instead of scrolling.
 - **Deleting files.** Removing a file from the text keeps it (Undo works). *Delete forever*
   removes the stored files after the rows are gone; a failed removal is logged and left for the
   purge job. Pasting a file from another note copies it into the target note.

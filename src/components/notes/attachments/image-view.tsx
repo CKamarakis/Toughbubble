@@ -76,20 +76,25 @@ export function ImageView({ node, updateAttributes, deleteNode, selected, editor
     const up = () => {
       window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerup", up);
+      window.removeEventListener("pointercancel", up);
       setDragWidth(null);
       updateAttributes({ width: latest });
     };
     window.addEventListener("pointermove", move);
     window.addEventListener("pointerup", up);
+    // A touch the browser takes over still ends the resize where it got to.
+    window.addEventListener("pointercancel", up);
   };
 
+  // `touch-none` keeps a finger on a handle from scrolling the page instead of
+  // resizing; on touch screens an invisible ::after makes the target 44px wide.
   const handle = (side: "left" | "right") => (
     <span
       aria-hidden
       onPointerDown={startResize(side)}
       className={cn(
-        "absolute top-1/2 h-10 w-2 -translate-y-1/2 cursor-ew-resize rounded-full border border-background bg-foreground/70 shadow",
-        side === "left" ? "-left-1" : "-right-1",
+        "absolute top-1/2 h-10 w-2 -translate-y-1/2 cursor-ew-resize touch-none rounded-full border border-background bg-foreground/70 shadow pointer-coarse:h-14 pointer-coarse:w-3 pointer-coarse:after:absolute pointer-coarse:after:-inset-x-4 pointer-coarse:after:-inset-y-1 pointer-coarse:after:content-['']",
+        side === "left" ? "-left-1 pointer-coarse:-left-1.5" : "-right-1 pointer-coarse:-right-1.5",
       )}
     />
   );

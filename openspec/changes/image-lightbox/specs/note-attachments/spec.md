@@ -3,11 +3,15 @@
 ## MODIFIED Requirements
 
 ### Requirement: Adjusting images
-A user SHALL be able to resize an image in the note by dragging its handles, keeping its aspect ratio, between 48 px wide and the width of the text column. A user SHALL be able to align an image left, center, or right, set its alt text, view it full screen, download it, and remove it from the note. Size, alignment, and alt text SHALL be saved with the note.
+A user SHALL be able to resize an image in the note by dragging its handles, keeping its aspect ratio, between 48 px wide and the width of the text column. On touch screens the handles SHALL be easy to grab (at least 44px wide targets) and dragging one SHALL resize the image without scrolling the page. A user SHALL be able to align an image left, center, or right, set its alt text, view it full screen, download it, and remove it from the note. Size, alignment, and alt text SHALL be saved with the note.
 
 #### Scenario: Resize an image
 - **WHEN** a user drags an image's corner handle to make it 300 px wide and reloads the note
 - **THEN** the image is 300 px wide with its aspect ratio kept
+
+#### Scenario: Resize with a finger
+- **WHEN** a user on a phone selects an image and drags its right handle 140 px to the left
+- **THEN** the image gets narrower and the page does not scroll
 
 #### Scenario: Center an image
 - **WHEN** a user selects an image and chooses Center
@@ -24,7 +28,7 @@ A user SHALL be able to resize an image in the note by dragging its handles, kee
 ## ADDED Requirements
 
 ### Requirement: Viewing images full screen
-A user SHALL be able to view an uploaded image of a note full screen, over the note, on a dark backdrop. The image SHALL be shown whole, fitted to the screen, with its alt text as a caption when it has one, a Download button, and a close button. The viewer SHALL be announced as a dialog, keep keyboard focus inside it while open, and return focus to where it was when closed. It SHALL close with the close button, with Escape, and by clicking or tapping the backdrop outside the image. Images still uploading or failed SHALL NOT open in the viewer.
+A user SHALL be able to view an uploaded image of a note full screen, over the note, on a backdrop that is light in the light theme and dark in the dark theme. The image SHALL be shown whole, fitted to the screen, with its alt text as a caption when it has one, a Download button, and a close button. The viewer SHALL be announced as a dialog, keep keyboard focus inside it while open, and return focus to where it was when closed. It SHALL close with the close button, with Escape, and by clicking or tapping the backdrop outside the image. Images still uploading or failed SHALL NOT open in the viewer.
 
 A user SHALL be able to open the viewer:
 - with a button in the image's corner, shown while the pointer is over the image or the image has focus, and always shown on touch screens, at least 44px on touch screens;
@@ -56,11 +60,15 @@ A user SHALL be able to open the viewer:
 - **THEN** "Sales chart" is shown under the image
 
 ### Requirement: Moving between a note's images
-When a note has more than one uploaded image, the viewer SHALL show which image is open out of how many (for example "2 / 5") and SHALL let the user go to the previous and next image in the order they appear in the note: with previous and next buttons, with the left and right arrow keys, and with a horizontal swipe while the image is not zoomed in. Going back from the first image or forward from the last SHALL do nothing. With one image, no counter or previous and next buttons SHALL be shown.
+When a note has more than one uploaded image, the viewer SHALL show which image is open out of how many (for example "2 / 5") and SHALL let the user go to the previous and next image in the order they appear in the note: with previous and next buttons, with the left and right arrow keys, and with a horizontal swipe while the image is not zoomed in. The arrow keys SHALL work wherever focus is in the viewer. The previous and next buttons SHALL sit just outside the fitted image, not at the screen edges, unless the image fills the width. Going back from the first image or forward from the last SHALL do nothing. With one image, no counter or previous and next buttons SHALL be shown.
 
 #### Scenario: Next with the arrow key
 - **WHEN** a user opens the second of five images and presses the right arrow key
 - **THEN** the third image is shown and the counter reads "3 / 5"
+
+#### Scenario: Arrow key after clicking the image
+- **WHEN** a user clicks the image in the viewer twice and then presses the left arrow key
+- **THEN** the previous image is shown
 
 #### Scenario: Swipe on a phone
 - **WHEN** a user swipes left on the image in the viewer

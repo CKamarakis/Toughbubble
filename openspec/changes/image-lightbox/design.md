@@ -36,7 +36,8 @@
   - the image area in the middle;
   - ‹ › buttons on the sides;
   - the alt-text caption at the bottom.
-- The backdrop is `warm-950/95` in both themes, with light text. Buttons are 40px (44px with `pointer-coarse:`).
+- The Popup is its own backdrop (the Base UI Backdrop did not show under the full-screen Popup): `warm-50/95` with dark text in the light theme, `warm-950/95` with light text in the dark theme, with a blur so the note does not show through. Buttons are 40px (44px with `pointer-coarse:`).
+- The ‹ › buttons sit 12px outside the fitted image (`max(0.5rem, calc(50% - fittedWidth/2 - 3.25rem))`), so they stay next to small images and at the edge for wide ones.
 - Closing on the backdrop: a click on the image area outside the `<img>` closes it. This is checked on the event target, because the Popup covers the backdrop.
 - Accessible name: "Image viewer". The `<img>` keeps its alt text. The counter's label reads "Image 2 of 5".
 
@@ -63,7 +64,7 @@
 - Why not a library: three gestures with clear math, and no new dependency.
 
 ### D5. Moving between images
-- ‹ › buttons, ← → keys (on the Popup's `onKeyDown`) and a swipe all move one step. They are disabled or ignored at the ends.
+- ‹ › buttons, ← → keys (a window `keydown` listener in the capture phase while the viewer is open, since the dialog stops key events from bubbling, and focus can be anywhere in it) and a swipe all move one step. They are disabled or ignored at the ends.
 - **Swipe:** one pointer at `scale === 1`, a horizontal move of at least 50 px that is larger than the vertical move (`swipeDirection(dx, dy)`). Swipe left goes to the next image.
 - With one image, the counter and ‹ › are not rendered.
 
