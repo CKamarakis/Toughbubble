@@ -39,4 +39,4 @@
 - [x] 7.1 Run lint, unit and integration tests; verify they all pass
 - [x] 7.2 Run `/impeccable critique` on the app shell + sidebar again with the test user, at desktop and mobile in both themes; verify the two P1 issues and the current-row, light-control and menu issues from the 2026-10-08 critique no longer appear, and record the new score
 - [x] 7.3 Update the README notes for the shell (Undo, small-screen panel, touch long press, no touch drag); verify the README describes the shipped behavior
-- [ ] 7.4 Push the branch and check the preview deployment on a real phone if available (long press, panel, swipe scroll); after the user approves, merge to `main` and verify on production that archive Undo works
+- [x] 7.4 Push the branch and check the preview deployment on a real phone if available (long press, panel, swipe scroll); after the user approves, merge to `main` and verify on production that archive Undo works

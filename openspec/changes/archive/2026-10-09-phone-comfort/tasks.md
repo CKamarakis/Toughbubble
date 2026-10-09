@@ -17,7 +17,7 @@
 
 ## 4. Check and document
 
-- [ ] 4.1 Screenshot every page from 1.1 at 390×844 (touch, light and dark) and look for wrapping, clipping or overlapping that the larger sizes caused. Fix anything found. Verify that a second screenshot pass is clean.
+- [x] 4.1 Screenshot every page from 1.1 at 390×844 (touch, light and dark) and look for wrapping, clipping or overlapping that the larger sizes caused. Fix anything found. Verify that a second screenshot pass is clean.
 - [x] 4.2 Add a "Phone sizes" line to the README's shell notes (the root scale on `pointer: coarse`, editor excluded, panel width). Verify that it matches the shipped CSS.
 - [x] 4.3 Run types, lint, unit and integration tests. Verify that all pass.
-- [ ] 4.4 Push the branch. After the user approves, merge to `main` and ask the user to check on their phone: sidebar readability, a project page, the ⋯ menu, and a note.
+- [x] 4.4 Push the branch. After the user approves, merge to `main` and ask the user to check on their phone: sidebar readability, a project page, the ⋯ menu, and a note.

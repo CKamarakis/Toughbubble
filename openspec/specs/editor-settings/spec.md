@@ -4,11 +4,12 @@
 Lets a user set the default font size and color of each kind of text in their notes (paragraphs and headings 1 to 6) from a settings page, using a color picker that offers common colors and any custom color.
 
 ## Requirements
+
 ### Requirement: Settings page
-The workspace SHALL have a Settings page reachable from the sidebar. It SHALL include an Editor section listing Paragraph and Heading 1 to Heading 6, each with its font size, its Light and Dark colors, and a preview of how that text looks in the light and in the dark theme. The Editor section SHALL say that changes apply to every note.
+The workspace SHALL have a Settings page reachable from the account menu in the sidebar. It SHALL include an Editor section listing Paragraph and Heading 1 to Heading 6, each with its font size, its Light and Dark colors, and a preview of how that text looks in the light and in the dark theme. The Editor section SHALL say that changes apply to every note.
 
 #### Scenario: Open settings
-- **WHEN** a signed-in user chooses Settings in the sidebar
+- **WHEN** a signed-in user opens the account menu in the sidebar and chooses Settings
 - **THEN** the Settings page opens with an Editor section listing Paragraph and Heading 1 to Heading 6, each showing its current size, its Light and Dark colors, and a preview in both themes
 
 #### Scenario: Preview both themes

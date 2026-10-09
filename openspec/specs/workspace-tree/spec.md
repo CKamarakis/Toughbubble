@@ -4,6 +4,7 @@
 Lets a signed-in user build and navigate their workspace: a sidebar tree of projects, folders, notes, and Storms that they can create, open, rename, move, and search, with the selected item shown in the main pane and each project's or folder's contents reviewable and sortable there.
 
 ## Requirements
+
 ### Requirement: Sidebar tree
 The workspace SHALL show a sidebar listing the user's active items as a tree, with the account area (email, theme control, sign out) in the sidebar. At every level the tree SHALL group items as projects first, then folders, then notes and Storms together. Within each group, items SHALL appear in the order the user arranged them; items the user has not arranged SHALL be ordered by creation time, newest first. Archived and trashed items SHALL NOT appear in the tree.
 
@@ -24,19 +25,27 @@ The workspace SHALL show a sidebar listing the user's active items as a tree, wi
 - **THEN** the sidebar shows an empty state with a way to create their first item
 
 ### Requirement: Create items
-A user SHALL be able to create a project, folder, note, or Storm at the root level or inside a project or folder. A new item SHALL appear at the top of its kind's group, get a default title for its kind, be selected, and have its title ready to edit.
+A user SHALL be able to create a project, folder, note, or Storm at the root level or inside a project or folder. A new item SHALL appear at the top of its kind's group, get a default title for its kind, be selected, and have its title ready to edit. The New buttons SHALL stay available while another change (such as a rename, move, or archive) is saving. Every New menu SHALL list the kinds in the same order: Note, Storm, Folder, Project.
 
 #### Scenario: Create at the root
 - **WHEN** a user chooses New > Project from the sidebar
 - **THEN** a project titled "Untitled project" appears first among the root-level projects, opens in the main pane, and its title is ready to edit
 
 #### Scenario: Create inside a container
-- **WHEN** a user chooses "New note" from a folder's menu
+- **WHEN** a user chooses New inside > Note from a folder's menu
 - **THEN** a note appears first among the notes and Storms inside that folder, the folder expands, and the note opens
+
+#### Scenario: Same order in every New menu
+- **WHEN** a user opens the sidebar New menu and a folder's New inside submenu
+- **THEN** both list Note, Storm, Folder, Project in that order
 
 #### Scenario: Notes and Storms cannot contain items
 - **WHEN** a user opens the menu of a note or a Storm
 - **THEN** it offers no option to create an item inside it
+
+#### Scenario: New during a save
+- **WHEN** a user archives a note and, while that is saving, opens the sidebar's New menu
+- **THEN** the New menu opens and works
 
 ### Requirement: Open items
 Selecting an item SHALL open it in the main pane at a URL that identifies the item, with a breadcrumb of its ancestors. Projects and folders SHALL show their contents; notes and Storms SHALL show their title and a placeholder until their editors exist. When an item becomes the open item, the sidebar SHALL reveal it by expanding its ancestors once; the user SHALL remain free to collapse them afterwards.
@@ -171,7 +180,7 @@ A user SHALL be able to move an item into a project or folder, or to the root le
 - **THEN** the note stays where it was
 
 ### Requirement: Reorder items
-A user SHALL be able to change an item's place among its siblings by dragging it in the sidebar, within the same project or folder (or the root level) and within its kind's group. While dragging, a line SHALL show where the item will land, and only places within the same group SHALL be offered. The item menu SHALL offer "Move up" and "Move down" for the same change from the keyboard, unavailable at the start and end of the group. The new order SHALL be saved to the account.
+A user SHALL be able to change an item's place among its siblings by dragging it in the sidebar with a mouse or pen, within the same project or folder (or the root level) and within its kind's group. While dragging, a line SHALL show where the item will land, and only places within the same group SHALL be offered. The item menu's Reorder submenu SHALL offer "Move up" and "Move down" for the same change from the keyboard, unavailable at the start and end of the group. The new order SHALL be saved to the account.
 
 #### Scenario: Drag a note to the top of its folder
 - **WHEN** a folder contains notes A, B, C in that order and the user drags C above A
@@ -182,13 +191,130 @@ A user SHALL be able to change an item's place among its siblings by dragging it
 - **THEN** no landing line is shown there and releasing leaves the order unchanged
 
 #### Scenario: Keyboard reorder
-- **WHEN** a user opens the menu of note B in the order A, B, C and chooses "Move up"
+- **WHEN** a user opens the menu of note B in the order A, B, C and chooses Reorder > Move up
 - **THEN** the order becomes B, A, C
 
 #### Scenario: Ends of the group
-- **WHEN** a user opens the menu of the first note in a folder
+- **WHEN** a user opens the Reorder submenu of the first note in a folder
 - **THEN** "Move up" is unavailable and "Move down" is available
 
 #### Scenario: New item after reordering
 - **WHEN** a user has arranged a folder's notes as C, A, B and creates a new note in it
 - **THEN** the new note appears first, followed by C, A, B
+
+### Requirement: Small-screen sidebar
+Below the medium breakpoint (768px) the sidebar SHALL be hidden behind an open button in a top bar, and SHALL open as a modal panel over the page. While open: focus SHALL move into the panel and stay within it, the page behind SHALL NOT be reachable by keyboard or screen reader, and the panel SHALL be announced as a dialog named "Sidebar". The panel SHALL close with Escape, with a visible close button, by tapping outside it, and when the user opens an item. On close, focus SHALL return to the open button. The top bar SHALL show, next to the open button, the title of the open item, or the page's name (Home, Archive, Trash, Settings) when no item is open. On touch screens the open button and the panel's header buttons (New and close) SHALL be at least 44px square, with at least 8px between neighbouring buttons.
+
+#### Scenario: Thumb-sized header buttons
+- **WHEN** a user opens the sidebar on a phone
+- **THEN** the open button, New and close are each at least 44px square and New and close are at least 8px apart
+
+#### Scenario: Close with Escape
+- **WHEN** a user on a 390px-wide screen opens the sidebar and presses Escape
+- **THEN** the panel closes and focus is on the open button
+
+#### Scenario: Close button
+- **WHEN** a user opens the sidebar on a small screen
+- **THEN** the panel shows a close button, and choosing it closes the panel
+
+#### Scenario: Focus stays in the panel
+- **WHEN** the panel is open and the user presses Tab repeatedly
+- **THEN** focus moves only between controls inside the panel
+
+#### Scenario: Opening an item closes the panel
+- **WHEN** a user opens a note from the panel
+- **THEN** the panel closes and the note is shown
+
+#### Scenario: Where am I
+- **WHEN** a user on a small screen has the note "Budget" open
+- **THEN** the top bar shows "Budget" next to the open button
+
+#### Scenario: Wide screens unchanged
+- **WHEN** the window is 768px wide or more
+- **THEN** the sidebar is shown beside the page, with no top bar and no panel behavior
+
+### Requirement: Touch-friendly rows
+On touch screens (no hover), every sidebar row SHALL show its actions button at all times and SHALL be at least 40px tall. A long press on a row SHALL open that row's actions menu and SHALL NOT open the item. Touch input SHALL NOT drag rows: on touch screens items are reordered with the menu's Reorder submenu or moved with Move to…, so swiping always scrolls the sidebar. Mouse and pen input SHALL keep drag to reorder. Devices with hover SHALL keep the current compact rows with actions shown on hover or focus.
+
+#### Scenario: Actions visible on a phone
+- **WHEN** a user views the sidebar on a touch screen
+- **THEN** each row shows its "⋯" actions button without hovering
+
+#### Scenario: Long press opens the menu
+- **WHEN** a user presses and holds a note's row on a touch screen without moving
+- **THEN** the note's actions menu opens and the note does not open
+
+#### Scenario: Swipe scrolls
+- **WHEN** a user swipes up on the sidebar list on a touch screen
+- **THEN** the list scrolls and no item is moved
+
+#### Scenario: Desktop unchanged
+- **WHEN** a user with a mouse views the sidebar
+- **THEN** rows keep their compact height and the actions button appears on hover or keyboard focus
+
+### Requirement: Current item marker
+The sidebar row of the open item SHALL look different from a hovered row: it SHALL carry an accent mark at its left edge in addition to its highlight and medium weight. A hovered row SHALL show only the highlight.
+
+#### Scenario: Current and hovered side by side
+- **WHEN** a note is open and the user hovers another note's row
+- **THEN** only the open note's row shows the accent mark
+
+### Requirement: Item menu layout
+An item's actions menu SHALL show at its top level: "New inside" (for projects and folders), Rename, Move to…, "Reorder", Convert (for projects and folders), Archive, and Move to Trash. "New inside" SHALL open a submenu with Note, Storm, Folder, and Project. "Reorder" SHALL open a submenu with Move up and Move down. The menu and its submenus SHALL be usable with the keyboard.
+
+#### Scenario: Container menu
+- **WHEN** a user opens a folder's actions menu
+- **THEN** it shows seven top-level entries, and "New inside" opens a submenu listing Note, Storm, Folder, and Project
+
+#### Scenario: Note menu
+- **WHEN** a user opens a note's actions menu
+- **THEN** it shows Rename, Move to…, Reorder, Archive, and Move to Trash, and no "New inside" or Convert
+
+#### Scenario: Submenu by keyboard
+- **WHEN** a user focuses "Reorder" in an open menu and presses the right arrow key
+- **THEN** the submenu opens with focus on its first available entry
+
+### Requirement: Consistent dates
+Every date shown in the workspace (contents view, Archive view, Trash view) SHALL use the same format, the medium date style of the browser's locale and time zone, including on the first page load.
+
+#### Scenario: Same format everywhere
+- **WHEN** a user with an English (UK) browser opens a folder's contents and then the Trash view
+- **THEN** both show dates like "8 Oct 2026"
+
+### Requirement: Small-screen panel width
+The small-screen sidebar panel SHALL be about 85% of the screen width, and at most 360px wide, leaving a strip of the page visible to tap for closing it.
+
+#### Scenario: Panel on a phone
+- **WHEN** a user opens the sidebar on a screen 412px wide
+- **THEN** the panel is about 350px wide and a strip of the page stays visible beside it
+
+#### Scenario: Panel on a wider small screen
+- **WHEN** a user opens the sidebar on a screen 700px wide
+- **THEN** the panel is 360px wide
+
+### Requirement: Account menu
+The bottom of the sidebar SHALL show Archive and Trash as links, followed by one account row with the user's avatar initial and email. Choosing the account row SHALL open a menu with Settings, a theme choice of Light, Dark and System showing the current choice, and Sign out. Choosing a theme in the menu SHALL apply it at once, as the theme control does. The sidebar SHALL NOT show separate Settings, theme or Sign out controls. While the Settings page is open, the account row SHALL show the same highlight as the link of the current page. The menu SHALL be usable with the keyboard and SHALL close with Escape, returning focus to the account row.
+
+#### Scenario: Open the account menu
+- **WHEN** a user chooses their email at the bottom of the sidebar
+- **THEN** a menu opens with Settings, Light, Dark, System and Sign out, and the current theme is marked as chosen
+
+#### Scenario: Change theme from the menu
+- **WHEN** a user using the light theme chooses Dark in the account menu
+- **THEN** the app switches to the dark theme immediately and the choice is remembered as before
+
+#### Scenario: Sign out from the menu
+- **WHEN** a user chooses Sign out in the account menu
+- **THEN** they are signed out and taken to the sign-in page
+
+#### Scenario: Compact sidebar footer
+- **WHEN** a user views the sidebar
+- **THEN** below the tree there are only the Archive and Trash links and the account row
+
+#### Scenario: Settings page highlight
+- **WHEN** the Settings page is open
+- **THEN** the account row is highlighted like the current page's link
+
+#### Scenario: Keyboard
+- **WHEN** a keyboard user focuses the account row, presses Enter, moves to Dark with the arrow keys, and presses Enter
+- **THEN** the dark theme is applied. Opening the menu again and pressing Escape closes it and puts focus back on the account row

@@ -4,6 +4,7 @@
 Lets a user clear items out of their way without losing them: archiving hides finished work, Trash holds items on their way out, and both can be restored, with whole subtrees moving together.
 
 ## Requirements
+
 ### Requirement: Archive items
 A user SHALL be able to archive any active item. Archiving SHALL also archive every active item inside it, and all of them SHALL disappear from the sidebar tree.
 
@@ -65,3 +66,30 @@ Archived and trashed items SHALL NOT open in the main pane from their URLs; the 
 #### Scenario: Old link to a trashed note
 - **WHEN** a user opens a saved link to a note that is now in Trash
 - **THEN** the main pane shows a "not found" message
+
+### Requirement: Undo archive and trash
+After a user archives or trashes an active item from the sidebar or an item page, the confirmation SHALL offer Undo for as long as it is shown (at least 5 seconds). Undo SHALL restore the item and everything archived or trashed together with it to their places, as Restore does. The confirmation SHALL appear only once the archive or trash has been saved, so Undo never races the save. The confirmation SHALL name the item, for example '"Budget" moved to Archive'. Undo SHALL act at most once per confirmation. If the user was viewing the item, or an item inside it, when they archived or trashed it, Undo SHALL also take them back to that page.
+
+#### Scenario: Undo an archive
+- **WHEN** a user archives a project containing a folder with two notes and chooses Undo in the confirmation
+- **THEN** the project, folder, and notes reappear in the tree in their original place and order, and the project is not in the Archive view
+
+#### Scenario: Undo a trash
+- **WHEN** a user moves a note to Trash from its menu and chooses Undo
+- **THEN** the note reappears in the tree where it was, and the Trash view does not list it
+
+#### Scenario: Back to the page they were on
+- **WHEN** a user viewing a note archives it from the page's menu, is taken to the workspace home, and chooses Undo
+- **THEN** the note is restored and opens again
+
+#### Scenario: Confirmation names the item
+- **WHEN** a user archives the note "Budget"
+- **THEN** the confirmation reads '"Budget" moved to Archive' and offers Undo
+
+#### Scenario: Undo only once
+- **WHEN** a user chooses Undo twice in quick succession
+- **THEN** the item is restored once and no error is shown
+
+#### Scenario: Confirmation dismissed
+- **WHEN** the confirmation closes without the user choosing Undo
+- **THEN** the item stays archived or trashed and can still be restored from the Archive or Trash view
