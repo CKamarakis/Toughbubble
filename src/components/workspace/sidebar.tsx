@@ -1,14 +1,13 @@
 "use client";
 
-import { Archive, Search, Settings, Trash2, X } from "lucide-react";
+import { Archive, Search, Trash2, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useMemo, useState } from "react";
 import { AppLogo } from "@/components/app-logo";
-import { ThemeToggle } from "@/components/theme-toggle";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { searchTree } from "@/lib/tree/search";
+import { AccountMenu } from "./account-menu";
 import { NewItemMenu } from "./new-item-menu";
 import { SidebarTree } from "./sidebar-tree";
 import { TreeDnd } from "./tree-dnd";
@@ -99,29 +98,8 @@ export function Sidebar({ closeButton }: { closeButton?: React.ReactNode }) {
       <div className="flex flex-col gap-px border-t border-sidebar-border pt-2">
         {navLink("/archive", "Archive", Archive)}
         {navLink("/trash", "Trash", Trash2)}
-        {navLink("/settings", "Settings", Settings)}
-      </div>
-
-      <div className="flex flex-col gap-2 border-t border-sidebar-border pt-2">
-        <div className="flex items-center gap-2 px-1">
-          <span
-            aria-hidden
-            className="flex size-6 shrink-0 items-center justify-center rounded-full bg-warm-700 text-xs font-medium text-warm-50 dark:bg-warm-300 dark:text-warm-950"
-          >
-            {ws.email.charAt(0).toUpperCase()}
-          </span>
-          <span className="truncate text-sm" title={ws.email}>
-            {ws.email}
-          </span>
-        </div>
-        <div className="flex items-center justify-between gap-2">
-          <ThemeToggle />
-          <form action="/auth/sign-out" method="post">
-            <Button type="submit" variant="ghost" size="sm">
-              Sign out
-            </Button>
-          </form>
-        </div>
+        {/* Settings, theme and Sign out live in the account menu (account-menu). */}
+        <AccountMenu email={ws.email} />
       </div>
     </div>
   );
