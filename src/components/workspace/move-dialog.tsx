@@ -86,7 +86,7 @@ function MovePicker({ itemId, title, onDone }: { itemId: string; title: string; 
             choose(current);
           }
         }}
-        className="h-8 w-full rounded-lg border border-input bg-background px-2.5 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="h-8 pointer-coarse:h-10 w-full rounded-lg border border-input bg-background px-2.5 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
       />
       <ul
         id="move-destinations"
@@ -106,7 +106,7 @@ function MovePicker({ itemId, title, onDone }: { itemId: string; title: string; 
             onMouseEnter={() => setActive(i)}
             onClick={() => choose(i)}
             className={cn(
-              "flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm",
+              "flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm pointer-coarse:min-h-10",
               i === current && "bg-accent",
             )}
             style={{ paddingLeft: `${8 + d.depth * 14}px` }}

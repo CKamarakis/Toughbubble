@@ -168,6 +168,10 @@ and is blocked from `src/` by a lint rule; it is for migrations, tests, and back
   page inert), opened from a top bar that names the open item or page (`topBarTitle`).
 - **The sidebar list is a plain list**, not an ARIA tree: arrow-key tree navigation isn't offered,
   so it doesn't claim it. Every New menu uses `CREATE_ORDER` (Note, Storm, Folder, Project).
+- **Phone sizes** (`pointer: coarse`): `globals.css` scales the root font size by 8/7, so everything in
+  `rem` grows together (`text-sm` becomes 16px, tap targets reach 44px with a few `pointer-coarse:` classes).
+  The note editor sizes are in px from editor settings and stay as chosen. The small-screen panel is
+  `min(85vw, 360px)` wide, in px so the scale doesn't inflate it.
 - **Dates** (`FormatDate`) render only in the browser, in its locale: the server's locale can
   differ, and hydration would keep the server's text.
 

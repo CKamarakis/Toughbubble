@@ -108,12 +108,12 @@ function TreeItem({
             aria-label={`${open ? "Collapse" : "Expand"} ${title}`}
             onClick={() => ws.setExpanded(node.id, !open)}
             disabled={!!forceOpen}
-            className="flex size-5 shrink-0 items-center justify-center rounded-sm text-muted-foreground hover:bg-background/60 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none pointer-coarse:size-8"
+            className="flex size-5 shrink-0 items-center justify-center rounded-sm text-muted-foreground hover:bg-background/60 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none pointer-coarse:size-10"
           >
             <ChevronRight className={cn("size-3.5 transition-transform", open && "rotate-90")} />
           </button>
         ) : (
-          <span className="size-5 shrink-0 pointer-coarse:size-8" aria-hidden />
+          <span className="size-5 shrink-0 pointer-coarse:size-10" aria-hidden />
         )}
 
         {renaming ? (
@@ -144,7 +144,7 @@ function TreeItem({
                 ws.setExpanded(node.id, true);
               }
             }}
-            className="flex min-w-0 flex-1 items-center gap-2 rounded-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+            className="flex min-w-0 flex-1 items-center gap-2 rounded-sm focus-visible:ring-2 pointer-coarse:self-stretch focus-visible:ring-ring focus-visible:outline-none"
           >
             <ItemIcon item={node} />
             <span className={cn("truncate", !node.title.trim() && "text-muted-foreground")}>
@@ -159,7 +159,7 @@ function TreeItem({
             onRename={() => ws.setRenamingId(node.id)}
             open={menuOpen}
             onOpenChange={setMenuOpen}
-            className="opacity-0 group-hover/row:opacity-100 focus-visible:opacity-100 data-[popup-open]:opacity-100 pointer-coarse:size-8 pointer-coarse:opacity-100"
+            className="opacity-0 group-hover/row:opacity-100 focus-visible:opacity-100 data-[popup-open]:opacity-100 pointer-coarse:size-10 pointer-coarse:opacity-100"
           />
         )}
       </div>

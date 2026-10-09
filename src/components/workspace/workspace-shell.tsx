@@ -50,7 +50,7 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
         <div className="flex min-w-0 flex-1 flex-col">
           <div className="flex items-center gap-1 border-b px-2 py-1 md:hidden">
             <DialogPrimitive.Trigger
-              render={<Button variant="ghost" size="icon-sm" aria-label="Open sidebar" className="pointer-coarse:size-11" />}
+              render={<Button variant="ghost" size="icon-sm" aria-label="Open sidebar" className="pointer-coarse:size-10" />}
             >
               <PanelLeft />
             </DialogPrimitive.Trigger>
@@ -64,12 +64,12 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
           <DialogPrimitive.Popup
             aria-label="Sidebar"
             aria-modal="true"
-            className="fixed inset-y-0 left-0 z-50 w-64 max-w-[85vw] border-r border-sidebar-border shadow-lg outline-none duration-150 data-open:animate-in data-open:slide-in-from-left data-closed:animate-out data-closed:slide-out-to-left motion-reduce:animate-none md:hidden"
+            className="fixed inset-y-0 left-0 z-50 w-[min(85vw,360px)] border-r border-sidebar-border shadow-lg outline-none duration-150 data-open:animate-in data-open:slide-in-from-left data-closed:animate-out data-closed:slide-out-to-left motion-reduce:animate-none md:hidden"
           >
             <Sidebar
               closeButton={
                 <DialogPrimitive.Close
-                  render={<Button variant="ghost" size="icon-sm" aria-label="Close sidebar" className="pointer-coarse:size-11" />}
+                  render={<Button variant="ghost" size="icon-sm" aria-label="Close sidebar" className="pointer-coarse:size-10" />}
                 >
                   <X />
                 </DialogPrimitive.Close>

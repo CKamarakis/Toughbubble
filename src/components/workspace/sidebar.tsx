@@ -26,7 +26,7 @@ export function Sidebar({ closeButton }: { closeButton?: React.ReactNode }) {
       href={href}
       aria-current={pathname === href ? "page" : undefined}
       className={cn(
-        "flex h-7 items-center gap-2 rounded-md px-2 text-sm text-foreground hover:bg-sidebar-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+        "flex h-7 items-center gap-2 rounded-md px-2 text-sm text-foreground pointer-coarse:h-10 hover:bg-sidebar-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
         pathname === href && "bg-sidebar-accent font-medium",
       )}
     >
@@ -38,7 +38,7 @@ export function Sidebar({ closeButton }: { closeButton?: React.ReactNode }) {
   return (
     <div className="flex h-full flex-col gap-3 bg-sidebar p-3 text-sidebar-foreground">
       <div className="flex items-center justify-between gap-2 px-1">
-        <Link href="/" className="flex items-center gap-1.5 font-light text-highlight-text">
+        <Link href="/" className="flex items-center gap-1.5 font-light text-highlight-text pointer-coarse:min-h-10">
           <AppLogo className="h-5 w-auto" />
           ToughBubble
         </Link>
@@ -61,7 +61,7 @@ export function Sidebar({ closeButton }: { closeButton?: React.ReactNode }) {
           onKeyDown={(e) => e.key === "Escape" && setQuery("")}
           placeholder="Search titles"
           aria-label="Search titles"
-          className="h-8 w-full rounded-lg border border-input bg-background pr-8 pl-8 text-sm outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-search-cancel-button]:hidden"
+          className="h-8 w-full rounded-lg border border-input bg-background pr-8 pl-8 pointer-coarse:h-10 text-sm outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-search-cancel-button]:hidden"
         />
         {query && (
           <button

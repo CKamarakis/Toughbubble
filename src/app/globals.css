@@ -203,6 +203,14 @@ summary {
   html {
     @apply font-sans;
   }
+  /* Phone sizes (phone-comfort D1): on touch screens everything in rem grows
+     by 8/7, so text-sm is 16px and text-xs about 13.7px. The note editor sets
+     its sizes in px and keeps them. */
+  @media (pointer: coarse) {
+    html {
+      font-size: calc(100% * 8 / 7);
+    }
+  }
 }
 
 /* Note body (notes design D6). Each element's size and color come from CSS

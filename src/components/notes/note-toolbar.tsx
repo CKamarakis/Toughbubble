@@ -58,7 +58,7 @@ const ALIGN_ICONS: Record<(typeof ALIGNMENTS)[number], LucideIcon> = {
 // Toolbar menus leave focus in the editor (they call editor.focus()), so typing
 // continues where it was instead of on the menu button.
 const triggerClass =
-  "flex h-8 items-center gap-1 rounded-md px-2 text-sm text-foreground hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none data-[popup-open]:bg-accent";
+  "flex h-8 pointer-coarse:h-10 items-center gap-1 rounded-md px-2 text-sm text-foreground hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none data-[popup-open]:bg-accent";
 
 /**
  * Formatting toolbar (notes design D5): pinned to the top of the scrolling
@@ -145,7 +145,7 @@ export function NoteToolbar({
       onMouseDown={(e) => e.preventDefault()} // keep the editor selection
       onClick={action}
       className={cn(
-        "flex size-8 items-center justify-center rounded-md text-foreground hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+        "flex size-8 pointer-coarse:size-10 items-center justify-center rounded-md text-foreground hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
         active && "bg-accent",
       )}
     >
@@ -236,7 +236,7 @@ export function NoteToolbar({
         title="Attach files (or drop or paste them)"
         onMouseDown={(e) => e.preventDefault()}
         onClick={() => fileInput.current?.click()}
-        className="flex size-8 items-center justify-center rounded-md text-foreground hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+        className="flex size-8 pointer-coarse:size-10 items-center justify-center rounded-md text-foreground hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
       >
         <Paperclip className="size-4" />
       </button>
@@ -261,7 +261,7 @@ export function NoteToolbar({
         disabled={!s.canUndo}
         onMouseDown={(e) => e.preventDefault()}
         onClick={() => run().undo().run()}
-        className="flex size-8 items-center justify-center rounded-md hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:opacity-40"
+        className="flex size-8 pointer-coarse:size-10 items-center justify-center rounded-md hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:opacity-40"
       >
         <Undo2 className="size-4" />
       </button>
@@ -273,7 +273,7 @@ export function NoteToolbar({
         disabled={!s.canRedo}
         onMouseDown={(e) => e.preventDefault()}
         onClick={() => run().redo().run()}
-        className="flex size-8 items-center justify-center rounded-md hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:opacity-40"
+        className="flex size-8 pointer-coarse:size-10 items-center justify-center rounded-md hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:opacity-40"
       >
         <Redo2 className="size-4" />
       </button>
@@ -344,7 +344,7 @@ function FontSizeControl({
             placeholder={`Size ${FONT_SIZE_MIN}–${FONT_SIZE_MAX}`}
             aria-label="Custom font size"
             aria-invalid={invalid || undefined}
-            className="h-8 rounded-md border border-input bg-background px-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring aria-invalid:border-destructive"
+            className="h-8 pointer-coarse:h-10 rounded-md border border-input bg-background px-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring aria-invalid:border-destructive"
           />
           {invalid && (
             <span role="alert" className="px-0.5 text-xs text-foreground">

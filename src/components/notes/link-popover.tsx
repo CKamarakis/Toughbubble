@@ -30,7 +30,7 @@ export function LinkPopover({
         aria-pressed={active}
         title="Link (Ctrl+K)"
         className={cn(
-          "flex size-8 items-center justify-center rounded-md text-foreground hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+          "flex size-8 pointer-coarse:size-10 items-center justify-center rounded-md text-foreground hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
           active && "bg-accent",
         )}
       >
@@ -85,7 +85,7 @@ function LinkForm({ editor, href, onDone }: { editor: Editor; href: string | nul
         placeholder="example.com or name@example.com"
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? "link-error" : undefined}
-        className="h-8 rounded-lg border border-input bg-background px-2.5 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring aria-invalid:border-destructive"
+        className="h-8 pointer-coarse:h-10 rounded-lg border border-input bg-background px-2.5 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring aria-invalid:border-destructive"
       />
       {error && (
         <p id="link-error" role="alert" className="text-xs text-foreground">

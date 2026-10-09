@@ -116,7 +116,7 @@ function ContentsRow({ node, depth }: { node: TreeNode; depth: number }) {
 
   return (
     <li className="border-b last:border-b-0">
-      <div className="grid grid-cols-[1fr_auto] items-center gap-2 px-3 py-1.5 text-sm hover:bg-accent sm:grid-cols-[1fr_8rem_8rem]">
+      <div className="grid grid-cols-[1fr_auto] items-center gap-2 px-3 py-1.5 text-sm hover:bg-accent pointer-coarse:min-h-11 pointer-coarse:py-0 sm:grid-cols-[1fr_8rem_8rem]">
         <div className="flex min-w-0 items-center gap-1.5" style={{ paddingLeft: `${depth * 20}px` }}>
           {container ? (
             <button
@@ -124,16 +124,16 @@ function ContentsRow({ node, depth }: { node: TreeNode; depth: number }) {
               aria-expanded={open}
               aria-label={`${open ? "Collapse" : "Expand"} ${title}`}
               onClick={() => setOpen(!open)}
-              className="flex size-5 shrink-0 items-center justify-center rounded-sm text-muted-foreground hover:bg-background/60 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+              className="flex size-5 shrink-0 items-center justify-center rounded-sm text-muted-foreground hover:bg-background/60 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none pointer-coarse:size-10"
             >
               <ChevronRight className={cn("size-3.5 transition-transform", open && "rotate-90")} />
             </button>
           ) : (
-            <span className="size-5 shrink-0" aria-hidden />
+            <span className="size-5 shrink-0 pointer-coarse:size-10" aria-hidden />
           )}
           <Link
             href={`/items/${node.id}`}
-            className="flex min-w-0 items-center gap-2 rounded-sm hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+            className="flex min-w-0 items-center gap-2 self-stretch rounded-sm hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
           >
             <ItemIcon item={node} />
             <span className={cn("truncate", !node.title.trim() && "text-muted-foreground")}>{title}</span>

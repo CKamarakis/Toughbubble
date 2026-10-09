@@ -62,7 +62,7 @@ export function ColorPicker({
     >
       <PopoverTrigger
         aria-label={`${label}: ${current}`}
-        className="flex h-8 items-center gap-2 rounded-lg border border-input bg-background px-2 text-sm hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+        className="flex h-8 items-center gap-2 rounded-lg border border-input bg-background px-2 text-sm hover:bg-accent pointer-coarse:h-10 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
       >
         <SwatchDot hex={value} />
         <span className="max-w-24 truncate">{current}</span>

@@ -42,14 +42,14 @@ export function ItemView({ id, note }: { id: string; note?: NoteData | null }) {
       <nav aria-label="Breadcrumb">
         <ol className="flex flex-wrap items-center gap-1 text-sm text-muted-foreground">
           <li>
-            <Link href="/" className="hover:text-foreground hover:underline">
+            <Link href="/" className="hover:text-foreground hover:underline pointer-coarse:inline-flex pointer-coarse:min-h-10 pointer-coarse:items-center">
               Workspace
             </Link>
           </li>
           {ancestors.map((a) => (
             <li key={a.id} className="flex items-center gap-1">
               <span aria-hidden>/</span>
-              <Link href={`/items/${a.id}`} className="hover:text-foreground hover:underline">
+              <Link href={`/items/${a.id}`} className="hover:text-foreground hover:underline pointer-coarse:inline-flex pointer-coarse:min-h-10 pointer-coarse:items-center">
                 {displayTitle(a)}
               </Link>
             </li>
@@ -83,7 +83,7 @@ export function ItemView({ id, note }: { id: string; note?: NoteData | null }) {
                 onClick={() => setEditing(true)}
                 title="Rename"
                 className={cn(
-                  "w-full truncate rounded-sm text-left text-2xl font-semibold hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+                  "w-full truncate rounded-sm text-left text-2xl font-semibold hover:bg-accent pointer-coarse:min-h-11 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
                   !node.title.trim() && "text-muted-foreground",
                 )}
               >
@@ -91,7 +91,7 @@ export function ItemView({ id, note }: { id: string; note?: NoteData | null }) {
               </button>
             </h1>
           )}
-          <ItemMenu item={node} onRename={() => setEditing(true)} className="size-8" />
+          <ItemMenu item={node} onRename={() => setEditing(true)} className="size-8 pointer-coarse:size-10" />
         </div>
         {/* The icon and breadcrumb already say what this is, so only projects
             need this row (for their style picker). */}

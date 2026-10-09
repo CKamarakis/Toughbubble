@@ -150,7 +150,7 @@ function ElementRow({ element }: { element: StyleElement }) {
                 }
               }}
               onBlur={() => setDraft(null)}
-              className="h-8 w-16 rounded-lg border border-input bg-background px-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring aria-invalid:border-destructive"
+              className="h-8 pointer-coarse:h-10 w-16 rounded-lg border border-input bg-background px-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring aria-invalid:border-destructive"
             />
             <span className="text-sm text-muted-foreground">px</span>
           </div>
