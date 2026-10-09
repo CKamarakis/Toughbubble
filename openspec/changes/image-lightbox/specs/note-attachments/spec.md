@@ -3,7 +3,7 @@
 ## MODIFIED Requirements
 
 ### Requirement: Adjusting images
-A user SHALL be able to resize an image in the note by dragging its handles, keeping its aspect ratio, between 48 px wide and the width of the text column. On touch screens the handles SHALL be easy to grab (at least 44px wide targets) and dragging one SHALL resize the image without scrolling the page. A user SHALL be able to align an image left, center, or right, set its alt text, view it full screen, download it, and remove it from the note. Size, alignment, and alt text SHALL be saved with the note.
+A user SHALL be able to resize an image in the note by dragging its handles, keeping its aspect ratio, between 48 px wide and the width of the text column. On touch screens the handles SHALL be easy to grab (at least 44px wide targets) and dragging one SHALL resize the image without scrolling the page. Selecting an image or file card on a touch screen SHALL NOT open the on-screen keyboard. A user SHALL be able to align an image left, center, or right, set its alt text, view it full screen, download it, and remove it from the note. Size, alignment, and alt text SHALL be saved with the note.
 
 #### Scenario: Resize an image
 - **WHEN** a user drags an image's corner handle to make it 300 px wide and reloads the note
@@ -12,6 +12,10 @@ A user SHALL be able to resize an image in the note by dragging its handles, kee
 #### Scenario: Resize with a finger
 - **WHEN** a user on a phone selects an image and drags its right handle 140 px to the left
 - **THEN** the image gets narrower and the page does not scroll
+
+#### Scenario: No keyboard when selecting an image
+- **WHEN** a user on a phone taps an image in a note
+- **THEN** the image is selected and the on-screen keyboard does not open
 
 #### Scenario: Center an image
 - **WHEN** a user selects an image and chooses Center

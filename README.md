@@ -235,7 +235,8 @@ and is blocked from `src/` by a lint rule; it is for migrations, tests, and back
   toggles fitted and actual size, two fingers pinch, and a drag pans while zoomed; the area has
   `touch-action: none`, so the page itself never zooms. ← → are read on the window in the capture
   phase (the dialog stops key events). The in-note resize handles are `touch-none` with a 44px
-  target on touch screens, so a finger resizes instead of scrolling.
+  target on touch screens, so a finger resizes instead of scrolling. While an image or file card is
+  selected the editor gets `inputmode="none"`, so a phone doesn't open its keyboard.
 - **Deleting files.** Removing a file from the text keeps it (Undo works). *Delete forever*
   removes the stored files after the rows are gone; a failed removal is logged and left for the
   purge job. Pasting a file from another note copies it into the target note.

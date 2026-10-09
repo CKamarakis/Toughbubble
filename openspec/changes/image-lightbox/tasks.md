@@ -45,6 +45,7 @@
 - [x] 4.2 Make ← → work wherever focus is in the viewer (window listener, capture phase). Verify in the browser that the keys work after clicking the next button and after clicking the image.
 - [x] 4.3 Put the ‹ › buttons next to the fitted image on desktop. Verify that they are 12px from a 1200 px image and stay on screen for a full-width image.
 - [x] 4.4 Light backdrop in the light theme. Verify by screenshot at desktop and phone in both themes.
+- [x] 4.5 Keep the phone keyboard closed while an image or file card is selected (`inputmode="none"` on the editor during a node selection of one). Verify in touch emulation that tapping an image sets it, a cursor in text clears it, and Delete and Undo still work on the selected image.
 
 ## 5. Docs and release
 

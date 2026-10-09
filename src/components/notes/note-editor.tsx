@@ -47,7 +47,18 @@ export function NoteEditor({ itemId, initial }: { itemId: string; initial: { bod
     // Server-rendered React: mount on the client to avoid a hydration mismatch.
     immediatelyRender: false,
     editorProps: {
-      attributes: { "aria-label": "Note body", "aria-multiline": "true", role: "textbox" },
+      // While an image or file card is selected there is nothing to type, so a
+      // phone keeps its keyboard closed (inputmode "none"); a tap on text opens it.
+      attributes: (state) => {
+        const node = state.selection instanceof NodeSelection ? state.selection.node.type.name : null;
+        const attachment = node === "image" || node === "fileAttachment";
+        return {
+          "aria-label": "Note body",
+          "aria-multiline": "true",
+          role: "textbox",
+          ...(attachment ? { inputmode: "none" } : {}),
+        };
+      },
       // A plain click opens a link in a new tab (design D10); a drag that
       // selected text doesn't. The link card is the way to edit it.
       handleClick: (view, _pos, event) => {
