@@ -20,4 +20,4 @@
 ## 3. Release
 
 - [x] 3.1 Run types, lint, unit and integration tests. Verify that all pass.
-- [ ] 3.2 Push the branch. After the user approves, merge to `main` for a phone check.
+- [x] 3.2 Push the branch. After the user approves, merge to `main` for a phone check.
