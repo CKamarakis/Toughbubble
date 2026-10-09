@@ -12,6 +12,7 @@ import { NoteToolbar } from "./note-toolbar";
 import { useNoteAutosave } from "./use-note-autosave";
 import { FileCardView } from "./attachments/file-card-view";
 import { ImageView } from "./attachments/image-view";
+import { LightboxProvider } from "./attachments/image-lightbox";
 import { AttachmentMenu, focusAttachmentMenu } from "./attachments/attachment-menu";
 import { AttachmentStore, AttachmentStoreContext } from "./attachments/store";
 import { copyForeignAttachments, markForeignAttachments, useAttachFiles } from "./attachments/use-attach";
@@ -123,6 +124,7 @@ export function NoteEditor({ itemId, initial }: { itemId: string; initial: { bod
 
   return (
     <AttachmentStoreContext value={store}>
+      <LightboxProvider editor={editor}>
       <div className="flex flex-col gap-4">
         {editor && (
           <NoteToolbar
@@ -155,6 +157,7 @@ export function NoteEditor({ itemId, initial }: { itemId: string; initial: { bod
         {editor && <AttachmentMenu editor={editor} />}
         {editor && <LinkCard editor={editor} hidden={linkOpen} onEdit={() => setLinkOpen(true)} />}
       </div>
+      </LightboxProvider>
     </AttachmentStoreContext>
   );
 }

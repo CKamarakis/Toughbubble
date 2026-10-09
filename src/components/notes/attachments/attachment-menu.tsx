@@ -4,12 +4,12 @@ import type { Editor } from "@tiptap/core";
 import { NodeSelection } from "@tiptap/pm/state";
 import { useEditorState } from "@tiptap/react";
 import { BubbleMenu } from "@tiptap/react/menus";
-import { AlignCenter, AlignLeft, AlignRight, Download, ExternalLink, Text, Trash2, type LucideIcon } from "lucide-react";
+import { AlignCenter, AlignLeft, AlignRight, Download, Maximize2, Text, Trash2, type LucideIcon } from "lucide-react";
 import { useRef, useState } from "react";
-import { toast } from "sonner";
 import { IMAGE_ALIGNMENTS, type ImageAlign } from "@/lib/notes/attachment-nodes";
 import { cn } from "@/lib/utils";
 import { downloadAttachment } from "./file-card-view";
+import { useLightbox } from "./image-lightbox";
 import { useAttachmentStore } from "./store";
 
 const ALIGN: Record<ImageAlign, { label: string; Icon: LucideIcon }> = {
@@ -37,12 +37,13 @@ export function focusAttachmentMenu() {
 }
 
 /**
- * Menu over a selected image (align, alt text, open full size, download,
+ * Menu over a selected image (align, alt text, open full size in the viewer, download,
  * remove) or file card (download, remove); attachments design D9. Arrow keys
  * move between its controls; Escape returns to the note.
  */
 export function AttachmentMenu({ editor }: { editor: Editor }) {
   const store = useAttachmentStore();
+  const openLightbox = useLightbox();
   const s = useEditorState({
     editor,
     selector: ({ editor: e }) => {
@@ -98,20 +99,6 @@ export function AttachmentMenu({ editor }: { editor: Editor }) {
     </button>
   );
 
-  const openFull = async () => {
-    if (!s.id) return;
-    // Opened before the await so the browser doesn't treat it as a pop-up.
-    const tab = window.open("about:blank", "_blank");
-    const link = await store.freshLink(s.id);
-    if (link && tab) {
-      tab.opener = null;
-      tab.location.href = link;
-    } else {
-      tab?.close();
-      toast.error("Couldn't open this image. Try again.");
-    }
-  };
-
   const ready = !!s.id && store.status(s.id, null).kind === "ready";
   const divider = <span aria-hidden className="mx-1 h-5 w-px bg-border" />;
 
@@ -162,7 +149,7 @@ export function AttachmentMenu({ editor }: { editor: Editor }) {
                   setAltDraft(s.alt);
                   setEditingAlt(true);
                 })}
-                {ready && button("Open full size", ExternalLink, () => void openFull())}
+                {ready && button("Open full size", Maximize2, () => s.id && openLightbox(s.id))}
               </>
             )}
             {ready && button("Download", Download, () => s.id && void downloadAttachment(s.id))}

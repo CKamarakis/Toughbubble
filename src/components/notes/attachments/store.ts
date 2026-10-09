@@ -96,15 +96,6 @@ export class AttachmentStore {
     if (!link || Date.now() - link.at > 60_000) this.request(id);
   }
 
-  /** A link at least 10 minutes from expiring, for opening in a new tab. */
-  async freshLink(id: string): Promise<string | null> {
-    const link = this.links.get(id);
-    if (link && Date.now() - link.at < LINK_REFRESH_MS) return link.url;
-    const links = await getAttachmentLinks(this.itemId, [id]).catch(() => ({}) as Record<string, string>);
-    if (links[id]) this.setLink(id, links[id]);
-    return links[id] ?? null;
-  }
-
   private request(id: string) {
     if (this.inFlight.has(id)) return;
     this.queued.add(id);

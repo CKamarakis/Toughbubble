@@ -228,6 +228,12 @@ and is blocked from `src/` by a lint rule; it is for migrations, tests, and back
   where the browser supports it); the smaller of the original and the result is stored. GIFs are
   stored as they are. PNG, JPEG, GIF, and WebP show inline; everything else (SVG included) is a
   file card.
+- **The image viewer** (`attachments/image-lightbox.tsx`, gesture math in
+  `src/lib/notes/lightbox.ts`) opens from an image's corner button, a double click or double tap
+  (one detector for mouse and touch; a single tap still selects), or the image menu's "Open full
+  size". It steps through the note's uploaded images in note order (buttons, ← →, swipe). A click
+  toggles fitted and actual size, two fingers pinch, and a drag pans while zoomed; the area has
+  `touch-action: none`, so the page itself never zooms.
 - **Deleting files.** Removing a file from the text keeps it (Undo works). *Delete forever*
   removes the stored files after the rows are gone; a failed removal is logged and left for the
   purge job. Pasting a file from another note copies it into the target note.
