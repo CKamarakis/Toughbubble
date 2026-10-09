@@ -108,15 +108,19 @@ A user SHALL be able to give a project an icon and a color from a preset list, s
 - **THEN** the project's icon in the sidebar and main pane shows that color
 
 ### Requirement: Convert between folder and project
-A user SHALL be able to convert a folder into a project and a project into a folder, keeping its title, parent, creation time, and contents.
+A user SHALL be able to convert a folder into a project and a project into a folder, keeping its title, parent, creation time, and contents. The page of a project or folder SHALL show its kind ("Project" or "Folder") as a control that opens a choice of Project and Folder, with the current kind marked. The Folder choice SHALL carry a short hint that folders have no icon or colour.
 
 #### Scenario: Folder becomes a project
-- **WHEN** a user converts a folder containing two notes into a project
+- **WHEN** a user opens the folder's page, chooses its "Folder" label, and picks Project, for a folder containing two notes
 - **THEN** it becomes a project in the same parent, listed with the projects, with the same title and two notes, and gains project icon and color options
 
 #### Scenario: Project becomes a folder
-- **WHEN** a user converts a project into a folder
+- **WHEN** a user chooses the "Project" label on a project's page and picks Folder
 - **THEN** it becomes a folder in the same parent, listed with the folders, with the same title and contents, and its project icon and color are cleared
+
+#### Scenario: The hint explains what changes
+- **WHEN** a user opens the kind choice on a project's page
+- **THEN** the Folder choice says that folders have no icon or colour
 
 ### Requirement: Expand and collapse
 A user SHALL be able to expand and collapse projects and folders in the sidebar with their arrow, including those that contain the open item, and the expanded state SHALL be remembered in that browser. Clicking a project's or folder's name SHALL open it and expand it; clicking the name of the project or folder that is already open SHALL collapse or expand it. Opening it in a new tab (Ctrl/Cmd-click or middle-click) SHALL NOT change the sidebar. Reloading the page on the same item SHALL NOT expand again what the user collapsed.
@@ -180,7 +184,7 @@ A user SHALL be able to move an item into a project or folder, or to the root le
 - **THEN** the note stays where it was
 
 ### Requirement: Reorder items
-A user SHALL be able to change an item's place among its siblings by dragging it in the sidebar with a mouse or pen, within the same project or folder (or the root level) and within its kind's group. While dragging, a line SHALL show where the item will land, and only places within the same group SHALL be offered. The item menu's Reorder submenu SHALL offer "Move up" and "Move down" for the same change from the keyboard, unavailable at the start and end of the group. The new order SHALL be saved to the account.
+A user SHALL be able to change an item's place among its siblings by dragging it in the sidebar with a mouse or pen, within the same project or folder (or the root level) and within its kind's group. While dragging, a line SHALL show where the item will land, and only places within the same group SHALL be offered. The item menu's Reorder submenu SHALL offer "Move to top", "Move up", "Move down" and "Move to bottom" for the same change without dragging. "Move to top" and "Move up" SHALL be unavailable for the first item of the group, and "Move down" and "Move to bottom" for the last. The new order SHALL be saved to the account.
 
 #### Scenario: Drag a note to the top of its folder
 - **WHEN** a folder contains notes A, B, C in that order and the user drags C above A
@@ -194,9 +198,17 @@ A user SHALL be able to change an item's place among its siblings by dragging it
 - **WHEN** a user opens the menu of note B in the order A, B, C and chooses Reorder > Move up
 - **THEN** the order becomes B, A, C
 
+#### Scenario: Move to top
+- **WHEN** a user opens the menu of note D in the order A, B, C, D and chooses Reorder > Move to top
+- **THEN** the order becomes D, A, B, C, and still is after a reload
+
+#### Scenario: Move to bottom
+- **WHEN** a user opens the menu of note A in the order A, B, C, D and chooses Reorder > Move to bottom
+- **THEN** the order becomes B, C, D, A
+
 #### Scenario: Ends of the group
 - **WHEN** a user opens the Reorder submenu of the first note in a folder
-- **THEN** "Move up" is unavailable and "Move down" is available
+- **THEN** "Move to top" and "Move up" are unavailable, and "Move down" and "Move to bottom" are available
 
 #### Scenario: New item after reordering
 - **WHEN** a user has arranged a folder's notes as C, A, B and creates a new note in it
@@ -260,15 +272,15 @@ The sidebar row of the open item SHALL look different from a hovered row: it SHA
 - **THEN** only the open note's row shows the accent mark
 
 ### Requirement: Item menu layout
-An item's actions menu SHALL show at its top level: "New inside" (for projects and folders), Rename, Move to…, "Reorder", Convert (for projects and folders), Archive, and Move to Trash. "New inside" SHALL open a submenu with Note, Storm, Folder, and Project. "Reorder" SHALL open a submenu with Move up and Move down. The menu and its submenus SHALL be usable with the keyboard.
+An item's actions menu SHALL show at its top level: "New inside" (for projects and folders), Rename, Move to…, "Reorder", Archive, and Move to Trash. "New inside" SHALL open a submenu with Note, Storm, Folder, and Project. "Reorder" SHALL open a submenu with Move to top, Move up, Move down and Move to bottom. The menu SHALL NOT offer Convert. The menu and its submenus SHALL be usable with the keyboard.
 
 #### Scenario: Container menu
 - **WHEN** a user opens a folder's actions menu
-- **THEN** it shows seven top-level entries, and "New inside" opens a submenu listing Note, Storm, Folder, and Project
+- **THEN** it shows six top-level entries with no Convert, and "New inside" opens a submenu listing Note, Storm, Folder, and Project
 
 #### Scenario: Note menu
 - **WHEN** a user opens a note's actions menu
-- **THEN** it shows Rename, Move to…, Reorder, Archive, and Move to Trash, and no "New inside" or Convert
+- **THEN** it shows Rename, Move to…, Reorder, Archive, and Move to Trash, and no "New inside"
 
 #### Scenario: Submenu by keyboard
 - **WHEN** a user focuses "Reorder" in an open menu and presses the right arrow key
@@ -318,3 +330,18 @@ The bottom of the sidebar SHALL show Archive and Trash as links, followed by one
 #### Scenario: Keyboard
 - **WHEN** a keyboard user focuses the account row, presses Enter, moves to Dark with the arrow keys, and presses Enter
 - **THEN** the dark theme is applied. Opening the menu again and pressing Escape closes it and puts focus back on the account row
+
+### Requirement: Create from a row
+Sidebar rows of projects and folders SHALL show a "+" button next to the actions button. Choosing it SHALL open a menu listing Note, Storm, Folder and Project in that order. Choosing one SHALL create that item inside the row's project or folder, as "New inside" does. With a mouse, the "+" button SHALL appear on hover or keyboard focus, like the actions button. On touch screens it SHALL always be visible. Rows of notes and Storms SHALL NOT show it.
+
+#### Scenario: Create a note from a folder row
+- **WHEN** a user chooses "+" on the folder "Kitchen" in the sidebar and then Note
+- **THEN** a note appears first among the notes and Storms inside "Kitchen", the folder expands, and the note opens
+
+#### Scenario: Only on containers
+- **WHEN** a user views the sidebar
+- **THEN** project and folder rows offer "+", and note and Storm rows do not
+
+#### Scenario: Visible on a phone
+- **WHEN** a user views the sidebar on a touch screen
+- **THEN** each project and folder row shows "+" without hovering
