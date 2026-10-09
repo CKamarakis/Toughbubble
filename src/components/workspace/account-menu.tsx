@@ -50,7 +50,7 @@ export function AccountMenu({ email }: { email: string }) {
         <DropdownMenuTrigger
           aria-label={`Account menu for ${email}`}
           className={cn(
-            "flex h-7 w-full items-center gap-2 rounded-md px-1 text-left text-sm hover:bg-sidebar-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none pointer-coarse:h-10 data-[popup-open]:bg-sidebar-accent",
+            "mt-5 flex h-7 w-full items-center gap-2 rounded-md px-1 text-left text-sm hover:bg-sidebar-accent pointer-coarse:mt-0 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none pointer-coarse:h-10 data-[popup-open]:bg-sidebar-accent",
             onSettings && "bg-sidebar-accent font-medium",
           )}
         >
