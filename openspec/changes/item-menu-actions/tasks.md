@@ -28,4 +28,4 @@
 
 - [x] 4.1 Update the README's item-tree notes (row "+", To top / To bottom, Convert on the item page). Verify that they match the code.
 - [x] 4.2 Run types, lint, unit and integration tests. Verify that all pass.
-- [ ] 4.3 Push the branch. After the user approves, merge to `main` for a phone check.
+- [x] 4.3 Push the branch. After the user approves, merge to `main` for a phone check.
