@@ -2,8 +2,8 @@
 
 ## 1. Shared autosave
 
-- [ ] 1.1 Move `src/lib/notes/autosave.ts` and its tests to `src/lib/autosave.ts`; update the notes imports. Verify that the existing autosave and notes tests pass unchanged.
-- [ ] 1.2 Add the `save-too-large` event and `too-large` phase, and the in-flight → pending merge rule, per D2. Verify that unit tests cover: no retries in `too-large`, the next edit returns to `dirty`, and notes behaviour is unchanged.
+- [x] 1.1 Move `src/lib/notes/autosave.ts` and its tests to `src/lib/autosave.ts`; update the notes imports. Verify that the existing autosave and notes tests pass unchanged.
+- [x] 1.2 Add the `save-too-large` event and `too-large` phase, and the in-flight → pending merge rule, per D2. Verify that unit tests cover: no retries in `too-large`, the next edit returns to `dirty`, and notes behaviour is unchanged.
 
 ## 2. Board core (pure, unit-tested)
 
