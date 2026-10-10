@@ -20,7 +20,7 @@
 - [x] 3.1 `operations.ts`: `isActiveStorm`, `getStormBody`, `getStormVersion`, `saveStormChanges` with the single SQL merge, version and size check (D3), first-save insert with the size check, and `items.edited_at` touch. Verify with integration tests: matching version saves; stale version → conflict; too large → `too-large` with nothing stored (first save too); another user's storm → not-found; a note's id → not-found with the note body unchanged.
 - [x] 3.2 `actions.ts`: `loadStorm`, `stormVersion`, `saveStorm` following `notes/actions.ts` (UUID check, validation, friendly errors). Verify that invalid input returns the error result without touching the database.
 - [x] 3.3 `duplicateStorm` per D10 (title truncation, re-keyed placement, body copy, unsaved → empty). Verify with integration tests: three stickies copied; copy listed directly below the original in a never-reordered group; long title ends in " (copy)" within 200; unsaved storm copies as empty; editing the copy leaves the original unchanged.
-- [ ] 3.4 Add Duplicate to the item menu for Storms only; navigate to the copy and refresh the tree. Verify in the browser that a Storm's menu shows Rename, Duplicate, Move to…, Reorder, Archive, Move to Trash, and that folder and note menus have no Duplicate.
+- [x] 3.4 Add Duplicate to the item menu for Storms only; navigate to the copy and refresh the tree. Verify in the browser that a Storm's menu shows Rename, Duplicate, Move to…, Reorder, Archive, Move to Trash, and that folder and note menus have no Duplicate.
 
 ## 4. Storm page and always-light board
 
