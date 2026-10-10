@@ -30,8 +30,11 @@ context: |
   - Tailwind CSS + shadcn/ui for UI.
   - Tiptap for the note editor (chosen over BlockNote because a free font-size
     picker is required). Note bodies stored as Tiptap JSON.
-  - React Flow (xyflow) for Storms; stickies/shapes/text are custom nodes,
-    connectors are edges. Each Storm stored as one JSON document (nodes + edges).
+  - Storms use our own canvas engine (decided in spike 1, see
+    knowledge/notes/storms/): every item drawn on one canvas, with one Tiptap
+    editor overlaid while editing; MIT code from Excalidraw may be borrowed
+    (keep its notice). Each Storm stored as one JSON document in item_content,
+    saved as change sets.
   - dnd-kit (or react-arborist) for the sidebar tree drag-and-drop.
 
   Domain model:
@@ -69,16 +72,18 @@ context: |
   1 Tree: CRUD for projects/folders/items, move/reorder, sidebar.
   2 Notes: Tiptap editor, autosave.
   3 Attachments: upload, list, delete (Supabase Storage).
-  4 Storms v1: canvas, stickies, text, shapes, drag, resize.
-  5 Storms v2: connectors, z-order, lock/unlock, grids/tables.
+  4 Storms v1 (PRD knowledge/prds/storms-v1.md), one change per slice:
+    storms-canvas, storms-items, storms-arrange, storms-connectors,
+    storms-snapping.
+  5 Storms v2: rotation, templates, grids/tables.
   6 Refinement: full-text search, trash/archive UI, slash menu, drag handles.
   7 Tasks: light Kanban board for tasks (scope not yet defined).
 
   Design:
   - Notes/app shell follow Notion: left sidebar tree (search, new, projects,
     Archive, Trash, avatar/theme toggle), breadcrumb + main pane.
-  - Storms follow Miro: canvas with a floating left toolbar.
-  - Light and dark themes.
+  - Storms: canvas with a bottom toolbar (like Figma and tldraw).
+  - Light and dark themes for the app; the Storm board is always light.
   - Brand accents:
     - Yellow #F7D000: primary buttons (dark text only), default sticky,
       selection. Never use as text on white.
