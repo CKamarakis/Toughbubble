@@ -16,6 +16,9 @@ export function BoardTip({ label, children }: { label: string; children: React.R
   );
 }
 
+/** Stops a mouse press from moving focus off the board; Tab and Enter/Space still work. */
+export const keepFocus = (e: React.MouseEvent) => e.preventDefault();
+
 type ToolButton = {
   label: string;
   Icon: LucideIcon;
@@ -46,6 +49,7 @@ export function StormToolbar({ store }: { store: StormStore }) {
   const snap = useSyncExternalStore(store.subscribe, store.getSnapshot, store.getSnapshot);
   return (
     <div
+      onMouseDown={keepFocus}
       role="toolbar"
       aria-label="Storm tools"
       className="absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-1 rounded-xl border border-border bg-card p-1 shadow-md"

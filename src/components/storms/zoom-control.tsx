@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { fitCamera, HOME_CAMERA, stepZoom, zoomAt } from "@/lib/storms/camera";
 import { boundsOf, type Size } from "@/lib/storms/model";
 import type { StormStore } from "./engine/store";
-import { BoardTip } from "./storm-toolbar";
+import { BoardTip, keepFocus } from "./storm-toolbar";
 
 /** Bottom-right zoom control: out, percentage (resets to 100%), in, fit to items. */
 export function ZoomControl({ store, getViewport }: { store: StormStore; getViewport: () => Size }) {
@@ -24,6 +24,7 @@ export function ZoomControl({ store, getViewport }: { store: StormStore; getView
 
   return (
     <div
+      onMouseDown={keepFocus}
       role="group"
       aria-label="Zoom"
       className="absolute right-4 bottom-4 flex items-center gap-1 rounded-xl border border-border bg-card p-1 shadow-md"
