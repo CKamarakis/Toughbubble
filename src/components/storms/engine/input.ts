@@ -26,6 +26,11 @@ export function zoomKeyAction(e: KeyLike): ZoomKeyAction | null {
   return null;
 }
 
+function isEditable(t: EventTarget | null): boolean {
+  if (!(t instanceof HTMLElement)) return false;
+  return t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable;
+}
+
 const WHEEL_ZOOM_RATE = 0.0015;
 const LINE_MODE_FACTOR = 20;
 
@@ -125,7 +130,8 @@ export function attachInput(
 
   const onKeyDown = (e: KeyboardEvent) => {
     if (!focusInside()) return;
-    if (e.key === " " && !store.getSnapshot().editingId) {
+    if (store.getSnapshot().editingId || isEditable(e.target)) return;
+    if (e.key === " ") {
       e.preventDefault();
       if (!e.repeat && !spaceDown) {
         spaceDown = true;

@@ -72,7 +72,7 @@ export default function StormBoard(props: StormBoardProps) {
       ref={boxRef}
       tabIndex={0}
       aria-label="Storm board"
-      className="light size-full bg-background text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-inset"
+      className="light size-full bg-background text-foreground outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
     >
       <canvas ref={canvasRef} className="block size-full touch-none" />
     </div>
