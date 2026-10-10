@@ -7,6 +7,7 @@ import {
   ArrowUp,
   ArrowUpDown,
   ArrowUpToLine,
+  Copy,
   Ellipsis,
   FolderInput,
   Pencil,
@@ -112,6 +113,12 @@ export function ItemMenu({
           <Pencil />
           Rename
         </DropdownMenuItem>
+        {item.kind === "storm" && (
+          <DropdownMenuItem onClick={() => ws.duplicate(item.id)}>
+            <Copy />
+            Duplicate
+          </DropdownMenuItem>
+        )}
         <DropdownMenuItem
           onClick={() => {
             keepFocusAway.current = true;

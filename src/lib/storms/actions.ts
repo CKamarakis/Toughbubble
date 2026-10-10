@@ -1,6 +1,9 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { UnauthenticatedError, withUserDb } from "@/db/client";
+import { NOT_FOUND, treeErrorMessage } from "@/lib/tree/errors";
+import type { ActionResult } from "@/lib/tree/actions";
 import * as ops from "./operations";
 import { validateChangeSet } from "./validate";
 
@@ -30,6 +33,19 @@ export async function saveStorm(id: string, changes: unknown, baseVersion: numbe
     return await withUserDb((tx) => ops.saveStormChanges(tx, id, valid.changes, baseVersion));
   } catch (error) {
     return errorResult(error);
+  }
+}
+
+/** Copies a Storm; the sidebar order changes, so the layout is revalidated. */
+export async function duplicateStorm(id: string): Promise<ActionResult<string>> {
+  if (!isId(id)) return { ok: false, error: "That request was not valid." };
+  try {
+    const copyId = await withUserDb((tx) => ops.duplicateStorm(tx, id));
+    if (!copyId) return { ok: false, error: NOT_FOUND };
+    revalidatePath("/", "layout");
+    return { ok: true, value: copyId };
+  } catch (error) {
+    return { ok: false, error: treeErrorMessage(error) };
   }
 }
 

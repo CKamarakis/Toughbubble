@@ -12,6 +12,7 @@ import {
   useTransition,
 } from "react";
 import { toast } from "sonner";
+import * as stormActions from "@/lib/storms/actions";
 import * as actions from "@/lib/tree/actions";
 import { generateNKeysBetween } from "fractional-indexing";
 import { ancestorPath, buildTree, revealAncestors } from "@/lib/tree/build";
@@ -115,6 +116,8 @@ type Workspace = {
   setMovingId: (id: string | null) => void;
   create: (kind: ItemKind, parentId: string | null) => void;
   rename: (id: string, title: string) => void;
+  /** Copies a Storm, then opens the copy (storms-canvas D10). */
+  duplicate: (id: string) => void;
   setStyle: (id: string, icon: string | null, color: string | null) => void;
   convert: (id: string, to: "project" | "folder") => void;
   move: (id: string, parentId: string | null) => void;
@@ -298,6 +301,16 @@ export function WorkspaceProvider({
       }),
     rename: (id, title) =>
       mutate({ type: "rename", id, title: title.trim() }, () => actions.renameItem(id, title)),
+    duplicate: (id) =>
+      startCreate(async () => {
+        const result = await stormActions.duplicateStorm(id);
+        if (!result.ok) {
+          toast.error(result.error);
+          return;
+        }
+        router.refresh();
+        router.push(`/items/${result.value}`);
+      }),
     setStyle: (id, icon, color) =>
       mutate({ type: "style", id, icon, color }, () => actions.setProjectStyle(id, icon, color)),
     convert: (id, to) => mutate({ type: "convert", id, to }, () => actions.convertItem(id, to)),

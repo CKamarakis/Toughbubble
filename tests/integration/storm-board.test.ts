@@ -1,13 +1,14 @@
 import { randomUUID } from "node:crypto";
 import { eq, sql } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import { itemContent } from "@/db/schema";
+import { itemContent, items } from "@/db/schema";
 import * as notes from "@/lib/notes/operations";
 import * as storms from "@/lib/storms/operations";
 import { EMPTY_BOARD, type Sticky } from "@/lib/storms/model";
 import { MAX_BODY_BYTES, MAX_TEXT } from "@/lib/storms/limits";
 import type { ChangeSet } from "@/lib/storms/changeset";
 import * as tree from "@/lib/tree/operations";
+import { sidebarCompare } from "@/lib/tree/order";
 import { createTestUser, deleteTestUser, type TestUser } from "./harness";
 
 let user: TestUser;
@@ -167,5 +168,98 @@ describe("storm board saves", () => {
     } finally {
       log.mockRestore();
     }
+  });
+});
+
+describe("duplicate a storm", () => {
+  const duplicate = (id: string, as: TestUser = user) => as.run((tx) => storms.duplicateStorm(tx, id));
+  const rename = (id: string, title: string) => user.run((tx) => tree.renameItem(tx, id, title));
+  const titleOf = (id: string) =>
+    user.run(async (tx) => (await tx.select({ title: items.title }).from(items).where(eq(items.id, id)))[0]?.title);
+  const siblingOrder = (parentId: string | null) =>
+    user.run(async (tx) => {
+      const rows = await tx
+        .select({
+          id: items.id,
+          kind: items.kind,
+          title: items.title,
+          position: items.position,
+          createdAt: items.createdAt,
+          editedAt: items.editedAt,
+          parentId: items.parentId,
+        })
+        .from(items)
+        .where(eq(items.status, "active"));
+      return rows
+        .filter((r) => r.parentId === parentId)
+        .map((r) => ({ ...r, createdAt: r.createdAt.toISOString(), editedAt: r.editedAt.toISOString() }))
+        .sort(sidebarCompare)
+        .map((r) => r.id);
+    });
+
+  it("copies three stickies and returns a new id", async () => {
+    const id = await newStorm();
+    const stickies = [sticky(), sticky({ text: "two" }), sticky({ text: "three" })];
+    await save(id, upsert(...stickies), 0);
+    const copy = await duplicate(id);
+    expect(copy).toEqual(expect.any(String));
+    expect(copy).not.toBe(id);
+    expect(await load(copy!)).toEqual({
+      body: { schema: 1, items: Object.fromEntries(stickies.map((s) => [s.id, s])) },
+      version: 1,
+    });
+  });
+
+  it("copy is listed directly below the original in a never-reordered group", async () => {
+    const a = await newStorm();
+    const id = await newStorm();
+    const c = await newStorm();
+    await rename(id, "Plan");
+    const copy = (await duplicate(id))!;
+    expect(await titleOf(copy)).toBe("Plan (copy)");
+    const order = await siblingOrder(null);
+    expect(order.indexOf(copy)).toBe(order.indexOf(id) + 1);
+    // The others keep their relative order.
+    expect(order.indexOf(c)).toBeLessThan(order.indexOf(a));
+  });
+
+  it('200-char title → copy title ends with " (copy)" and is 200 chars', async () => {
+    const id = await newStorm();
+    await rename(id, "x".repeat(200));
+    const copy = (await duplicate(id))!;
+    const title = await titleOf(copy);
+    expect(title).toHaveLength(200);
+    expect(title!.endsWith(" (copy)")).toBe(true);
+  });
+
+  it("untitled storm → copy is named after the untitled display name", async () => {
+    const id = await newStorm();
+    expect(await titleOf((await duplicate(id))!)).toBe("Untitled Storm (copy)");
+  });
+
+  it("unsaved storm → copy has no content row", async () => {
+    const id = await newStorm();
+    const copy = (await duplicate(id))!;
+    expect(await rowCount(copy)).toBe(0);
+    expect(await load(copy)).toEqual({ body: EMPTY_BOARD, version: 0 });
+  });
+
+  it("saving to the copy leaves the original unchanged", async () => {
+    const id = await newStorm();
+    const s = sticky();
+    await save(id, upsert(s), 0);
+    const copy = (await duplicate(id))!;
+    await save(copy, upsert(sticky({ text: "only in copy" })), 1);
+    expect(await load(id)).toEqual({ body: { schema: 1, items: { [s.id]: s } }, version: 1 });
+  });
+
+  it("a note's id → null", async () => {
+    const id = await user.run((tx) => tree.createItem(tx, "note", null));
+    expect(await duplicate(id)).toBeNull();
+  });
+
+  it("another user's storm → null", async () => {
+    const id = await newStorm();
+    expect(await duplicate(id, other)).toBeNull();
   });
 });
