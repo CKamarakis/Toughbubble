@@ -115,4 +115,33 @@ describe("attachInput DOM handlers", () => {
     expect(store.getSnapshot().camera.x).toBe(1100);
     expect(key(el, { key: "=", ctrlKey: true }).defaultPrevented).toBe(true);
   });
+
+  it("N picks the sticky tool and V the select tool", () => {
+    setup();
+    expect(key(el, { key: "n", code: "KeyN" }).defaultPrevented).toBe(true);
+    expect(store.getSnapshot().tool).toBe("sticky");
+    key(el, { key: "V", code: "KeyV" });
+    expect(store.getSnapshot().tool).toBe("select");
+  });
+
+  it("tool keys ignore modifiers", () => {
+    setup();
+    key(el, { key: "n", code: "KeyN", ctrlKey: true });
+    key(el, { key: "n", code: "KeyN", metaKey: true });
+    key(el, { key: "n", code: "KeyN", altKey: true });
+    expect(store.getSnapshot().tool).toBe("select");
+  });
+
+  it("tool keys are ignored while editing and in a textarea", () => {
+    setup(true);
+    const ta = document.createElement("textarea");
+    el.appendChild(ta);
+    ta.focus();
+    key(ta, { key: "n", code: "KeyN" });
+    expect(store.getSnapshot().tool).toBe("select");
+    el.focus();
+    store.startEdit("a");
+    key(el, { key: "n", code: "KeyN" });
+    expect(store.getSnapshot().tool).toBe("select");
+  });
 });

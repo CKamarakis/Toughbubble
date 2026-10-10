@@ -1,7 +1,7 @@
 import { fitCamera, HOME_CAMERA, panBy, stepZoom, zoomAt } from "@/lib/storms/camera";
 import { boundsOf, type Point, type Size } from "@/lib/storms/model";
 import { createWheelClassifier } from "@/lib/storms/wheel-source";
-import type { StormStore } from "./store";
+import type { StormStore, Tool } from "./store";
 
 export type ZoomKeyAction = "zoom-in" | "zoom-out" | "zoom-reset" | "fit";
 
@@ -23,6 +23,15 @@ export function zoomKeyAction(e: KeyLike): ZoomKeyAction | null {
     return null;
   }
   if (e.shiftKey && e.code === "Digit1") return "fit";
+  return null;
+}
+
+/** V picks the select tool, N the sticky tool; any modifier cancels it. */
+function toolKey(e: KeyboardEvent): Tool | null {
+  if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) return null;
+  const k = e.key.toLowerCase();
+  if (k === "v") return "select";
+  if (k === "n") return "sticky";
   return null;
 }
 
@@ -137,6 +146,12 @@ export function attachInput(
         spaceDown = true;
         updateCursor();
       }
+      return;
+    }
+    const tool = toolKey(e);
+    if (tool) {
+      e.preventDefault();
+      store.setTool(tool);
       return;
     }
     const action = zoomKeyAction(e);
