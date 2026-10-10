@@ -50,3 +50,6 @@ design-refs/
 
 # Impeccable binary (downloaded on first run)
 .claude/skills/impeccable/scripts/bin/
+
+# Miro backups: encrypted, unreadable for us (see knowledge/notes/storms lessons note)
+*.rtb
