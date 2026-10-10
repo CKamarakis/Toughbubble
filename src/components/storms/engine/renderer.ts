@@ -1,5 +1,5 @@
 import { boardToScreen, visibleRect } from "@/lib/storms/camera";
-import { byZ, STICKY, type Size } from "@/lib/storms/model";
+import { byZ, STICKY, type Item, type Size } from "@/lib/storms/model";
 import { layoutSticky } from "@/lib/storms/text-layout";
 import type { StormStore } from "./store";
 
@@ -63,7 +63,11 @@ export function createRenderer(
   function draw() {
     if (!ctx || destroyed || size.w === 0 || size.h === 0) return;
     const snap = store.getSnapshot();
-    const { camera, items, selectedId } = snap;
+    const { camera, items, selectedId, dragPreview } = snap;
+    const shift = (s: Item): Item =>
+      dragPreview && dragPreview.id === s.id
+        ? { ...s, x: s.x + dragPreview.dx, y: s.y + dragPreview.dy }
+        : s;
 
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.fillStyle = BACKGROUND;
@@ -72,6 +76,7 @@ export function createRenderer(
 
     const v = visibleRect(camera, size);
     const visible = Object.values(items)
+      .map(shift)
       .filter((s) => s.x < v.x + v.w && s.x + s.w > v.x && s.y < v.y + v.h && s.y + s.h > v.y)
       .sort(byZ);
     const shadows = camera.zoom >= SHADOW_MIN_ZOOM;
@@ -109,7 +114,8 @@ export function createRenderer(
       }
     }
 
-    const selected = selectedId ? items[selectedId] : undefined;
+    const found = selectedId ? items[selectedId] : undefined;
+    const selected = found && shift(found);
     if (selected) {
       const p = boardToScreen(camera, size, selected);
       const w = SELECTION.width;

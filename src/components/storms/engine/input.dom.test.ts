@@ -145,3 +145,97 @@ describe("attachInput DOM handlers", () => {
     expect(store.getSnapshot().tool).toBe("select");
   });
 });
+
+const ptr = (type: string, init: PointerEventInit = {}) => {
+  const e = new PointerEvent(type, { bubbles: true, cancelable: true, pointerId: 1, button: 0, ...init });
+  el.dispatchEvent(e);
+  return e;
+};
+// Board point (bx, by) shows at screen (bx, by) at the home camera: the camera
+// centre is the viewport centre, so board (0,0) is at (400, 300).
+const at = (bx: number, by: number) => ({ clientX: 400 + bx, clientY: 300 + by });
+
+describe("attachInput item interactions", () => {
+  beforeEach(() => {
+    el.setPointerCapture = () => {};
+    el.releasePointerCapture = () => {};
+    el.hasPointerCapture = () => false;
+  });
+
+  it("sticky tool + click places a sticky, even over another", () => {
+    setup(true);
+    store.setTool("sticky");
+    ptr("pointerdown", at(1100, 1100));
+    ptr("pointerup", at(1100, 1100));
+    expect(Object.values(store.getSnapshot().items)).toHaveLength(2);
+    expect(store.getSnapshot().tool).toBe("select");
+    expect(store.getSnapshot().selectedId).not.toBe("a");
+  });
+
+  it("select click selects, empty click deselects, no commit", () => {
+    setup(true);
+    ptr("pointerdown", at(1100, 1100));
+    ptr("pointerup", at(1100, 1100));
+    expect(store.getSnapshot().selectedId).toBe("a");
+    expect(store.getHistory().undo).toHaveLength(0);
+    ptr("pointerdown", at(0, 0));
+    ptr("pointerup", at(0, 0));
+    expect(store.getSnapshot().selectedId).toBeNull();
+  });
+
+  it("drag moves with a preview and one undo step; nothing before 3 px", () => {
+    setup(true);
+    ptr("pointerdown", at(1100, 1100));
+    ptr("pointermove", at(1102, 1100));
+    expect(store.getSnapshot().dragPreview).toBeNull();
+    ptr("pointermove", at(1150, 1130));
+    expect(store.getSnapshot().dragPreview).toEqual({ id: "a", dx: 50, dy: 30 });
+    expect(store.getHistory().undo).toHaveLength(0);
+    ptr("pointerup", at(1150, 1130));
+    expect(store.getSnapshot().dragPreview).toBeNull();
+    expect(store.getSnapshot().items.a).toMatchObject({ x: 1050, y: 1030 });
+    expect(store.getHistory().undo).toHaveLength(1);
+  });
+
+  it("pointercancel clears the preview without committing", () => {
+    setup(true);
+    ptr("pointerdown", at(1100, 1100));
+    ptr("pointermove", at(1150, 1130));
+    ptr("pointercancel", at(1150, 1130));
+    expect(store.getSnapshot().dragPreview).toBeNull();
+    expect(store.getSnapshot().items.a.x).toBe(1000);
+    expect(store.getHistory().undo).toHaveLength(0);
+  });
+
+  it("Space takes precedence over select/drag; other buttons do not select", () => {
+    setup(true);
+    key(el, { key: " " });
+    ptr("pointerdown", at(1100, 1100));
+    expect(store.getSnapshot().selectedId).toBeNull();
+    ptr("pointerup", at(1100, 1100));
+    window.dispatchEvent(new KeyboardEvent("keyup", { key: " " }));
+    ptr("pointerdown", { ...at(1100, 1100), button: 1 });
+    expect(store.getSnapshot().selectedId).toBeNull();
+  });
+
+  it("arrows nudge 1 px, Shift 10 px, merged; only with a selection", () => {
+    setup(true);
+    expect(key(el, { key: "ArrowRight" }).defaultPrevented).toBe(false);
+    store.select("a");
+    expect(key(el, { key: "ArrowRight" }).defaultPrevented).toBe(true);
+    key(el, { key: "ArrowDown", shiftKey: true });
+    expect(store.getSnapshot().items.a).toMatchObject({ x: 1001, y: 1010 });
+    expect(store.getHistory().undo).toHaveLength(1);
+  });
+
+  it("arrows are ignored with the sticky tool or while editing", () => {
+    setup(true);
+    store.select("a");
+    store.setTool("sticky");
+    key(el, { key: "ArrowLeft" });
+    store.setTool("select");
+    store.startEdit("a");
+    key(el, { key: "ArrowLeft" });
+    expect(store.getSnapshot().items.a.x).toBe(1000);
+  });
+});

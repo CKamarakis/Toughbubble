@@ -19,12 +19,16 @@ import type { Item, Items, StormBody } from "@/lib/storms/model";
 
 export type Tool = "select" | "sticky";
 
+/** Transient, unsaved offset of a sticky being dragged; the renderer applies it. */
+export type DragPreview = { id: string; dx: number; dy: number };
+
 export type Snapshot = {
   items: Items;
   camera: Camera;
   tool: Tool;
   selectedId: string | null;
   editingId: string | null;
+  dragPreview: DragPreview | null;
   canUndo: boolean;
   canRedo: boolean;
   revision: number;
@@ -44,6 +48,8 @@ export type StormStore = {
   setCamera(c: Camera): void;
   setTool(t: Tool): void;
   select(id: string | null): void;
+  /** Shows a dragged sticky at an offset without committing or saving anything. */
+  setDragPreview(p: DragPreview | null): void;
   startEdit(id: string): void;
   /** Commits the text without history; `endEdit` adds the one undo step. */
   setText(id: string, text: string): void;
@@ -85,6 +91,7 @@ export function createStormStore(init: {
     tool: "select",
     selectedId: null,
     editingId: null,
+    dragPreview: null,
   };
   let history = init.history ?? EMPTY_HISTORY;
   let snapshot = build(0);
@@ -207,6 +214,9 @@ export function createStormStore(init: {
       const next = id !== null && state.items[id] ? id : null;
       if (next !== state.selectedId) update({ selectedId: next });
     },
+    setDragPreview(p) {
+      update({ dragPreview: p });
+    },
     startEdit(id) {
       if (id === state.editingId) return;
       endEdit();
@@ -223,7 +233,7 @@ export function createStormStore(init: {
     endEdit,
     replaceBoard(body) {
       editBefore = null;
-      update({ items: body.items, selectedId: null, editingId: null }, EMPTY_HISTORY);
+      update({ items: body.items, selectedId: null, editingId: null, dragPreview: null }, EMPTY_HISTORY);
     },
     markDirty: frames.call,
     onFrame: frames.add,

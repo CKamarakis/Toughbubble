@@ -1,6 +1,15 @@
-import { fitCamera, HOME_CAMERA, panBy, stepZoom, zoomAt } from "@/lib/storms/camera";
+import {
+  fitCamera,
+  HOME_CAMERA,
+  panBy,
+  screenToBoard,
+  stepZoom,
+  zoomAt,
+} from "@/lib/storms/camera";
+import { hitTest } from "@/lib/storms/hit-test";
 import { boundsOf, type Point, type Size } from "@/lib/storms/model";
 import { createWheelClassifier } from "@/lib/storms/wheel-source";
+import { moveSticky, nudge, placeSticky } from "./actions";
 import type { StormStore, Tool } from "./store";
 
 export type ZoomKeyAction = "zoom-in" | "zoom-out" | "zoom-reset" | "fit";
@@ -43,7 +52,16 @@ function isEditable(t: EventTarget | null): boolean {
 const WHEEL_ZOOM_RATE = 0.0015;
 const LINE_MODE_FACTOR = 20;
 
+const DRAG_THRESHOLD_PX = 3;
+const ARROWS: Record<string, Point> = {
+  ArrowLeft: { x: -1, y: 0 },
+  ArrowRight: { x: 1, y: 0 },
+  ArrowUp: { x: 0, y: -1 },
+  ArrowDown: { x: 0, y: 1 },
+};
+
 type Drag = { pointerId: number; button: number; x: number; y: number };
+type ItemDrag = { pointerId: number; id: string; x: number; y: number; moved: boolean };
 
 type GestureEvent = Event & { scale: number; clientX?: number; clientY?: number };
 
@@ -59,6 +77,7 @@ export function attachInput(
   const classify = createWheelClassifier();
   let spaceDown = false;
   let drag: Drag | null = null;
+  let itemDrag: ItemDrag | null = null;
   let gestureStartZoom = 1;
 
   /** Point relative to the board element. */
@@ -109,24 +128,58 @@ export function attachInput(
     el.setPointerCapture(e.pointerId);
     updateCursor();
   };
+  /** Left button: Space pans, the Sticky tool places, the Select tool selects and drags. */
+  const primaryDown = (e: PointerEvent) => {
+    if (spaceDown) return startPan(e);
+    const snap = store.getSnapshot();
+    const at = screenToBoard(snap.camera, getViewport(), local(e.clientX, e.clientY));
+    if (snap.tool === "sticky") {
+      placeSticky(store, at);
+      return;
+    }
+    const hit = hitTest(snap.items, at);
+    store.select(hit ? hit.id : null);
+    if (!hit) return;
+    itemDrag = { pointerId: e.pointerId, id: hit.id, x: e.clientX, y: e.clientY, moved: false };
+    el.setPointerCapture(e.pointerId);
+  };
   const buttonHandlers: Record<number, (e: PointerEvent) => void> = {
-    0: (e) => {
-      if (spaceDown) startPan(e);
-    },
+    0: primaryDown,
     2: startPan,
   };
 
   const onPointerDown = (e: PointerEvent) => {
     el.focus({ preventScroll: true });
+    if (drag || itemDrag) return;
     buttonHandlers[e.button]?.(e);
   };
   const onPointerMove = (e: PointerEvent) => {
+    if (itemDrag && e.pointerId === itemDrag.pointerId) {
+      const dx = e.clientX - itemDrag.x;
+      const dy = e.clientY - itemDrag.y;
+      if (!itemDrag.moved && Math.hypot(dx, dy) <= DRAG_THRESHOLD_PX) return;
+      itemDrag.moved = true;
+      const z = camera().zoom;
+      store.setDragPreview({ id: itemDrag.id, dx: dx / z, dy: dy / z });
+      return;
+    }
     if (!drag || e.pointerId !== drag.pointerId) return;
     panScreen(e.clientX - drag.x, e.clientY - drag.y);
     drag.x = e.clientX;
     drag.y = e.clientY;
   };
   const endDrag = (e: PointerEvent) => {
+    if (itemDrag && e.pointerId === itemDrag.pointerId) {
+      const done = itemDrag;
+      itemDrag = null;
+      if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId);
+      const preview = store.getSnapshot().dragPreview;
+      store.setDragPreview(null);
+      if (e.type === "pointerup" && done.moved && preview) {
+        moveSticky(store, done.id, preview.dx, preview.dy, "push");
+      }
+      return;
+    }
     if (!drag || e.pointerId !== drag.pointerId) return;
     if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId);
     drag = null;
@@ -146,6 +199,15 @@ export function attachInput(
         spaceDown = true;
         updateCursor();
       }
+      return;
+    }
+    const arrow = ARROWS[e.key];
+    if (arrow) {
+      const snap = store.getSnapshot();
+      if (snap.tool !== "select" || !snap.selectedId || e.ctrlKey || e.metaKey || e.altKey) return;
+      e.preventDefault();
+      const step = e.shiftKey ? 10 : 1;
+      nudge(store, arrow.x * step, arrow.y * step, performance.now());
       return;
     }
     const tool = toolKey(e);
@@ -201,5 +263,6 @@ export function attachInput(
     el.removeEventListener("blur", endSpace, true);
     window.removeEventListener("keyup", onKeyUp);
     el.style.cursor = "";
+    if (itemDrag) store.setDragPreview(null);
   };
 }
