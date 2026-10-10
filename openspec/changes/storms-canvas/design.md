@@ -68,7 +68,8 @@ Pure, unit-tested, no DOM (`src/lib/storms/`):
 
 Shared: `src/lib/notes/autosave.ts` moves to `src/lib/autosave.ts` with its tests and gains one event and phase:
 - `save-too-large` → phase `too-large`: no retries; the next `edit` returns to `dirty`. Notes never send it.
-- Rule stated for both: on `save-error`, `save-conflict` or `save-too-large`, the in-flight payload merges back under pending (pending wins per id). Notes already resend the whole body, so this is a no-op for them.
+- The reducer tracks phases only; payloads live in the hooks. `use-storm-autosave` merges the in-flight change set back under pending (pending wins per id) on `save-error`, `save-conflict` or `save-too-large`. Notes resend the whole body, so they need no such rule.
+- Status text reuses `statusLabel` ("Saving…", "Saved", "Couldn't save — retrying", "Changed elsewhere"); `too-large` adds "Too big to save".
 
 Browser (`src/components/storms/`):
 - `engine/store.ts`: state, `subscribe`, `getSnapshot`, actions (place, move, edit text, delete, select, tool, camera); every board edit goes through one `commit(changeSet)` that applies it, pushes history and marks autosave dirty.

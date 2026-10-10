@@ -48,7 +48,7 @@
 
 ## 8. Saving and undo in the browser
 
-- [ ] 8.1 `use-storm-autosave.ts`: pending and in-flight change sets, 1 s pause, "Saving…" / "Saved" / "Couldn't save. Retrying…", leave warning, splitting sets over 800 KB, too-large message (D3). Verify in the browser: a reload shows saved stickies; offline keeps work and saves on reconnect; the leave warning appears while pending.
+- [ ] 8.1 `use-storm-autosave.ts`: pending and in-flight change sets, 1 s pause, "Saving…" / "Saved" / "Couldn't save — retrying", leave warning, splitting sets over 800 KB, too-large message (D3). Verify in the browser: a reload shows saved stickies; offline keeps work and saves on reconnect; the leave warning appears while pending.
 - [ ] 8.2 Changed elsewhere: Load latest, Keep mine (then reload body and drop undo), refresh on focus (D3). Verify in the browser with two tabs per the "Changed elsewhere" scenarios.
 - [ ] 8.3 Undo/redo keys and buttons through the store; zoom, pan and select are not steps. Verify in the browser per the "Undo and redo" scenarios.
 - [ ] 8.4 `undo-store.ts` in IndexedDB: write only when nothing is pending or in flight, restore only on a matching version, keyed by user and storm; `account-menu.tsx` clears the store before sign-out (D7). Verify in the browser: reload keeps undo; a change in another tab drops it; sign out and in again leaves Undo unavailable.

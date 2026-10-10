@@ -20,11 +20,11 @@ Changes to a Storm's board SHALL save automatically about 1 second after the las
 - **THEN** the browser asks for confirmation
 
 ### Requirement: Save failures and retries
-When a save fails for a network or server reason, the header SHALL show "Couldn't save. Retrying…", the board SHALL keep the user's work, and the save SHALL be retried with growing pauses. Changes made while a save is in flight or failing SHALL be kept and included in the next save.
+When a save fails for a network or server reason, the header SHALL show "Couldn't save — retrying", the board SHALL keep the user's work, and the save SHALL be retried with growing pauses. Changes made while a save is in flight or failing SHALL be kept and included in the next save.
 
 #### Scenario: Offline
 - **WHEN** the connection drops and the user moves a sticky
-- **THEN** the header shows "Couldn't save. Retrying…", the sticky stays where it was moved, and it saves once the connection is back
+- **THEN** the header shows "Couldn't save — retrying", the sticky stays where it was moved, and it saves once the connection is back
 
 ### Requirement: Changed elsewhere
 A save based on an older version than the stored one SHALL NOT overwrite it. The user SHALL see "Changed elsewhere" with **Load latest**, which discards this tab's unsaved changes and shows the stored board, and **Keep mine**, which saves this tab's changes on top of the stored board (this tab's version wins for the same sticky; other stickies are kept) and then shows the combined board. Both SHALL clear the undo history. When a tab regains focus with nothing unsaved and the stored board is newer, it SHALL show the stored board and clear the undo history.
