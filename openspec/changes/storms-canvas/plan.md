@@ -441,11 +441,12 @@
 
 ---
 
-### Task 10.1–10.3: Docs and release
+### Task 10.1–10.4: Docs, testing plan and release
 
-**Files:** Modify `README.md`
+**Files:** Modify `README.md`; create `openspec/changes/storms-canvas/testing-plan.md`
 
 - [ ] **Step 1:** Add a Storms section to the README: board controls (zoom, pan, fit, toolbar, keys), saving and Changed elsewhere, undo across reloads, Duplicate, and `npm run bench:storms`. Verify it matches the code.
 - [ ] **Step 2:** Run `npx tsc --noEmit`, `npm run lint`, `npm test`, `npm run test:integration`, `npm run bench:storms` — Expected: all pass. Paste the results into the task notes.
-- [ ] **Step 3:** Hand the user the manual checklist from design D11 and record what they found.
-- [ ] **Step 4:** Commit `storms-canvas: docs`; push.
+- [ ] **Step 3:** Write `testing-plan.md` (task 10.3). It has one numbered browser step per spec scenario (do / expect / pass-fail), grouped by feature, each naming the automated test that covers it, plus the commands for all the automated checks. Check that every `#### Scenario:` in `specs/` is listed.
+- [ ] **Step 4:** Commit `storms-canvas: docs and testing plan`; push.
+- [ ] **Step 5:** Hand the testing plan to the user (task 10.4) and record their pass/fail results.

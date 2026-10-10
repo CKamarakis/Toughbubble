@@ -61,4 +61,5 @@
 
 - [ ] 10.1 Update the README with Storms (board controls, saving, undo, duplicate). Verify that it matches the code.
 - [ ] 10.2 Run types, lint, unit and integration tests and the speed gate. Verify that all pass.
-- [ ] 10.3 Hand the user the manual checklist from D11. Verify that each item was tried and note any issues found.
+- [ ] 10.3 Write `openspec/changes/storms-canvas/testing-plan.md` (asked for by the user on 2026-10-10). Turn every spec scenario into a numbered browser step the user can run themselves (what to do, what to see, a pass/fail box), grouped by feature. Give each step the automated test that also covers it, and add how to run all the automated checks. Verify that every `#### Scenario:` in `specs/` appears in it.
+- [ ] 10.4 Hand the user the testing plan. They run it and confirm. Verify that each step is marked pass or fail, and record any issues found.
