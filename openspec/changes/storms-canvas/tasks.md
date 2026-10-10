@@ -30,7 +30,7 @@
 ## 5. Engine: store, renderer, input
 
 - [x] 5.1 `engine/store.ts` with `subscribe`/`getSnapshot` and a single `commit(changeSet)` path into history and autosave (D2). Verify with unit tests that commit applies, records history, and marks dirty; and that camera changes don't touch history.
-- [ ] 5.2 `engine/renderer.ts`: DPR-sized canvas, dot grid fading out, culled stickies, text skipped below 30%, selection outline, redraw on rAF only when dirty, text waits for the resolved Geist family (D4, D6). Verify in the browser: sharp on a high-DPI screen, grid gone at 10%, no fallback-font flash on reload.
+- [x] 5.2 `engine/renderer.ts`: DPR-sized canvas, dot grid fading out, culled stickies, text skipped below 30%, selection outline, redraw on rAF only when dirty, text waits for the resolved Geist family (D4, D6). Verify in the browser: sharp on a high-DPI screen, grid gone at 10%, no fallback-font flash on reload.
 - [ ] 5.3 `engine/input.ts`: non-passive wheel listener, mouse vs trackpad, ctrl/pinch zoom, Safari gesture events, right-drag and Space-drag pan, suppressed context menu, zoom keys including Shift+1 by `e.code` (D5). Verify in the browser: wheel zooms toward the pointer, trackpad pans, pinch zooms, the page never zooms, right-drag pans with no browser menu, Space shows a hand.
 
 ## 6. Toolbar, zoom control, last view
