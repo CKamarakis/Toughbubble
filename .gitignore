@@ -56,3 +56,4 @@ design-refs/
 
 # Agent worktrees
 .claude/worktrees/
+.superpowers/
