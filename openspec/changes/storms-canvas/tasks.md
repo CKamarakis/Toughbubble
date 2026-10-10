@@ -9,7 +9,7 @@
 
 - [x] 2.1 `src/lib/storms/model.ts` and `limits.ts` per D2: `StormBody`, the sticky item, fractional `z`, `BOARD_LIMIT`, `MAX_TEXT`, `MAX_BODY_BYTES`. Verify that types compile and new `z` keys sort above all existing ones.
 - [x] 2.2 `changeset.ts`: apply, invert, merge. Verify that unit tests cover: apply then invert restores the board, merge keeps the latest per id, upsert then delete = delete, delete then upsert = upsert, and never an id in both lists.
-- [ ] 2.3 `camera.ts`: screen↔board, `zoomAt`, clamp, steps, fit, pan clamp. Verify that unit tests cover: the point under the cursor stays put, 10%/400% limits, the step list, fit of spread items, empty fit → 100% at origin, ±1,000,000 px clamp.
+- [x] 2.3 `camera.ts`: screen↔board, `zoomAt`, clamp, steps, fit, pan clamp. Verify that unit tests cover: the point under the cursor stays put, 10%/400% limits, the step list, fit of spread items, empty fit → 100% at origin, ±1,000,000 px clamp.
 - [ ] 2.4 `history.ts`: 30-step undo/redo of change-set pairs. Verify that unit tests cover the cap and redo cleared by a new change.
 - [ ] 2.5 `hit-test.ts`: topmost by fractional `z`. Verify with unit tests of overlapping stickies.
 - [ ] 2.6 `wheel-source.ts` per D5, with the per-gesture lock. Verify that unit tests cover mouse line steps, trackpad pixel deltas, horizontal deltas, ctrl (pinch) and no flip mid-gesture.
