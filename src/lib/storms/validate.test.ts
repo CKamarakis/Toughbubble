@@ -42,7 +42,7 @@ describe("validateChangeSet", () => {
   it("rejects an id in both lists", () => bad(cs([sticky(A)], [A])));
   it("rejects an unknown field", () => bad(cs([sticky(A, { color: "red" })])));
   it("rejects __proto__ and constructor keys", () => {
-    bad(cs([JSON.parse(`{"__proto__":{},"id":"${A}"}`)]));
+    bad(cs([JSON.parse(JSON.stringify(sticky(A)).replace("{", '{"__proto__":{"x":1},'))]));
     bad(cs([sticky(A, { constructor: 1 })]));
   });
   it("rejects a non-plain item", () => {
@@ -76,6 +76,16 @@ describe("validateChangeSet", () => {
   it("rejects a bad parentId", () => bad(cs([sticky(A, { parentId: "nope" })])));
   it("rejects too many deletes", () => {
     bad(cs([], Array.from({ length: 5_001 }, (_, i) => uuid(i))));
+  });
+  it("rejects too many upserts", () => {
+    bad(cs(Array.from({ length: 5_001 }, (_, i) => sticky(uuid(i)))));
+  });
+  it("accepts values exactly at the limits", () => {
+    const items = [
+      sticky(uuid(1), { x: 1_000_000, y: -1_000_000, w: 1_000_000, h: 1_000_000 }),
+      sticky(uuid(2), { x: -1_000_000, z: "z".repeat(64), text: "t".repeat(5_000) }),
+    ];
+    expect(validateChangeSet(cs(items))).toEqual({ ok: true, changes: cs(items) });
   });
   it("rejects a set over the byte cap", () => {
     const upsert = Array.from({ length: 200 }, (_, i) => sticky(uuid(i), { text: "a".repeat(5_000) }));
