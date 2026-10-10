@@ -59,10 +59,35 @@ describe("camera", () => {
     expect(br.y).toBeLessThanOrEqual(vp.h - 64 + 1e-9);
     expect(cam.x).toBe(1100);
     expect(cam.y).toBe(700);
+    expect(cam.zoom).toBeCloseTo(672 / 2000, 9);
   });
 
-  it("fitCamera(null) -> HOME_CAMERA", () => {
-    expect(fitCamera(null, vp)).toEqual(HOME_CAMERA);
+  it("fitCamera height-bound case uses the vertical margin", () => {
+    const cam = fitCamera({ x: 0, y: 0, w: 400, h: 1000 }, vp, 64);
+    expect(cam.zoom).toBeCloseTo(472 / 1000, 9);
+  });
+
+  it("fitCamera floors at MIN_ZOOM for huge bounds", () => {
+    expect(fitCamera({ x: 0, y: 0, w: 100_000, h: 100_000 }, vp).zoom).toBe(MIN_ZOOM);
+  });
+
+  it("fitCamera(null) -> HOME_CAMERA without sharing the object", () => {
+    const cam = fitCamera(null, vp);
+    expect(cam).toEqual(HOME_CAMERA);
+    expect(cam).not.toBe(HOME_CAMERA);
+  });
+
+  it("zoomAt keeps the cursor point when zooming out", () => {
+    const cam = { x: -30, y: 90, zoom: 2 };
+    const s = { x: 600, y: 100 };
+    const before = screenToBoard(cam, vp, s);
+    const after = screenToBoard(zoomAt(cam, vp, s, 0.5), vp, s);
+    expect(after.x).toBeCloseTo(before.x, 9);
+    expect(after.y).toBeCloseTo(before.y, 9);
+  });
+
+  it("stepZoom down from 1 -> 0.75", () => {
+    expect(stepZoom(HOME_CAMERA, vp, -1).zoom).toBe(0.75);
   });
 
   it("fitCamera respects MAX_ZOOM for a tiny item", () => {

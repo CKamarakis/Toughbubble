@@ -59,7 +59,7 @@ export function panBy(cam: Camera, dxScreen: number, dyScreen: number): Camera {
 }
 
 export function fitCamera(bounds: Rect | null, vp: Size, marginPx = 64): Camera {
-  if (!bounds) return HOME_CAMERA;
+  if (!bounds) return { ...HOME_CAMERA };
   const availW = Math.max(1, vp.w - 2 * marginPx);
   const availH = Math.max(1, vp.h - 2 * marginPx);
   const fit = Math.min(availW / Math.max(bounds.w, EPS), availH / Math.max(bounds.h, EPS));
