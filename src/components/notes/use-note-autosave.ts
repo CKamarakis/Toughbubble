@@ -11,7 +11,7 @@ import {
   retryDelay,
   SAVE_DELAY_MS,
   statusLabel,
-} from "@/lib/notes/autosave";
+} from "@/lib/autosave";
 import { useWorkspace } from "@/components/workspace/workspace-context";
 
 /**

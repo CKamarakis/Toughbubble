@@ -5,7 +5,7 @@
 //   saving --error--> error --retry after backoff--> saving
 //   saving --conflict--> conflict (no saving until Load latest / Keep mine)
 
-export type Phase = "idle" | "dirty" | "saving" | "error" | "conflict";
+export type Phase = "idle" | "dirty" | "saving" | "error" | "conflict" | "too-large";
 
 export type AutosaveState = {
   phase: Phase;
@@ -27,6 +27,7 @@ export type AutosaveEvent =
   | { type: "save-ok"; version: number }
   | { type: "save-error"; error: string }
   | { type: "save-conflict"; storedVersion: number }
+  | { type: "save-too-large" }
   | { type: "load-latest"; version: number }
   | { type: "keep-mine" }
   | { type: "refreshed"; version: number };
@@ -56,6 +57,7 @@ export const hasUnsavedChanges = (s: AutosaveState) => s.dirty || s.phase === "s
 export function autosaveReducer(s: AutosaveState, e: AutosaveEvent): AutosaveState {
   switch (e.type) {
     case "edit":
+      if (s.phase === "too-large") return { ...s, phase: "dirty", dirty: true };
       if (s.phase === "idle") return { ...s, phase: "dirty", dirty: true };
       return { ...s, dirty: true };
     case "save-start":
@@ -70,6 +72,9 @@ export function autosaveReducer(s: AutosaveState, e: AutosaveEvent): AutosaveSta
     case "save-conflict":
       if (s.phase !== "saving") return s;
       return { ...s, phase: "conflict", dirty: true, storedVersion: e.storedVersion, error: null };
+    case "save-too-large":
+      if (s.phase !== "saving") return s;
+      return { ...s, phase: "too-large", dirty: true };
     case "load-latest":
       return { ...initialAutosave(e.version) };
     case "keep-mine":
@@ -81,7 +86,7 @@ export function autosaveReducer(s: AutosaveState, e: AutosaveEvent): AutosaveSta
   }
 }
 
-export type StatusLabel = "" | "Saving…" | "Saved" | "Couldn't save — retrying" | "Changed elsewhere";
+export type StatusLabel = "" | "Saving…" | "Saved" | "Couldn't save — retrying" | "Changed elsewhere" | "Too big to save";
 
 export function statusLabel(s: AutosaveState, everSaved: boolean): StatusLabel {
   switch (s.phase) {
@@ -92,6 +97,8 @@ export function statusLabel(s: AutosaveState, everSaved: boolean): StatusLabel {
       return "Couldn't save — retrying";
     case "conflict":
       return "Changed elsewhere";
+    case "too-large":
+      return "Too big to save";
     case "idle":
       return everSaved ? "Saved" : "";
   }

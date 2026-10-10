@@ -94,4 +94,30 @@ describe("autosave", () => {
   it("shows no status for a note never saved", () => {
     expect(statusLabel(initialAutosave(0), false)).toBe("");
   });
+
+  describe("too-large", () => {
+    const saving = run(initialAutosave(2), { type: "edit" }, { type: "save-start" });
+    const tooLarge = reduce(saving, { type: "save-too-large" });
+
+    it("save-too-large while saving -> phase too-large, dirty true, retries unchanged", () => {
+      expect(tooLarge).toMatchObject({ phase: "too-large", dirty: true, retries: saving.retries });
+    });
+
+    it("ignores save-too-large outside saving", () => {
+      const dirty = run(initialAutosave(2), { type: "edit" });
+      expect(reduce(dirty, { type: "save-too-large" })).toBe(dirty);
+    });
+
+    it("canStartSave is false in too-large", () => {
+      expect(canStartSave(tooLarge)).toBe(false);
+    });
+
+    it("edit in too-large -> phase dirty", () => {
+      expect(reduce(tooLarge, { type: "edit" })).toMatchObject({ phase: "dirty", dirty: true });
+    });
+
+    it("statusLabel in too-large -> Too big to save", () => {
+      expect(statusLabel(tooLarge, true)).toBe("Too big to save");
+    });
+  });
 });
