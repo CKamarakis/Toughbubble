@@ -4,7 +4,8 @@ export type ChangeSet = { upsert: Item[]; delete: string[] };
 
 export const NO_CHANGES: ChangeSet = { upsert: [], delete: [] };
 
-const byteLength = (value: unknown): number => new TextEncoder().encode(JSON.stringify(value)).length;
+const encoder = new TextEncoder();
+const byteLength = (value: unknown): number => encoder.encode(JSON.stringify(value)).length;
 
 /** New board with the changes applied: deletes first, then upserts. */
 export function applyChanges(items: Items, cs: ChangeSet): Items {
@@ -63,19 +64,21 @@ export function changesBytes(cs: ChangeSet): number {
 export function splitChanges(cs: ChangeSet, maxBytes: number): ChangeSet[] {
   if (isEmptyChanges(cs)) return [];
   const chunks: ChangeSet[] = [];
+  let deletes = cs.delete;
   let upsert: Item[] = [];
-  let bytes = changesBytes({ upsert: [], delete: cs.delete });
+  let bytes = changesBytes({ upsert: [], delete: deletes });
   for (const item of cs.upsert) {
     // Adding an item costs its own JSON plus a comma when it is not the first.
     const cost = byteLength(item) + (upsert.length > 0 ? 1 : 0);
-    if (upsert.length > 0 && bytes + cost > maxBytes) {
-      chunks.push({ upsert, delete: chunks.length === 0 ? cs.delete : [] });
+    if ((upsert.length > 0 || deletes.length > 0) && bytes + cost > maxBytes) {
+      chunks.push({ upsert, delete: deletes });
+      deletes = [];
       upsert = [];
       bytes = changesBytes(NO_CHANGES);
     }
     bytes += upsert.length > 0 ? cost : byteLength(item);
     upsert.push(item);
   }
-  chunks.push({ upsert, delete: chunks.length === 0 ? cs.delete : [] });
+  chunks.push({ upsert, delete: deletes });
   return chunks;
 }

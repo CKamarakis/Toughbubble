@@ -112,6 +112,19 @@ describe("splitChanges", () => {
     const ids = Array.from({ length: 50 }, (_, i) => `id-${i}`);
     const chunks = splitChanges({ upsert: [sticky("a")], delete: ids }, 50);
     expect(chunks[0].delete).toEqual(ids);
+    expect(chunks[0].upsert).toEqual([]);
     expect(chunks.flatMap((c) => c.upsert)).toEqual([sticky("a")]);
+  });
+  it("keeps chunk 0 deletes-only when deletes fit alone but not with the first upsert", () => {
+    const item = sticky("a", { text: "t".repeat(40) });
+    const del = ["d1", "d2"];
+    const alone = changesBytes({ upsert: [], delete: del });
+    const both = changesBytes({ upsert: [item], delete: del });
+    const max = Math.floor((alone + both) / 2);
+    const chunks = splitChanges({ upsert: [item], delete: del }, max);
+    expect(chunks).toHaveLength(2);
+    expect(chunks[0]).toEqual({ upsert: [], delete: del });
+    expect(changesBytes(chunks[0])).toBeLessThanOrEqual(max);
+    expect(chunks[1]).toEqual({ upsert: [item], delete: [] });
   });
 });
