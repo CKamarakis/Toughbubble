@@ -41,8 +41,8 @@
 
 ## 7. Stickies
 
-- [ ] 7.1 Place with the Sticky tool (200×200, yellow, on top, selected, back to Select; within the board limit). Verify in the browser per the "Place a sticky" scenarios.
-- [ ] 7.2 Select (magenta outline, topmost wins), deselect on empty board, drag to move, arrow / Shift+arrow nudges merged within 1 s. Verify in the browser per the "Select and move stickies" scenarios.
+- [x] 7.1 Place with the Sticky tool (200×200, yellow, on top, selected, back to Select; within the board limit). Verify in the browser per the "Place a sticky" scenarios.
+- [x] 7.2 Select (magenta outline, topmost wins), deselect on empty board, drag to move, arrow / Shift+arrow nudges merged within 1 s. Verify in the browser per the "Select and move stickies" scenarios.
 - [ ] 7.3 `sticky-text-overlay.tsx`: double-click or Enter to edit, Esc or click outside to finish, per-keystroke commits without history and one undo step per session, shared wrap function, clipped overflow, 5,000-character limit (D5, D6). Verify in the browser that text doesn't shift when editing starts or ends and that overflow is clipped with the full text kept.
 - [ ] 7.4 Delete / Backspace on a selected sticky, not while editing. Verify in the browser per the "Delete a sticky" scenarios.
 
