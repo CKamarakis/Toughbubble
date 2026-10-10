@@ -22,7 +22,7 @@ export default async function WorkspaceLayout({ children }: LayoutProps<"/">) {
   }));
 
   return (
-    <WorkspaceProvider email={claims.email ?? "Account"} rows={rows}>
+    <WorkspaceProvider email={claims.email ?? "Account"} userId={claims.sub} rows={rows}>
       <SettingsProvider initial={settings}>
         <WorkspaceShell>{children}</WorkspaceShell>
       </SettingsProvider>

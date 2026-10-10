@@ -102,6 +102,8 @@ const ITEM_PATH = /^\/items\/([0-9a-f-]{36})/i;
 
 type Workspace = {
   email: string;
+  /** The signed-in user's id (the board's collaboration identity). */
+  userId: string;
   rows: TreeRow[];
   tree: TreeNode[];
   currentId: string | null;
@@ -148,10 +150,12 @@ function parseIds(raw: string): Set<string> {
 
 export function WorkspaceProvider({
   email,
+  userId,
   rows: serverRows,
   children,
 }: {
   email: string;
+  userId: string;
   rows: TreeRow[];
   children: React.ReactNode;
 }) {
@@ -278,6 +282,7 @@ export function WorkspaceProvider({
 
   const value: Workspace = {
     email,
+    userId,
     rows,
     tree,
     currentId,
