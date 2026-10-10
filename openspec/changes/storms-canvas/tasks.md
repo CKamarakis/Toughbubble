@@ -24,7 +24,7 @@
 
 ## 4. Storm page and always-light board
 
-- [ ] 4.1 Load the storm body in `items/[id]/page.tsx`; render `storm-view.tsx` (slim header) from `item-view.tsx` with `StormBoard` via `next/dynamic` `ssr: false` in the client component (D4; read `node_modules/next/dist/docs/01-app/02-guides/lazy-loading.md` first). Verify in the browser that a Storm opens with the header and a full-pane board, and that opening a note doesn't download the board chunk (network tab).
+- [x] 4.1 Load the storm body in `items/[id]/page.tsx`; render `storm-view.tsx` (slim header) from `item-view.tsx` with `StormBoard` via `next/dynamic` `ssr: false` in the client component (D4; read `node_modules/next/dist/docs/01-app/02-guides/lazy-loading.md` first). Verify in the browser that a Storm opens with the header and a full-pane board, and that opening a note doesn't download the board chunk (network tab).
 - [ ] 4.2 Light scope per D9: `.light` on the board and the `globals.css` dark variant `&:is(.dark *):not(.light *)`. Verify that the theme contrast test passes and, in the browser with the dark theme, the sidebar and header are dark while the board, toolbar and zoom control are light.
 
 ## 5. Engine: store, renderer, input
