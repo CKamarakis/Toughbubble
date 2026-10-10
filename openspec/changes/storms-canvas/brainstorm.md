@@ -39,6 +39,7 @@ Alternative A. It matches the spike 1 benchmark (canvas + culling held 60 fps at
 - **Undo across reload**: in this slice (IndexedDB), restored only if the server version still matches, wiped on sign-out.
 - **Last view per storm**: zoom and position kept in the browser.
 - **Gap fixes from the coverage check**: ±1,000,000 px board limit; board-only zoom for Ctrl+wheel / pinch / Ctrl +/−; wait for the sticky font before drawing text; storm code loaded only on storm pages; duplicate named "<title> (copy)" placed right after the original and opened; archived/trashed storms show "not found" like notes.
+- **Independent review (2026-10-10)**: 16 findings against the PRD, spikes and code, all folded into `design.md` (font family from `next/font`, storm-only save path, stricter validation, undo snapshot timing, Keep mine reload, wheel listener, dark-variant scope, duplicate placement, fractional `z`, deferred items assigned to slices).
 - **Verification**: requirement → test list, unit and integration tests, and an automated 1,000-sticky speed gate (median ≥ 50 fps, p95 frame ≤ 33 ms at 4× CPU throttle). The user checks behaviour by hand from a checklist.
 
 ## Open Questions
