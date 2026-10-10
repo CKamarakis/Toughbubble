@@ -35,9 +35,9 @@
 
 ## 6. Toolbar, zoom control, last view
 
-- [ ] 6.1 `storm-toolbar.tsx`: Select (V), Sticky (N), Undo, Redo with tooltips, labels, and disabled states. Verify in the browser that only these four tools show and Undo/Redo are unavailable on a fresh board.
-- [ ] 6.2 `zoom-control.tsx`: −, %, +, fit; click % → 100%. Verify in the browser: + from 100% gives 150%, fit shows all stickies, fit on an empty board gives 100% at the centre.
-- [ ] 6.3 `view-store.ts`: last view per storm in `localStorage`, try/catch fallback (D8). Verify in the browser that a Storm reopens at the zoom and position it was left at, and a first open is 100% at the centre.
+- [x] 6.1 `storm-toolbar.tsx`: Select (V), Sticky (N), Undo, Redo with tooltips, labels, and disabled states. Verify in the browser that only these four tools show and Undo/Redo are unavailable on a fresh board.
+- [x] 6.2 `zoom-control.tsx`: −, %, +, fit; click % → 100%. Verify in the browser: + from 100% gives 150%, fit shows all stickies, fit on an empty board gives 100% at the centre.
+- [x] 6.3 `view-store.ts`: last view per storm in `localStorage`, try/catch fallback (D8). Verify in the browser that a Storm reopens at the zoom and position it was left at, and a first open is 100% at the centre.
 
 ## 7. Stickies
 
