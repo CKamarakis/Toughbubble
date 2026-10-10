@@ -2,7 +2,7 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-@custom-variant dark (&:is(.dark *));
+@custom-variant dark (&:is(.dark *):not(.light *));
 
 /* Static palette: warm neutral scale (hue 48, from #333129) and brand accents.
    Use these for one-off needs; prefer the semantic tokens below in components. */
@@ -182,6 +182,58 @@
   --project-amber: #ffa23d;
   --project-blue: #6ea8ff;
   --project-red: #ff6b5e;
+}
+
+/* Always-light scope (storms-canvas D9): re-declares every token .dark
+   overrides with the :root value, so a .light element inside .dark is light.
+   A test in theme-contrast.test.ts keeps this in step with .dark. */
+.light {
+  color-scheme: light;
+  --background: #fbfbf9;
+  --foreground: #333129;
+  --card: #ffffff;
+  --card-foreground: #333129;
+  --popover: #ffffff;
+  --popover-foreground: #333129;
+  --primary: #f7d000;
+  --primary-foreground: #141310;
+  --secondary: #f5f4f2;
+  --secondary-foreground: #333129;
+  --muted: #f5f4f2;
+  --muted-foreground: #6e6b5e;
+  --accent: #f5f4f2;
+  --accent-foreground: #333129;
+  --destructive: #d92d20;
+  --border: #eae9e6;
+  --input: #8c897d;
+  --ring: #9c00f7;
+  --link: #9c00f7;
+  --highlight: #f700a8;
+  --highlight-text: #c4007f;
+  --selection: #f7d000;
+  --success: #0b7f3e;
+  --warning: #a65a00;
+  --info: #9c00f7;
+  --chart-1: #f7d000;
+  --chart-2: #f700a8;
+  --chart-3: #9c00f7;
+  --chart-4: #8c897d;
+  --chart-5: #514e43;
+  --sidebar: #f5f4f2;
+  --sidebar-foreground: #333129;
+  --sidebar-primary: #f7d000;
+  --sidebar-primary-foreground: #141310;
+  --sidebar-accent: #eae9e6;
+  --sidebar-accent-foreground: #333129;
+  --sidebar-border: #eae9e6;
+  --sidebar-ring: #9c00f7;
+  --project-yellow: #8a6d00;
+  --project-magenta: #c4007f;
+  --project-purple: #9c00f7;
+  --project-green: #0b7f3e;
+  --project-amber: #a65a00;
+  --project-blue: #1d5fd1;
+  --project-red: #d92d20;
 }
 
 /* Hand cursor on everything clickable. Unlayered so it applies to every

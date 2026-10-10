@@ -72,6 +72,32 @@ describe.each([
   });
 });
 
+// Always-light surfaces (storms-canvas D9): `.light` inside `.dark` must fall
+// back to the light values, so it declares every token `.dark` overrides.
+describe("always-light scope", () => {
+  const root = tokens(":root");
+  const dark = tokens(".dark");
+  const light = tokens(".light");
+
+  it("declares exactly the tokens .dark overrides", () => {
+    expect(Object.keys(light).sort()).toEqual(Object.keys(dark).sort());
+  });
+
+  it("uses the :root values", () => {
+    for (const [name, value] of Object.entries(light)) {
+      expect(value, `--${name}`).toBe(root[name]);
+    }
+  });
+
+  it("keeps native controls light", () => {
+    expect(css).toMatch(/^\.light \{[^}]*color-scheme:\s*light;/m);
+  });
+
+  it("stops the dark variant inside .light", () => {
+    expect(css).toContain("@custom-variant dark (&:is(.dark *):not(.light *));");
+  });
+});
+
 // Note editor (notes design D6): inline code and code blocks sit on --muted,
 // checked items and the placeholder use --muted-foreground on the page.
 describe.each([

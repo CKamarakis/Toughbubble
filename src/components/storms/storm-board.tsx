@@ -13,7 +13,7 @@ export type StormBoardProps = {
 export default function StormBoard(props: StormBoardProps) {
   void props;
   return (
-    <div className="size-full">
+    <div className="light size-full bg-background text-foreground">
       <canvas className="block size-full touch-none" />
     </div>
   );
