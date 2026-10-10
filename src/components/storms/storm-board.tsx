@@ -7,6 +7,7 @@ import { resolveFontFamily, waitForFont } from "./engine/font";
 import { attachInput } from "./engine/input";
 import { createRenderer } from "./engine/renderer";
 import { createStormStore, type StormStore } from "./engine/store";
+import { StickyTextOverlay } from "./sticky-text-overlay";
 import { StormToolbar } from "./storm-toolbar";
 import { loadView, saveView } from "./view-store";
 import { ZoomControl } from "./zoom-control";
@@ -33,6 +34,7 @@ export default function StormBoard(props: StormBoardProps) {
   const boxRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [store, setStore] = useState<StormStore | null>(null);
+  const [family, setFamily] = useState("");
   const getViewport = useCallback(() => {
     const r = boxRef.current?.getBoundingClientRect();
     return { w: r?.width ?? 0, h: r?.height ?? 0 };
@@ -67,6 +69,7 @@ export default function StormBoard(props: StormBoardProps) {
     });
 
     const family = resolveFontFamily(box);
+    setFamily(family);
     const renderer = createRenderer(canvas, store, family);
     let alive = true;
     void waitForFont(family).then(() => {
@@ -110,6 +113,12 @@ export default function StormBoard(props: StormBoardProps) {
       </div>
       {store && (
         <>
+          <StickyTextOverlay
+            store={store}
+            family={family}
+            getViewport={getViewport}
+            onExit={() => boxRef.current?.focus({ preventScroll: true })}
+          />
           <StormToolbar store={store} />
           <ZoomControl store={store} getViewport={getViewport} />
         </>

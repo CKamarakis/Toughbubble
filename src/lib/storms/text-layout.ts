@@ -2,7 +2,13 @@ import { STICKY, type Sticky } from "./model";
 
 export const LINE_HEIGHT_RATIO = 1.3;
 
-/** Breaks on spaces and `\n`; a word wider than `maxWidth` breaks by character. */
+/**
+ * Wraps like a textarea with `white-space: pre-wrap; overflow-wrap: break-word`:
+ * breaks after runs of spaces and at `\n`, keeps every space, and breaks a word wider
+ * than `maxWidth` by character. Spaces never cause a wrap: at a soft wrap they hang
+ * past the edge (so they are dropped from the line, as they are neither drawn nor
+ * centred); at a paragraph end they are kept as far as they fit.
+ */
 export function wrapText(
   measure: (s: string) => number,
   text: string,
@@ -11,19 +17,18 @@ export function wrapText(
   const lines: string[] = [];
   for (const paragraph of text.split("\n")) {
     let line = "";
-    const push = () => {
-      lines.push(line);
-      line = "";
-    };
-    for (const word of paragraph.split(" ")) {
-      if (word === "") continue;
-      const joined = line === "" ? word : `${line} ${word}`;
+    for (const token of paragraph.match(/ +|[^ ]+/g) ?? []) {
+      if (token[0] === " ") {
+        line += token;
+        continue;
+      }
+      const joined = line + token;
       if (measure(joined) <= maxWidth) {
         line = joined;
         continue;
       }
-      if (line !== "") push();
-      let rest = word;
+      if (line !== "") lines.push(line.trimEnd());
+      let rest = token;
       while (measure(rest) > maxWidth && rest.length > 1) {
         let n = 1;
         while (n < rest.length - 1 && measure(rest.slice(0, n + 1)) <= maxWidth) n++;
@@ -32,9 +37,23 @@ export function wrapText(
       }
       line = rest;
     }
-    push();
+    lines.push(fitTrailingSpaces(measure, line, maxWidth));
   }
   return lines;
+}
+
+/** Drops the trailing spaces that don't fit (they hang); binary search keeps long runs cheap. */
+function fitTrailingSpaces(measure: (s: string) => number, line: string, maxWidth: number): string {
+  if (!line.endsWith(" ") || measure(line) <= maxWidth) return line;
+  const base = line.trimEnd();
+  let lo = 0;
+  let hi = line.length - base.length - 1;
+  while (lo < hi) {
+    const mid = Math.ceil((lo + hi) / 2);
+    if (measure(base + " ".repeat(mid)) <= maxWidth) lo = mid;
+    else hi = mid - 1;
+  }
+  return base + " ".repeat(lo);
 }
 
 /** `top` is the first line's top edge in board px from the sticky's top. */

@@ -1,6 +1,6 @@
 import { boardToScreen, visibleRect } from "@/lib/storms/camera";
 import { byZ, STICKY, type Item, type Size } from "@/lib/storms/model";
-import { layoutSticky } from "@/lib/storms/text-layout";
+import { LINE_HEIGHT_RATIO, layoutSticky } from "@/lib/storms/text-layout";
 import type { StormStore } from "./store";
 
 const BACKGROUND = "#FFFFFF";
@@ -33,6 +33,21 @@ export function createRenderer(
   const font = `${STICKY.fontPx}px ${family || "sans-serif"}`;
   const measure = (s: string) => ctx?.measureText(s).width ?? 0;
 
+  /**
+   * A line's baseline below its top, placed as CSS places it in a line box (half the
+   * leading above the font's ascent), so canvas text lines up with the textarea overlay.
+   */
+  function baselineOffset(): number {
+    const lineHeight = STICKY.fontPx * LINE_HEIGHT_RATIO;
+    if (!ctx) return lineHeight / 2;
+    ctx.font = font;
+    const m = ctx.measureText("");
+    const ascent = m.fontBoundingBoxAscent;
+    const descent = m.fontBoundingBoxDescent;
+    if (!Number.isFinite(ascent) || !Number.isFinite(descent)) return lineHeight / 2 + STICKY.fontPx * 0.35;
+    return (lineHeight - (ascent + descent)) / 2 + ascent;
+  }
+
   function schedule() {
     if (frame || destroyed) return;
     frame = requestAnimationFrame(() => {
@@ -63,7 +78,7 @@ export function createRenderer(
   function draw() {
     if (!ctx || destroyed || size.w === 0 || size.h === 0) return;
     const snap = store.getSnapshot();
-    const { camera, items, selectedId, dragPreview } = snap;
+    const { camera, items, selectedId, editingId, dragPreview } = snap;
     const shift = (s: Item): Item =>
       dragPreview && dragPreview.id === s.id
         ? { ...s, x: s.x + dragPreview.dx, y: s.y + dragPreview.dy }
@@ -82,6 +97,7 @@ export function createRenderer(
     const shadows = camera.zoom >= SHADOW_MIN_ZOOM;
     const showText = fontReady && camera.zoom >= TEXT_MIN_ZOOM;
     const z = camera.zoom;
+    const baseline = showText ? baselineOffset() : 0;
 
     for (const s of visible) {
       const p = boardToScreen(camera, size, s);
@@ -95,7 +111,8 @@ export function createRenderer(
       ctx.fillRect(p.x, p.y, s.w * z, s.h * z);
       ctx.restore();
 
-      if (showText && s.text !== "") {
+      // The text overlay shows the text of the sticky being edited.
+      if (showText && s.text !== "" && s.id !== editingId) {
         ctx.save();
         ctx.beginPath();
         ctx.rect(p.x, p.y, s.w * z, s.h * z);
@@ -105,10 +122,10 @@ export function createRenderer(
         ctx.font = font;
         ctx.fillStyle = STICKY.text;
         ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
+        ctx.textBaseline = "alphabetic";
         const { lines, lineHeight, top } = layoutSticky(measure, s);
         lines.forEach((line, i) => {
-          ctx.fillText(line, s.w / 2, top + (i + 0.5) * lineHeight);
+          ctx.fillText(line, s.w / 2, top + i * lineHeight + baseline);
         });
         ctx.restore();
       }

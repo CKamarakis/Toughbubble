@@ -41,7 +41,14 @@ export function moveSticky(
   store.commit({ upsert: [{ ...item, x, y }], delete: [] }, mode);
 }
 
-type LastNudge = { id: string; at: number; top: unknown };
+/** Deletes the selected sticky as one undo step. */
+export function deleteSelected(store: StormStore) {
+  const id = store.getSnapshot().selectedId;
+  if (!id) return;
+  store.commit({ upsert: [], delete: [id] }, "push");
+}
+
+type LastNudge ={ id: string; at: number; top: unknown };
 const lastNudge = new WeakMap<StormStore, LastNudge>();
 
 /**

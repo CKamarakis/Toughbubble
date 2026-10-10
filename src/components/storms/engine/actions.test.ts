@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { BOARD_LIMIT } from "@/lib/storms/limits";
 import type { Sticky, StormBody } from "@/lib/storms/model";
-import { moveSticky, nudge, placeSticky } from "./actions";
+import { deleteSelected, moveSticky, nudge, placeSticky } from "./actions";
 import { createStormStore } from "./store";
 
 const sticky = (id: string, over: Partial<Sticky> = {}): Sticky => ({
@@ -92,5 +92,26 @@ describe("moveSticky", () => {
     expect(store.getHistory().undo).toHaveLength(1);
     store.undo();
     expect(store.getSnapshot().items.a).toMatchObject({ x: 0, y: 0 });
+  });
+});
+
+describe("deleteSelected", () => {
+  it("deleteSelected removes the sticky and is undoable", () => {
+    const store = make(sticky("a", { text: "hi" }), sticky("b"));
+    store.select("a");
+    deleteSelected(store);
+    expect(store.getSnapshot().items.a).toBeUndefined();
+    expect(store.getSnapshot().items.b).toBeDefined();
+    expect(store.getSnapshot().selectedId).toBeNull();
+    expect(store.getHistory().undo).toHaveLength(1);
+    store.undo();
+    expect(store.getSnapshot().items.a).toMatchObject({ text: "hi" });
+  });
+
+  it("deleteSelected with nothing selected does nothing", () => {
+    const store = make(sticky("a"));
+    deleteSelected(store);
+    expect(store.getSnapshot().items.a).toBeDefined();
+    expect(store.getHistory().undo).toHaveLength(0);
   });
 });

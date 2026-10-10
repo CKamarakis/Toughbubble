@@ -9,8 +9,8 @@ import {
 import { hitTest } from "@/lib/storms/hit-test";
 import { boundsOf, type Point, type Size } from "@/lib/storms/model";
 import { createWheelClassifier } from "@/lib/storms/wheel-source";
-import { moveSticky, nudge, placeSticky } from "./actions";
-import type { StormStore, Tool } from "./store";
+import { deleteSelected, moveSticky, nudge, placeSticky } from "./actions";
+import type { Snapshot, StormStore } from "./store";
 
 export type ZoomKeyAction = "zoom-in" | "zoom-out" | "zoom-reset" | "fit";
 
@@ -35,13 +35,47 @@ export function zoomKeyAction(e: KeyLike): ZoomKeyAction | null {
   return null;
 }
 
-/** V picks the select tool, N the sticky tool; any modifier cancels it. */
-function toolKey(e: KeyboardEvent): Tool | null {
-  if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) return null;
+const ARROWS: Record<string, Point> = {
+  ArrowLeft: { x: -1, y: 0 },
+  ArrowRight: { x: 1, y: 0 },
+  ArrowUp: { x: 0, y: -1 },
+  ArrowDown: { x: 0, y: 1 },
+};
+
+export type KeyAction =
+  | ZoomKeyAction
+  | "space"
+  | "nudge"
+  | "delete"
+  | "edit"
+  | "undo"
+  | "redo"
+  | "tool-select"
+  | "tool-sticky";
+
+/**
+ * Maps a key press on the board to an action, or null when it is not one of ours.
+ * Everything is null while a sticky's text is being edited, so the textarea gets it.
+ */
+export function routeKey(
+  snap: Pick<Snapshot, "editingId" | "selectedId" | "tool">,
+  e: KeyLike & { altKey: boolean },
+): KeyAction | null {
+  if (snap.editingId) return null;
+  const mod = e.ctrlKey || e.metaKey;
+  const plain = !mod && !e.altKey && !e.shiftKey;
   const k = e.key.toLowerCase();
-  if (k === "v") return "select";
-  if (k === "n") return "sticky";
-  return null;
+  if (e.key === " ") return "space";
+  if (ARROWS[e.key]) {
+    return snap.tool === "select" && snap.selectedId && !mod && !e.altKey ? "nudge" : null;
+  }
+  if (e.key === "Delete" || e.key === "Backspace") return snap.selectedId && plain ? "delete" : null;
+  if (e.key === "Enter") return snap.selectedId && plain ? "edit" : null;
+  if (mod && !e.altKey && k === "z") return e.shiftKey ? "redo" : "undo";
+  if (e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey && k === "y") return "redo";
+  if (plain && k === "v") return "tool-select";
+  if (plain && k === "n") return "tool-sticky";
+  return zoomKeyAction(e);
 }
 
 function isEditable(t: EventTarget | null): boolean {
@@ -53,12 +87,6 @@ const WHEEL_ZOOM_RATE = 0.0015;
 const LINE_MODE_FACTOR = 20;
 
 const DRAG_THRESHOLD_PX = 3;
-const ARROWS: Record<string, Point> = {
-  ArrowLeft: { x: -1, y: 0 },
-  ArrowRight: { x: 1, y: 0 },
-  ArrowUp: { x: 0, y: -1 },
-  ArrowDown: { x: 0, y: 1 },
-};
 
 type Drag = { pointerId: number; button: number; x: number; y: number };
 type ItemDrag = { pointerId: number; id: string; x: number; y: number; moved: boolean };
@@ -149,6 +177,8 @@ export function attachInput(
   };
 
   const onPointerDown = (e: PointerEvent) => {
+    // A press on the board finishes text editing (the overlay also ends it on blur).
+    store.endEdit();
     el.focus({ preventScroll: true });
     if (drag || itemDrag) return;
     buttonHandlers[e.button]?.(e);
@@ -191,43 +221,56 @@ export function attachInput(
   const focusInside = () => el.contains(document.activeElement);
 
   const onKeyDown = (e: KeyboardEvent) => {
-    if (!focusInside()) return;
-    if (store.getSnapshot().editingId || isEditable(e.target)) return;
-    if (e.key === " ") {
-      e.preventDefault();
-      if (!e.repeat && !spaceDown) {
-        spaceDown = true;
-        updateCursor();
-      }
-      return;
-    }
-    const arrow = ARROWS[e.key];
-    if (arrow) {
-      const snap = store.getSnapshot();
-      if (snap.tool !== "select" || !snap.selectedId || e.ctrlKey || e.metaKey || e.altKey) return;
-      e.preventDefault();
-      const step = e.shiftKey ? 10 : 1;
-      nudge(store, arrow.x * step, arrow.y * step, performance.now());
-      return;
-    }
-    const tool = toolKey(e);
-    if (tool) {
-      e.preventDefault();
-      store.setTool(tool);
-      return;
-    }
-    const action = zoomKeyAction(e);
+    if (!focusInside() || isEditable(e.target)) return;
+    const snap = store.getSnapshot();
+    const action = routeKey(snap, e);
     if (!action) return;
     e.preventDefault();
     const vp = getViewport();
-    const cam = camera();
-    if (action === "zoom-in") store.setCamera(stepZoom(cam, vp, 1));
-    else if (action === "zoom-out") store.setCamera(stepZoom(cam, vp, -1));
-    else if (action === "zoom-reset") zoomTo(centre(), 1);
-    else {
-      const items = Object.values(store.getSnapshot().items);
-      store.setCamera(items.length ? fitCamera(boundsOf(items), vp) : { ...HOME_CAMERA });
+    switch (action) {
+      case "space":
+        if (!e.repeat && !spaceDown) {
+          spaceDown = true;
+          updateCursor();
+        }
+        return;
+      case "nudge": {
+        const arrow = ARROWS[e.key];
+        const step = e.shiftKey ? 10 : 1;
+        return nudge(store, arrow.x * step, arrow.y * step, performance.now());
+      }
+      case "delete":
+        return deleteSelected(store);
+      case "edit":
+        if (snap.selectedId) store.startEdit(snap.selectedId);
+        return;
+      case "undo":
+        return store.undo();
+      case "redo":
+        return store.redo();
+      case "tool-select":
+        return store.setTool("select");
+      case "tool-sticky":
+        return store.setTool("sticky");
+      case "zoom-in":
+        return store.setCamera(stepZoom(snap.camera, vp, 1));
+      case "zoom-out":
+        return store.setCamera(stepZoom(snap.camera, vp, -1));
+      case "zoom-reset":
+        return zoomTo(centre(), 1);
+      case "fit": {
+        const items = Object.values(snap.items);
+        return store.setCamera(items.length ? fitCamera(boundsOf(items), vp) : { ...HOME_CAMERA });
+      }
     }
+  };
+  /** Double-click on a sticky with the Select tool edits its text. */
+  const onDoubleClick = (e: MouseEvent) => {
+    const snap = store.getSnapshot();
+    if (snap.tool !== "select" || spaceDown) return;
+    const at = screenToBoard(snap.camera, getViewport(), local(e.clientX, e.clientY));
+    const hit = hitTest(snap.items, at);
+    if (hit) store.startEdit(hit.id);
   };
   const endSpace = () => {
     if (!spaceDown) return;
@@ -247,6 +290,7 @@ export function attachInput(
   el.addEventListener("pointercancel", endDrag);
   el.addEventListener("contextmenu", onContextMenu);
   el.addEventListener("keydown", onKeyDown);
+  el.addEventListener("dblclick", onDoubleClick);
   el.addEventListener("blur", endSpace, true);
   window.addEventListener("keyup", onKeyUp);
 
@@ -260,6 +304,7 @@ export function attachInput(
     el.removeEventListener("pointercancel", endDrag);
     el.removeEventListener("contextmenu", onContextMenu);
     el.removeEventListener("keydown", onKeyDown);
+    el.removeEventListener("dblclick", onDoubleClick);
     el.removeEventListener("blur", endSpace, true);
     window.removeEventListener("keyup", onKeyUp);
     el.style.cursor = "";

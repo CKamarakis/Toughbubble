@@ -24,6 +24,29 @@ describe("wrapText", () => {
   it("breaks a long word", () => {
     expect(wrapText(measure, "abcdefghij", 40)).toEqual(["abcd", "efgh", "ij"]);
   });
+  it("moves a long word to its own line before breaking it", () => {
+    expect(wrapText(measure, "ab cdefgh", 40)).toEqual(["ab", "cdef", "gh"]);
+  });
+
+  // Matches a textarea with `white-space: pre-wrap; overflow-wrap: break-word`.
+  it("keeps runs of spaces and leading spaces", () => {
+    expect(wrapText(measure, "  a   b", 100)).toEqual(["  a   b"]);
+  });
+  it("hangs the spaces at a soft wrap: they end the line and are not drawn", () => {
+    expect(wrapText(measure, "aaa   bbb", 50)).toEqual(["aaa", "bbb"]);
+  });
+  it("never wraps at spaces alone", () => {
+    expect(wrapText(measure, "aaa     ", 50)).toEqual(["aaa  "]);
+  });
+  it("keeps trailing spaces that fit at a paragraph end", () => {
+    expect(wrapText(measure, "ab  \ncd", 100)).toEqual(["ab  ", "cd"]);
+  });
+  it("can break after leading spaces", () => {
+    expect(wrapText(measure, "   abcd", 50)).toEqual(["", "abcd"]);
+  });
+  it("an empty text is one empty line", () => {
+    expect(wrapText(measure, "", 100)).toEqual([""]);
+  });
 });
 
 describe("layoutSticky", () => {

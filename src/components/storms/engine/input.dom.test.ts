@@ -238,4 +238,69 @@ describe("attachInput item interactions", () => {
     key(el, { key: "ArrowLeft" });
     expect(store.getSnapshot().items.a.x).toBe(1000);
   });
+
+  it("Delete and Backspace delete the selection as one undo step", () => {
+    setup(true);
+    store.select("a");
+    expect(key(el, { key: "Delete" }).defaultPrevented).toBe(true);
+    expect(store.getSnapshot().items.a).toBeUndefined();
+    store.undo();
+    store.select("a");
+    expect(key(el, { key: "Backspace" }).defaultPrevented).toBe(true);
+    expect(store.getSnapshot().items.a).toBeUndefined();
+    expect(store.getHistory().undo).toHaveLength(1);
+  });
+
+  it("Backspace while editing does not delete the sticky", () => {
+    setup(true);
+    store.startEdit("a");
+    expect(key(el, { key: "Backspace" }).defaultPrevented).toBe(false);
+    expect(store.getSnapshot().items.a).toBeDefined();
+  });
+
+  it("Enter on a selected sticky starts editing", () => {
+    setup(true);
+    key(el, { key: "Enter" });
+    expect(store.getSnapshot().editingId).toBeNull();
+    store.select("a");
+    expect(key(el, { key: "Enter" }).defaultPrevented).toBe(true);
+    expect(store.getSnapshot().editingId).toBe("a");
+  });
+
+  it("double-click on a sticky with the Select tool starts editing", () => {
+    setup(true);
+    el.dispatchEvent(new MouseEvent("dblclick", { bubbles: true, ...at(0, 0) }));
+    expect(store.getSnapshot().editingId).toBeNull();
+    store.setTool("sticky");
+    el.dispatchEvent(new MouseEvent("dblclick", { bubbles: true, ...at(1100, 1100) }));
+    expect(store.getSnapshot().editingId).toBeNull();
+    store.setTool("select");
+    el.dispatchEvent(new MouseEvent("dblclick", { bubbles: true, ...at(1100, 1100) }));
+    expect(store.getSnapshot().editingId).toBe("a");
+    expect(store.getSnapshot().selectedId).toBe("a");
+  });
+
+  it("pointerdown on the board finishes editing with one undo step", () => {
+    setup(true);
+    store.startEdit("a");
+    store.setText("a", "Ideas");
+    ptr("pointerdown", at(0, 0));
+    ptr("pointerup", at(0, 0));
+    expect(store.getSnapshot().editingId).toBeNull();
+    expect(store.getSnapshot().items.a.text).toBe("Ideas");
+    expect(store.getHistory().undo).toHaveLength(1);
+  });
+
+  it("Ctrl/Cmd+Z undoes; Ctrl/Cmd+Shift+Z and Ctrl+Y redo", () => {
+    setup(true);
+    store.select("a");
+    key(el, { key: "Delete" });
+    expect(key(el, { key: "z", ctrlKey: true }).defaultPrevented).toBe(true);
+    expect(store.getSnapshot().items.a).toBeDefined();
+    key(el, { key: "Z", metaKey: true, shiftKey: true });
+    expect(store.getSnapshot().items.a).toBeUndefined();
+    key(el, { key: "z", metaKey: true });
+    key(el, { key: "y", ctrlKey: true });
+    expect(store.getSnapshot().items.a).toBeUndefined();
+  });
 });
