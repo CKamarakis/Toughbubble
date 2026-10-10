@@ -1,6 +1,7 @@
 ---
 title: Storms v1
-status: Ready
+status: Building
+change: storms-canvas
 sources:
   - notes/storms/2026-10-08-storms-a-simple-miro-like-board-overview.md
   - notes/storms/2026-10-08-storms-canvas.md
