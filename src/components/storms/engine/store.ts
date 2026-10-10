@@ -104,8 +104,8 @@ export function createStormStore(init: {
     };
   }
 
-  /** Publishes a new snapshot, dropping references to items that no longer exist. */
-  function update(next: Partial<State>, nextHistory = history) {
+  /** Sets state and a new snapshot, dropping references to items that no longer exist. */
+  function setState(next: Partial<State>, nextHistory = history) {
     state = { ...state, ...next };
     history = nextHistory;
     if (state.selectedId !== null && !state.items[state.selectedId]) state.selectedId = null;
@@ -114,17 +114,49 @@ export function createStormStore(init: {
       editBefore = null;
     }
     snapshot = build(snapshot.revision + 1);
+  }
+
+  function notify() {
     frames.call();
     subscribers.call();
   }
 
+  function update(next: Partial<State>, nextHistory = history) {
+    setState(next, nextHistory);
+    notify();
+  }
+
+  /** Change sets not yet delivered to every `onChange` listener, oldest first. */
+  const outbox: ChangeSet[] = [];
+  let emitting = false;
+
+  /**
+   * Emits `onChange` before notifying subscribers. A commit made by a listener is
+   * queued and delivered after the current change set, so every listener sees
+   * change sets in commit order.
+   */
   function apply(cs: ChangeSet, nextHistory: History) {
-    update({ items: applyChanges(state.items, cs) }, nextHistory);
-    changes.call(cs);
+    setState({ items: applyChanges(state.items, cs) }, nextHistory);
+    outbox.push(cs);
+    if (emitting) return;
+    emitting = true;
+    try {
+      for (let next = outbox.shift(); next; next = outbox.shift()) changes.call(next);
+    } finally {
+      emitting = false;
+      outbox.length = 0;
+    }
+    notify();
   }
 
   function commit(cs: ChangeSet, mode: CommitMode = "push") {
     if (isEmptyChanges(cs)) return;
+    if (state.editingId !== null && cs.delete.includes(state.editingId)) {
+      // Keep the text edit as its own step before the sticky goes.
+      const topBefore = history.undo[history.undo.length - 1];
+      endEdit();
+      if (mode === "merge-top" && history.undo[history.undo.length - 1] !== topBefore) mode = "push";
+    }
     if (mode === "none") return apply(cs, history);
     const undo = invertChanges(state.items, cs);
     const top = history.undo[history.undo.length - 1];
@@ -142,7 +174,10 @@ export function createStormStore(init: {
     editBefore = null;
     const nextHistory =
       before && after && before.text !== after.text
-        ? pushStep(history, { do: { upsert: [after], delete: [] }, undo: { upsert: [before], delete: [] } })
+        ? pushStep(history, {
+            do: { upsert: [after], delete: [] },
+            undo: { upsert: [{ ...after, text: before.text }], delete: [] },
+          })
         : history;
     update({ editingId: null }, nextHistory);
   }
@@ -163,7 +198,7 @@ export function createStormStore(init: {
     undo: () => step(takeUndo, (s) => s.undo),
     redo: () => step(takeRedo, (s) => s.do),
     setCamera(c) {
-      if (!sameCamera(c, state.camera)) update({ camera: c });
+      if (!sameCamera(c, state.camera)) update({ camera: { ...c } });
     },
     setTool(t) {
       if (t !== state.tool) update({ tool: t });
@@ -182,7 +217,7 @@ export function createStormStore(init: {
     },
     setText(id, text) {
       const item = state.items[id];
-      if (!item || item.text === text) return;
+      if (id !== state.editingId || !item || item.text === text) return;
       commit({ upsert: [{ ...item, text }], delete: [] }, "none");
     },
     endEdit,

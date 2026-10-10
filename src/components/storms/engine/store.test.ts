@@ -244,6 +244,113 @@ describe("storm store", () => {
     expect(store.getSnapshot().items).toEqual({});
   });
 
+  it("a commit made while notifying reaches every onChange listener after the first", () => {
+    const store = createStormStore({ body: board(), camera });
+    const cs1: ChangeSet = { upsert: [sticky("a", { x: 1 })], delete: [] };
+    const cs2: ChangeSet = { upsert: [sticky("a", { x: 2 })], delete: [] };
+    const seen: [string, ChangeSet][] = [];
+    store.onChange((cs) => seen.push(["first", cs]));
+    store.onChange((cs) => seen.push(["second", cs]));
+    let done = false;
+    store.subscribe(() => {
+      if (done) return;
+      done = true;
+      store.commit(cs2);
+    });
+    store.commit(cs1);
+    expect(seen).toEqual([
+      ["first", cs1],
+      ["second", cs1],
+      ["first", cs2],
+      ["second", cs2],
+    ]);
+    expect(store.getSnapshot().items.a.x).toBe(2);
+  });
+
+  it("a commit made inside onChange is delivered after the current change set", () => {
+    const store = createStormStore({ body: board(), camera });
+    const cs1: ChangeSet = { upsert: [sticky("a", { x: 1 })], delete: [] };
+    const cs2: ChangeSet = { upsert: [sticky("a", { x: 2 })], delete: [] };
+    const seen: [string, ChangeSet][] = [];
+    store.onChange((cs) => {
+      seen.push(["first", cs]);
+      if (cs === cs1) store.commit(cs2);
+    });
+    store.onChange((cs) => seen.push(["second", cs]));
+    let notified = 0;
+    store.subscribe(() => notified++);
+    store.commit(cs1);
+    expect(seen).toEqual([
+      ["first", cs1],
+      ["second", cs1],
+      ["first", cs2],
+      ["second", cs2],
+    ]);
+    expect(notified).toBe(1);
+    expect(store.getHistory().undo).toHaveLength(2);
+  });
+
+  it("deleting the edited sticky keeps the text edit as its own step", () => {
+    const { store } = setup(board(sticky("a", { text: "hi" })));
+    store.startEdit("a");
+    store.setText("a", "hello");
+    store.commit({ upsert: [], delete: ["a"] });
+    expect(store.getSnapshot().editingId).toBeNull();
+    expect(store.getHistory().undo).toHaveLength(2);
+    store.undo();
+    expect(store.getSnapshot().items.a.text).toBe("hello");
+    store.undo();
+    expect(store.getSnapshot().items.a.text).toBe("hi");
+  });
+
+  it("endEdit's undo reverts only the text", () => {
+    const { store } = setup(board(sticky("a", { text: "hi", x: 0 })));
+    store.startEdit("a");
+    store.setText("a", "ho");
+    store.commit({ upsert: [{ ...store.getSnapshot().items.a, x: 50 }], delete: [] }, "none");
+    store.endEdit();
+    store.undo();
+    expect(store.getSnapshot().items.a).toMatchObject({ text: "hi", x: 50 });
+  });
+
+  it("setText ignores a sticky that is not being edited", () => {
+    const { store, emitted } = setup(board(sticky("a", { text: "hi" })));
+    store.setText("a", "nope");
+    expect(store.getSnapshot().items.a.text).toBe("hi");
+    expect(emitted).toEqual([]);
+  });
+
+  it("setCamera copies the camera", () => {
+    const { store } = setup();
+    const cam = { x: 1, y: 2, zoom: 1 };
+    store.setCamera(cam);
+    cam.x = 99;
+    expect(store.getSnapshot().camera.x).toBe(1);
+  });
+
+  it("undo during an open edit ends the edit and undoes it", () => {
+    const { store } = setup(board(sticky("a", { text: "hi" })));
+    store.startEdit("a");
+    store.setText("a", "ho");
+    store.undo();
+    expect(store.getSnapshot().editingId).toBeNull();
+    expect(store.getSnapshot().items.a.text).toBe("hi");
+    expect(store.getSnapshot().canRedo).toBe(true);
+  });
+
+  it("startEdit selects the sticky", () => {
+    const { store } = setup(board(sticky("a")));
+    store.startEdit("a");
+    expect(store.getSnapshot().selectedId).toBe("a");
+  });
+
+  it("select of an unknown id selects nothing", () => {
+    const { store } = setup(board(sticky("a")));
+    store.select("a");
+    store.select("missing");
+    expect(store.getSnapshot().selectedId).toBeNull();
+  });
+
   it("unsubscribe stops notifications", () => {
     const store = createStormStore({ body: board(), camera });
     let n = 0;
