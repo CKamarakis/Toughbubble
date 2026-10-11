@@ -228,6 +228,19 @@ describe("attachInput item interactions", () => {
     expect(store.getHistory().undo).toHaveLength(0);
   });
 
+  it("replacing the board cancels an item drag in progress", () => {
+    setup(true);
+    ptr("pointerdown", at(1100, 1100));
+    ptr("pointermove", at(1150, 1130));
+    store.replaceBoard({ schema: 1, items: { a: item } } as never);
+    expect(store.getSnapshot().dragPreview).toBeNull();
+    ptr("pointermove", at(1170, 1140));
+    expect(store.getSnapshot().dragPreview).toBeNull();
+    ptr("pointerup", at(1170, 1140));
+    expect(store.getSnapshot().items.a.x).toBe(1000);
+    expect(store.getHistory().undo).toHaveLength(0);
+  });
+
   it("Space takes precedence over select/drag; other buttons do not select", () => {
     setup(true);
     key(el, { key: " " });

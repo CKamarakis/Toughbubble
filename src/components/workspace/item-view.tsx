@@ -115,11 +115,10 @@ export function ItemView({ id, note, storm }: { id: string; note?: NoteData | nu
             {breadcrumb}
             <div className="flex items-center gap-3">
               <div className="min-w-0 flex-1">{titleRow}</div>
-              {status && (
-                <span aria-live="polite" className="shrink-0 text-sm text-muted-foreground">
-                  {status}
-                </span>
-              )}
+              {/* Always mounted, so screen readers announce each new status. */}
+              <span aria-live="polite" className="shrink-0 text-sm text-muted-foreground">
+                {status}
+              </span>
             </div>
           </header>
         )}

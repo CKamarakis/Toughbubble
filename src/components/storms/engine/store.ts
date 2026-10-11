@@ -56,6 +56,8 @@ export type StormStore = {
   endEdit(): void;
   /** Load latest / refresh: new items, no history, selection or edit; no `onChange`. */
   replaceBoard(body: StormBody): void;
+  /** Called after `replaceBoard`, so input can drop gestures on the old board (an item drag). */
+  onReplace(fn: () => void): () => void;
   /** Asks the renderer for a redraw. */
   markDirty(): void;
   onFrame(fn: () => void): () => void;
@@ -101,6 +103,7 @@ export function createStormStore(init: {
   const subscribers = listeners<[]>();
   const frames = listeners<[]>();
   const changes = listeners<[ChangeSet]>();
+  const replaced = listeners<[]>();
 
   function build(revision: number): Snapshot {
     return {
@@ -234,7 +237,9 @@ export function createStormStore(init: {
     replaceBoard(body) {
       editBefore = null;
       update({ items: body.items, selectedId: null, editingId: null, dragPreview: null }, EMPTY_HISTORY);
+      replaced.call();
     },
+    onReplace: replaced.add,
     markDirty: frames.call,
     onFrame: frames.add,
   };

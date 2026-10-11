@@ -218,6 +218,12 @@ export function attachInput(
     drag = null;
     updateCursor();
   };
+  /** A new board (Load latest, refresh) ends an item drag; the store already dropped its preview. */
+  const onReplace = () => {
+    if (!itemDrag) return;
+    if (el.hasPointerCapture(itemDrag.pointerId)) el.releasePointerCapture(itemDrag.pointerId);
+    itemDrag = null;
+  };
   const onContextMenu = (e: Event) => e.preventDefault();
 
   // --- keys --------------------------------------------------------------
@@ -296,8 +302,10 @@ export function attachInput(
   el.addEventListener("dblclick", onDoubleClick);
   el.addEventListener("blur", endSpace, true);
   window.addEventListener("keyup", onKeyUp);
+  const offReplace = store.onReplace(onReplace);
 
   return () => {
+    offReplace();
     surface.removeEventListener("wheel", onWheel);
     surface.removeEventListener("gesturestart", onGestureStart);
     surface.removeEventListener("gesturechange", onGestureChange);

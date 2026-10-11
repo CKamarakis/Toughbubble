@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
 import { HOME_CAMERA } from "@/lib/storms/camera";
 import type { StormBody } from "@/lib/storms/model";
 import { resolveFontFamily, waitForFont } from "./engine/font";
@@ -9,6 +10,7 @@ import { createRenderer } from "./engine/renderer";
 import { createStormStore, type StormStore } from "./engine/store";
 import { StickyTextOverlay } from "./sticky-text-overlay";
 import { StormToolbar } from "./storm-toolbar";
+import { useStormAutosave } from "./use-storm-autosave";
 import { loadView, saveView } from "./view-store";
 import { ZoomControl } from "./zoom-control";
 
@@ -36,6 +38,9 @@ export default function StormBoard(props: StormBoardProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [store, setStore] = useState<StormStore | null>(null);
   const [family, setFamily] = useState("");
+  const autosave = useStormAutosave(store, props.itemId, initial.version);
+  const { onStatus } = props;
+  useEffect(() => onStatus(autosave.status), [onStatus, autosave.status]);
   const getViewport = useCallback(() => {
     const r = boxRef.current?.getBoundingClientRect();
     return { w: r?.width ?? 0, h: r?.height ?? 0 };
@@ -127,6 +132,26 @@ export default function StormBoard(props: StormBoardProps) {
           <StormToolbar store={store} />
           <ZoomControl store={store} getViewport={getViewport} />
         </>
+      )}
+      {autosave.state.phase === "conflict" && (
+        <div className="absolute inset-x-4 top-4 mx-auto max-w-2xl rounded-lg bg-card shadow-md">
+          <div
+            role="alert"
+            className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-warning/50 bg-warning/10 px-4 py-3 text-sm text-foreground"
+          >
+            <span>
+              <strong>This storm was changed in another tab or device.</strong> Saving is paused until you choose.
+            </span>
+            <span className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => void autosave.loadLatest()}>
+                Load latest
+              </Button>
+              <Button size="sm" onClick={autosave.keepMine}>
+                Keep mine
+              </Button>
+            </span>
+          </div>
+        </div>
       )}
     </div>
   );

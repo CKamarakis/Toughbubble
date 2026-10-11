@@ -216,6 +216,17 @@ describe("storm store", () => {
     expect(frames()).toBeGreaterThan(f);
   });
 
+  it("replaceBoard tells onReplace listeners, after the new board is in place", () => {
+    const { store } = setup(board(sticky("a")));
+    const seen: string[][] = [];
+    const off = store.onReplace(() => seen.push(Object.keys(store.getSnapshot().items)));
+    store.replaceBoard(board(sticky("c")));
+    expect(seen).toEqual([["c"]]);
+    off();
+    store.replaceBoard(board());
+    expect(seen).toHaveLength(1);
+  });
+
   it("getSnapshot is referentially stable without changes", () => {
     const { store } = setup(board(sticky("a")));
     const s1 = store.getSnapshot();
