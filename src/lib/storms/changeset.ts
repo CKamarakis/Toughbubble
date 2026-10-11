@@ -1,3 +1,4 @@
+import { MAX_ENTRIES } from "./limits";
 import type { Item, Items } from "./model";
 
 export type ChangeSet = { upsert: Item[]; delete: string[] };
@@ -57,20 +58,27 @@ export function changesBytes(cs: ChangeSet): number {
 }
 
 /**
- * Splits into consecutive chunks of at most `maxBytes` each. All deletes go in the
- * first chunk; if they alone exceed `maxBytes` they are still emitted there (never
- * split). A single upsert larger than `maxBytes` likewise gets a chunk of its own.
+ * Splits into consecutive chunks of at most `maxBytes` and at most MAX_ENTRIES
+ * upserts and MAX_ENTRIES deletes each (the server's limits). Deletes come first,
+ * MAX_ENTRIES per chunk; the last delete chunk is emitted even if it alone exceeds
+ * `maxBytes` (ids are small, so only a tiny `maxBytes` gets there). A single upsert
+ * larger than `maxBytes` likewise gets a chunk of its own.
  */
 export function splitChanges(cs: ChangeSet, maxBytes: number): ChangeSet[] {
   if (isEmptyChanges(cs)) return [];
   const chunks: ChangeSet[] = [];
   let deletes = cs.delete;
+  while (deletes.length > MAX_ENTRIES) {
+    chunks.push({ upsert: [], delete: deletes.slice(0, MAX_ENTRIES) });
+    deletes = deletes.slice(MAX_ENTRIES);
+  }
   let upsert: Item[] = [];
   let bytes = changesBytes({ upsert: [], delete: deletes });
   for (const item of cs.upsert) {
     // Adding an item costs its own JSON plus a comma when it is not the first.
     const cost = byteLength(item) + (upsert.length > 0 ? 1 : 0);
-    if ((upsert.length > 0 || deletes.length > 0) && bytes + cost > maxBytes) {
+    const full = upsert.length >= MAX_ENTRIES || bytes + cost > maxBytes;
+    if ((upsert.length > 0 || deletes.length > 0) && full) {
       chunks.push({ upsert, delete: deletes });
       deletes = [];
       upsert = [];

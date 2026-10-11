@@ -384,3 +384,46 @@ describe("storm store", () => {
     expect(c).toBe(0);
   });
 });
+
+describe("getHistoryForPersist", () => {
+  it("is the history itself when no edit is open", () => {
+    const { store } = setup();
+    store.commit({ upsert: [sticky("a")], delete: [] });
+    expect(store.getHistoryForPersist()).toBe(store.getHistory());
+  });
+
+  it("adds the open edit as a step, so a reload can undo and redo the typed text", () => {
+    const { store } = setup();
+    store.commit({ upsert: [sticky("a")], delete: [] });
+    store.startEdit("a");
+    store.setText("a", "Ideas");
+    const persisted = store.getHistoryForPersist();
+    expect(store.getHistory().undo).toHaveLength(1);
+    expect(persisted.undo).toHaveLength(2);
+    expect(persisted.undo[1]).toEqual({
+      do: { upsert: [sticky("a", { text: "Ideas" })], delete: [] },
+      undo: { upsert: [sticky("a", { text: "" })], delete: [] },
+    });
+
+    // Reload: the stored board has "Ideas" and the persisted history.
+    const reloaded = createStormStore({ body: board(sticky("a", { text: "Ideas" })), camera, history: persisted });
+    reloaded.undo();
+    expect(reloaded.getSnapshot().items.a.text).toBe("");
+    reloaded.redo();
+    expect(reloaded.getSnapshot().items.a.text).toBe("Ideas");
+    reloaded.undo();
+    reloaded.undo();
+    expect(reloaded.getSnapshot().items.a).toBeUndefined();
+    reloaded.redo();
+    reloaded.redo();
+    expect(reloaded.getSnapshot().items.a.text).toBe("Ideas");
+  });
+
+  it("adds nothing for an open edit that has not changed the text", () => {
+    const { store } = setup(board(sticky("a", { text: "hi" })));
+    store.startEdit("a");
+    store.setText("a", "ho");
+    store.setText("a", "hi");
+    expect(store.getHistoryForPersist().undo).toHaveLength(0);
+  });
+});

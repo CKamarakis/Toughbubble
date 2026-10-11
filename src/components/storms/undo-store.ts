@@ -40,13 +40,21 @@ function open(): Promise<IDBDatabase> {
   });
 }
 
-/** Runs one request in a transaction, closes the connection, and resolves its result. */
+/** Set once sign-out begins: from then on nothing is written (a late quiet save must not outlive the clear). */
+let signingOut = false;
+
+/**
+ * Runs one request in a transaction, closes the connection, and resolves its
+ * result. A write started before sign-out but not yet sent resolves with nothing.
+ */
 async function run<T>(
   mode: IDBTransactionMode,
   make: (s: IDBObjectStore) => IDBRequest<T>,
-): Promise<T> {
+  skip?: () => boolean,
+): Promise<T | undefined> {
   const db = await open();
   try {
+    if (skip?.()) return undefined;
     return await new Promise<T>((resolve, reject) => {
       const tx = db.transaction(STORE, mode);
       const req = make(tx.objectStore(STORE));
@@ -65,9 +73,10 @@ export async function saveUndo(
   version: number,
   history: History,
 ): Promise<void> {
+  if (signingOut) return;
   try {
     const entry: Entry = { version, history };
-    await run("readwrite", (s) => s.put(entry, undoKey(userId, stormId)));
+    await run("readwrite", (s) => s.put(entry, undoKey(userId, stormId)), () => signingOut);
   } catch {
     // Private mode, quota or a blocked database: undo just won't survive a reload.
   }
@@ -95,6 +104,12 @@ export async function clearUndo(): Promise<void> {
   } catch {
     // Nothing to clear, or IndexedDB is unavailable.
   }
+}
+
+/** Sign-out: stop every later write, then drop the saved histories (they belong to this session). */
+export function beginSignOut(): Promise<void> {
+  signingOut = true;
+  return clearUndo();
 }
 
 /** Resolves with the promise's value, or `fallback` after `ms`. */

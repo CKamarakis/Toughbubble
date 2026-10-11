@@ -40,6 +40,11 @@ export type StormStore = {
   subscribe(fn: () => void): () => void;
   getSnapshot(): Snapshot;
   getHistory(): History;
+  /**
+   * The history to keep for a reload: `getHistory()` plus, while an edit is open,
+   * that edit as its own step (its text is already saved, its step not yet added).
+   */
+  getHistoryForPersist(): History;
   /** Applies `cs`, records it per `mode` and emits it to `onChange` listeners. */
   commit(cs: ChangeSet, mode?: CommitMode): void;
   onChange(fn: (cs: ChangeSet) => void): () => void;
@@ -177,18 +182,23 @@ export function createStormStore(init: {
     apply(cs, mode === "merge-top" && top ? replaceTop(history, step) : pushStep(history, step));
   }
 
-  function endEdit() {
-    if (state.editingId === null) return;
+  /** The history with the open edit session added as one step (unchanged if none or no text change). */
+  function withEditStep(): History {
+    if (state.editingId === null) return history;
     const before = editBefore;
     const after = state.items[state.editingId];
+    return before && after && before.text !== after.text
+      ? pushStep(history, {
+          do: { upsert: [after], delete: [] },
+          undo: { upsert: [{ ...after, text: before.text }], delete: [] },
+        })
+      : history;
+  }
+
+  function endEdit() {
+    if (state.editingId === null) return;
+    const nextHistory = withEditStep();
     editBefore = null;
-    const nextHistory =
-      before && after && before.text !== after.text
-        ? pushStep(history, {
-            do: { upsert: [after], delete: [] },
-            undo: { upsert: [{ ...after, text: before.text }], delete: [] },
-          })
-        : history;
     update({ editingId: null }, nextHistory);
   }
 
@@ -203,6 +213,7 @@ export function createStormStore(init: {
     subscribe: subscribers.add,
     getSnapshot: () => snapshot,
     getHistory: () => history,
+    getHistoryForPersist: withEditStep,
     commit,
     onChange: changes.add,
     undo: () => step(takeUndo, (s) => s.undo),

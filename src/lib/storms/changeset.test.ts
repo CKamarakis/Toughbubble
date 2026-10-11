@@ -9,6 +9,7 @@ import {
   splitChanges,
   type ChangeSet,
 } from "./changeset";
+import { MAX_CHANGESET_BYTES, MAX_ENTRIES } from "./limits";
 import type { Item, Items } from "./model";
 
 const sticky = (id: string, over: Partial<Item> = {}): Item => ({
@@ -126,5 +127,25 @@ describe("splitChanges", () => {
     expect(chunks[0]).toEqual({ upsert: [], delete: del });
     expect(changesBytes(chunks[0])).toBeLessThanOrEqual(max);
     expect(chunks[1]).toEqual({ upsert: [item], delete: [] });
+  });
+});
+
+describe("splitChanges entry caps", () => {
+  it("caps each chunk at MAX_ENTRIES upserts", () => {
+    const upsert = Array.from({ length: 12_000 }, (_, i) => sticky(`${i}`));
+    const chunks = splitChanges({ upsert, delete: [] }, MAX_CHANGESET_BYTES);
+    expect(chunks.length).toBeGreaterThanOrEqual(3);
+    for (const c of chunks) {
+      expect(c.upsert.length).toBeLessThanOrEqual(MAX_ENTRIES);
+      expect(changesBytes(c)).toBeLessThanOrEqual(MAX_CHANGESET_BYTES);
+    }
+    expect(chunks.flatMap((c) => c.upsert)).toEqual(upsert);
+  });
+  it("splits deletes into chunks of at most MAX_ENTRIES", () => {
+    const del = Array.from({ length: 6_000 }, (_, i) => `id-${i}`);
+    const chunks = splitChanges({ upsert: [sticky("a")], delete: del }, MAX_CHANGESET_BYTES);
+    for (const c of chunks) expect(c.delete.length).toBeLessThanOrEqual(MAX_ENTRIES);
+    expect(chunks.flatMap((c) => c.delete)).toEqual(del);
+    expect(chunks.flatMap((c) => c.upsert)).toEqual([sticky("a")]);
   });
 });

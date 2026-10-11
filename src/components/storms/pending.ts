@@ -19,7 +19,8 @@ export const EMPTY_OUTBOX: Outbox = { pending: NO_CHANGES, inFlight: null };
 export const queue = (o: Outbox, cs: ChangeSet): Outbox => ({ ...o, pending: mergeChanges(o.pending, cs) });
 
 /**
- * Takes the next chunk to send (at most `maxBytes`, see `splitChanges`); the rest
+ * Takes the next chunk to send (at most `maxBytes` and MAX_ENTRIES per list, see
+ * `splitChanges`); the rest
  * stays pending. Null when there is nothing to send or a save is already in flight.
  */
 export function takeNext(o: Outbox, maxBytes: number): { outbox: Outbox; send: ChangeSet } | null {

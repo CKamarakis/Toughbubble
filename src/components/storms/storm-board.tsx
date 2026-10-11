@@ -188,7 +188,7 @@ function AutosaveHost(props: {
   const { store, itemId, userId, version, onStatus } = props;
   const autosave = useStormAutosave(store, itemId, version, {
     // Quiet after a save: keep the undo history for a reload at this version.
-    onQuietSave: (v) => void saveUndo(userId, itemId, v, store.getHistory()),
+    onQuietSave: (v) => void saveUndo(userId, itemId, v, store.getHistoryForPersist()),
   });
   useEffect(() => onStatus(autosave.status), [onStatus, autosave.status]);
   return (
@@ -203,10 +203,10 @@ function AutosaveHost(props: {
               <strong>This storm was changed in another tab or device.</strong> Saving is paused until you choose.
             </span>
             <span className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={() => void autosave.loadLatest()}>
+              <Button variant="outline" size="sm" disabled={autosave.resolving} onClick={() => void autosave.loadLatest()}>
                 Load latest
               </Button>
-              <Button size="sm" onClick={autosave.keepMine}>
+              <Button size="sm" disabled={autosave.resolving} onClick={autosave.keepMine}>
                 Keep mine
               </Button>
             </span>

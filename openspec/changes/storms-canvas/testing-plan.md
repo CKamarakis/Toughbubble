@@ -367,14 +367,14 @@ Before each of steps 48-50, start fresh: make sure both tabs show the same Storm
 - [ ] Pass  [ ] Fail   Notes:
 
 **49. Keep mine** _(changed elsewhere: Keep mine)_
-- **Do:** Reload both tabs. Repeat 48 steps (1) to (4), with tab A adding sticky X and tab B moving sticky Y. In tab B click **Keep mine**.
+- **Do:** Reload both tabs (if the browser asks whether to leave the page, choose Leave). Repeat 48 steps (1) to (4), with tab A adding sticky X and tab B moving sticky Y. In tab B click **Keep mine**.
 - **You should see:** Tab B shows both X and the moved Y. Reload either tab: both are there.
 - Also checked automatically by: `use-storm-autosave.dom.test.ts`, `tests/integration/storm-board.test.ts` ("keep-mine upsert").
 - Browser check 2026-10-11: Done.
 - [ ] Pass  [ ] Fail   Notes:
 
 **50. Load latest** _(changed elsewhere: Load latest)_
-- **Do:** Reload both tabs. Repeat 48 steps (1) to (4) once more (tab A adds a sticky, tab B moves Y while offline). This time in tab B click **Load latest**.
+- **Do:** Reload both tabs (if the browser asks whether to leave the page, choose Leave). Repeat 48 steps (1) to (4) once more (tab A adds a sticky, tab B moves Y while offline). This time in tab B click **Load latest**.
 - **You should see:** Tab B shows tab A's board, with A's new sticky, and Y is back where A has it. Your move of Y in tab B is gone.
 - Also checked automatically by: `use-storm-autosave.dom.test.ts`.
 - Browser check 2026-10-11: Not yet.

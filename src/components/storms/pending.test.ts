@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { changesBytes, type ChangeSet } from "@/lib/storms/changeset";
+import { MAX_CHANGESET_BYTES, MAX_ENTRIES } from "@/lib/storms/limits";
 import type { Sticky } from "@/lib/storms/model";
 import { ack, EMPTY_OUTBOX, queue, restore, takeNext } from "./pending";
 
@@ -59,5 +60,22 @@ describe("pending outbox", () => {
   it("takeNext while a save is in flight → null", () => {
     const taken = takeNext(queue(EMPTY_OUTBOX, up(sticky("a"))), 800_000)!;
     expect(takeNext(queue(taken.outbox, up(sticky("b"))), 800_000)).toBeNull();
+  });
+
+  it("takeNext never sends more than MAX_ENTRIES upserts or deletes at once", () => {
+    const upsert = Array.from({ length: 12_000 }, (_, i) => sticky(`u${i}`));
+    const del = Array.from({ length: 6_000 }, (_, i) => `d${i}`);
+    let outbox = queue(EMPTY_OUTBOX, { upsert, delete: del });
+    const sent: ChangeSet[] = [];
+    for (let next = takeNext(outbox, MAX_CHANGESET_BYTES); next; next = takeNext(outbox, MAX_CHANGESET_BYTES)) {
+      sent.push(next.send);
+      outbox = ack(next.outbox);
+    }
+    for (const c of sent) {
+      expect(c.upsert.length).toBeLessThanOrEqual(MAX_ENTRIES);
+      expect(c.delete.length).toBeLessThanOrEqual(MAX_ENTRIES);
+    }
+    expect(sent.flatMap((c) => c.upsert)).toHaveLength(12_000);
+    expect(sent.flatMap((c) => c.delete)).toHaveLength(6_000);
   });
 });
