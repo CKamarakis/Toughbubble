@@ -13,7 +13,13 @@ const MAX_P95_MS = 33;
 // which says nothing about a real browser. Like the spike, the GPU is not throttled; only the CPU is.
 const browser = await chromium.launch({
   channel: process.env.BENCH_CHANNEL || undefined,
-  args: ["--enable-gpu", "--ignore-gpu-blocklist", "--enable-gpu-rasterization", "--use-angle=d3d11"],
+  // Tuned on Windows (Direct3D). Elsewhere Chromium picks its own GPU backend; BENCH_CHANNEL=chrome is the portable option.
+  args: [
+    "--enable-gpu",
+    "--ignore-gpu-blocklist",
+    "--enable-gpu-rasterization",
+    ...(process.platform === "win32" ? ["--use-angle=d3d11"] : []),
+  ],
 });
 try {
   const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });

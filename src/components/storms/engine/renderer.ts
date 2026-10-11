@@ -43,9 +43,12 @@ export function createRenderer(
     const hit = layouts.get(s.id);
     if (hit?.key === key) return hit.layout;
     if (layouts.size > 5000) layouts.clear();
+    // Measure in board px with the board font, then put the caller's (screen) font back.
+    const previous = ctx?.font;
     if (ctx) ctx.font = font;
     const base = layoutSticky(measure, s);
     const layout = { ...base, overflows: base.lines.some((line) => measure(line) > s.w) };
+    if (ctx && previous !== undefined) ctx.font = previous;
     layouts.set(s.id, { key, layout });
     return layout;
   }
