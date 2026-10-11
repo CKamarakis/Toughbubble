@@ -44,7 +44,9 @@ export function createRenderer(
     const m = ctx.measureText("");
     const ascent = m.fontBoundingBoxAscent;
     const descent = m.fontBoundingBoxDescent;
-    if (!Number.isFinite(ascent) || !Number.isFinite(descent)) return lineHeight / 2 + STICKY.fontPx * 0.35;
+    if (!Number.isFinite(ascent) || !Number.isFinite(descent)) {
+      return lineHeight / 2 + STICKY.fontPx * 0.35;
+    }
     return (lineHeight - (ascent + descent)) / 2 + ascent;
   }
 

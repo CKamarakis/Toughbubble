@@ -95,12 +95,15 @@ type GestureEvent = Event & { scale: number; clientX?: number; clientY?: number 
 
 /**
  * Attaches camera input (wheel, pinch, pan, zoom keys) to the board element.
- * Returns a function that removes every listener.
+ * Wheel and pinch listen on `surface` (default `el`): an ancestor covering the board
+ * and the overlays on top of it, such as the text editor, so they zoom the board there
+ * too rather than the page. Returns a function that removes every listener.
  */
 export function attachInput(
   el: HTMLElement,
   store: StormStore,
   getViewport: () => Size,
+  surface: HTMLElement = el,
 ): () => void {
   const classify = createWheelClassifier();
   let spaceDown = false;
@@ -281,9 +284,9 @@ export function attachInput(
     if (e.key === " ") endSpace();
   };
 
-  el.addEventListener("wheel", onWheel, { passive: false });
-  el.addEventListener("gesturestart", onGestureStart);
-  el.addEventListener("gesturechange", onGestureChange);
+  surface.addEventListener("wheel", onWheel, { passive: false });
+  surface.addEventListener("gesturestart", onGestureStart);
+  surface.addEventListener("gesturechange", onGestureChange);
   el.addEventListener("pointerdown", onPointerDown);
   el.addEventListener("pointermove", onPointerMove);
   el.addEventListener("pointerup", endDrag);
@@ -295,9 +298,9 @@ export function attachInput(
   window.addEventListener("keyup", onKeyUp);
 
   return () => {
-    el.removeEventListener("wheel", onWheel);
-    el.removeEventListener("gesturestart", onGestureStart);
-    el.removeEventListener("gesturechange", onGestureChange);
+    surface.removeEventListener("wheel", onWheel);
+    surface.removeEventListener("gesturestart", onGestureStart);
+    surface.removeEventListener("gesturechange", onGestureChange);
     el.removeEventListener("pointerdown", onPointerDown);
     el.removeEventListener("pointermove", onPointerMove);
     el.removeEventListener("pointerup", endDrag);

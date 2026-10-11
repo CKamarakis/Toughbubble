@@ -31,6 +31,7 @@ declare global {
 /** The board surface: one canvas drawn by the renderer, with the toolbar and zoom control on top. */
 export default function StormBoard(props: StormBoardProps) {
   const { initial } = props;
+  const surfaceRef = useRef<HTMLDivElement>(null);
   const boxRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [store, setStore] = useState<StormStore | null>(null);
@@ -41,9 +42,10 @@ export default function StormBoard(props: StormBoardProps) {
   }, []);
 
   useEffect(() => {
+    const surface = surfaceRef.current;
     const box = boxRef.current;
     const canvas = canvasRef.current;
-    if (!box || !canvas) return;
+    if (!surface || !box || !canvas) return;
 
     const store = createStormStore({
       body: initial.body,
@@ -84,7 +86,7 @@ export default function StormBoard(props: StormBoardProps) {
     observer.observe(box);
     fit();
 
-    const detachInput = attachInput(box, store, getViewport);
+    const detachInput = attachInput(box, store, getViewport, surface);
 
     return () => {
       alive = false;
@@ -102,7 +104,10 @@ export default function StormBoard(props: StormBoardProps) {
   }, []);
 
   return (
-    <div className="light relative size-full overflow-hidden bg-background text-foreground">
+    <div
+      ref={surfaceRef}
+      className="light relative size-full overflow-hidden bg-background text-foreground"
+    >
       <div
         ref={boxRef}
         tabIndex={0}

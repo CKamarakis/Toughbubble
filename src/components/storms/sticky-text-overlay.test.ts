@@ -23,8 +23,16 @@ describe("overlayBox", () => {
   });
 
   it("at 50% halves everything", () => {
-    const box = overlayBox(s, { x: 200, y: 150, zoom: 0.5 }, vp, { lineHeight: 26, top: 22, lines: 6 });
-    expect(box).toMatchObject({ left: 350, top: 250, width: 100, fontSize: 10, paddingTop: 11, paddingX: 8 });
+    const cam = { x: 200, y: 150, zoom: 0.5 };
+    const box = overlayBox(s, cam, vp, { lineHeight: 26, top: 22, lines: 6 });
+    expect(box).toMatchObject({
+      left: 350,
+      top: 250,
+      width: 100,
+      fontSize: 10,
+      paddingTop: 11,
+      paddingX: 8,
+    });
     expect(box.clipBottom).toBeCloseTo(100 - (22 + 156) * 0.5);
   });
 });

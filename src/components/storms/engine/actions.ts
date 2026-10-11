@@ -48,7 +48,7 @@ export function deleteSelected(store: StormStore) {
   store.commit({ upsert: [], delete: [id] }, "push");
 }
 
-type LastNudge ={ id: string; at: number; top: unknown };
+type LastNudge = { id: string; at: number; top: unknown };
 const lastNudge = new WeakMap<StormStore, LastNudge>();
 
 /**

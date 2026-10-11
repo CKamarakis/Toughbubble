@@ -71,6 +71,7 @@ export function StickyTextOverlay({
     if (!editingId || !ta) return;
     ta.focus({ preventScroll: true });
     ta.setSelectionRange(ta.value.length, ta.value.length);
+    ta.scrollTop = 0;
   }, [editingId]);
 
   // A press anywhere but the textarea finishes the edit, including on controls that keep focus.
@@ -98,10 +99,17 @@ export function StickyTextOverlay({
       value={sticky.text}
       maxLength={MAX_TEXT}
       spellCheck
-      onChange={(e) => store.setText(sticky.id, e.target.value)}
+      onChange={(e) => {
+        e.target.scrollTop = 0;
+        store.setText(sticky.id, e.target.value);
+      }}
+      // The canvas never scrolls: overflow stays clipped and the first lines stay put.
+      onScroll={(e) => {
+        e.currentTarget.scrollTop = 0;
+      }}
       onBlur={() => store.endEdit()}
       onKeyDown={(e) => {
-        if (e.key !== "Escape") return;
+        if (e.key !== "Escape" || e.nativeEvent.isComposing) return;
         e.preventDefault();
         store.endEdit();
         onExit();

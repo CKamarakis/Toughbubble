@@ -50,6 +50,27 @@ describe("attachInput DOM handlers", () => {
     expect(c.defaultPrevented).toBe(true);
   });
 
+  it("Ctrl+wheel over an overlay on the surface zooms the board, not the page", () => {
+    const surface = document.createElement("div");
+    document.body.appendChild(surface);
+    surface.appendChild(el);
+    const ta = document.createElement("textarea");
+    surface.appendChild(ta);
+    store = createStormStore({ body: { items: {} } as never, camera: { ...HOME_CAMERA } });
+    detach = attachInput(el, store, () => VP, surface);
+    const zoomIn = () =>
+      new WheelEvent("wheel", { deltaY: -100, ctrlKey: true, cancelable: true, bubbles: true });
+    const w = zoomIn();
+    ta.dispatchEvent(w);
+    expect(w.defaultPrevented).toBe(true);
+    expect(store.getSnapshot().camera.zoom).toBeGreaterThan(1);
+    detach();
+    const zoom = store.getSnapshot().camera.zoom;
+    ta.dispatchEvent(zoomIn());
+    expect(store.getSnapshot().camera.zoom).toBe(zoom);
+    surface.remove();
+  });
+
   it("detach removes listeners", () => {
     setup(true);
     detach();
