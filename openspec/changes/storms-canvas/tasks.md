@@ -55,7 +55,7 @@
 
 ## 9. Speed gate
 
-- [ ] 9.1 Add Playwright as a dev dependency, a dev-only route that loads a synthetic 1,000-sticky board without saving (`notFound()` in production), and `scripts/storms-bench.mjs` (4× CPU throttle, pan and zoom, median fps and p95 frame time) per D11. Verify that the script passes (median ≥ 50 fps, p95 ≤ 33 ms) and report the numbers to the user to confirm the bar.
+- [x] 9.1 Add Playwright as a dev dependency, a dev-only route that loads a synthetic 1,000-sticky board without saving (`notFound()` in production), and `scripts/storms-bench.mjs` (4× CPU throttle, pan and zoom, median fps and p95 frame time) per D11. Verify that the script passes (median ≥ 50 fps, p95 ≤ 33 ms) and report the numbers to the user to confirm the bar.
 
 ## 10. Docs and release
 
