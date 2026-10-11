@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { decideRoute } from "@/lib/auth/routing";
 
 const GUEST_PAGES = ["/sign-in", "/sign-up", "/forgot-password"];
@@ -49,5 +49,25 @@ describe("decideRoute", () => {
 
   it("lets a signed-in user through to workspace pages", () => {
     expect(decideRoute("/notes/abc", "", true)).toEqual({ type: "next", isProtected: true });
+  });
+
+  describe("dev bench page", () => {
+    afterEach(() => vi.unstubAllEnvs());
+
+    it("/dev/storm-bench is public in development", () => {
+      vi.stubEnv("NODE_ENV", "development");
+      expect(decideRoute("/dev/storm-bench", "?items=1000", false)).toEqual({ type: "next", isProtected: false });
+    });
+
+    it("/dev/storm-bench requires a session in production", () => {
+      vi.stubEnv("NODE_ENV", "production");
+      expect(decideRoute("/dev/storm-bench", "", false).type).toBe("redirect");
+      expect(decideRoute("/dev/storm-bench", "", true)).toEqual({ type: "next", isProtected: true });
+    });
+
+    it("does not make look-alike paths public", () => {
+      vi.stubEnv("NODE_ENV", "development");
+      expect(decideRoute("/devices", "", false).type).toBe("redirect");
+    });
   });
 });

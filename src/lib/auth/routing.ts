@@ -9,6 +9,9 @@ const GUEST_ONLY_PATHS = [SIGN_IN_PATH, SIGN_UP_PATH, FORGOT_PASSWORD_PATH];
 // Reachable without a session. Everything else requires one.
 const PUBLIC_PATHS = [...GUEST_ONLY_PATHS, "/auth/callback", "/auth/confirm", "/auth/sign-out"];
 
+// Development-only pages (the speed-gate benchmark). Never public in production.
+const DEV_PUBLIC_PATHS = ["/dev"];
+
 export type RouteDecision =
   | { type: "next"; isProtected: boolean }
   | { type: "redirect"; to: string };
@@ -25,7 +28,10 @@ export function decideRoute(
   if (signedIn && matches(GUEST_ONLY_PATHS, pathname)) {
     return { type: "redirect", to: "/" };
   }
-  if (matches(PUBLIC_PATHS, pathname)) {
+  if (
+    matches(PUBLIC_PATHS, pathname) ||
+    (process.env.NODE_ENV !== "production" && matches(DEV_PUBLIC_PATHS, pathname))
+  ) {
     return { type: "next", isProtected: false };
   }
   if (!signedIn) {

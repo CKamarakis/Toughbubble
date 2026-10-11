@@ -46,18 +46,25 @@ function createMeasure(font: string): (s: string) => number {
  * over the canvas sticky, so the text stays put when editing starts and ends. Each
  * keystroke commits the text; Esc, a press elsewhere, or blur finishes the edit.
  */
-export function StickyTextOverlay({
-  store,
-  family,
-  getViewport,
-  onExit,
-}: {
+export function StickyTextOverlay(props: OverlayProps) {
+  // Subscribes to the editing id only, so panning and zooming do not re-render it.
+  const editingId = useSyncExternalStore(
+    props.store.subscribe,
+    () => props.store.getSnapshot().editingId,
+    () => props.store.getSnapshot().editingId,
+  );
+  return editingId ? <StickyTextEditor {...props} /> : null;
+}
+
+type OverlayProps = {
   store: StormStore;
   family: string;
   getViewport: () => Size;
   /** Called after Esc finishes the edit; returns focus to the board. */
   onExit: () => void;
-}) {
+};
+
+function StickyTextEditor({ store, family, getViewport, onExit }: OverlayProps) {
   const snap = useSyncExternalStore(store.subscribe, store.getSnapshot, store.getSnapshot);
   const ref = useRef<HTMLTextAreaElement>(null);
   const font = `${STICKY.fontPx}px ${family || "sans-serif"}`;

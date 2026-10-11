@@ -8,10 +8,18 @@ import { boundsOf, type Size } from "@/lib/storms/model";
 import type { StormStore } from "./engine/store";
 import { BoardTip, keepFocus } from "./storm-toolbar";
 
+/** The zoom as a percentage; the only part that re-renders while zooming, and only when the number changes. */
+function ZoomPercent({ store }: { store: StormStore }) {
+  const percent = useSyncExternalStore(
+    store.subscribe,
+    () => Math.round(store.getSnapshot().camera.zoom * 100),
+    () => Math.round(store.getSnapshot().camera.zoom * 100),
+  );
+  return <>{percent}%</>;
+}
+
 /** Bottom-right zoom control: out, percentage (resets to 100%), in, fit to items. */
 export function ZoomControl({ store, getViewport }: { store: StormStore; getViewport: () => Size }) {
-  const { camera } = useSyncExternalStore(store.subscribe, store.getSnapshot, store.getSnapshot);
-
   const step = (dir: 1 | -1) => store.setCamera(stepZoom(store.getSnapshot().camera, getViewport(), dir));
   const reset = () => {
     const vp = getViewport();
@@ -41,7 +49,7 @@ export function ZoomControl({ store, getViewport }: { store: StormStore; getView
           className="min-w-12 tabular-nums"
           onClick={reset}
         >
-          {Math.round(camera.zoom * 100)}%
+          <ZoomPercent store={store} />
         </Button>
       </BoardTip>
       <BoardTip label="Zoom in">

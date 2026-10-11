@@ -1,6 +1,7 @@
 import { boardToScreen, visibleRect } from "@/lib/storms/camera";
 import { byZ, STICKY, type Item, type Size } from "@/lib/storms/model";
 import { LINE_HEIGHT_RATIO, layoutSticky } from "@/lib/storms/text-layout";
+import { dotStride } from "./dots";
 import type { StormStore } from "./store";
 
 const BACKGROUND = "#FFFFFF";
@@ -9,7 +10,8 @@ const DOT_SPACING = 24;
 const DOT_FULL_ZOOM = 0.5;
 const DOT_NONE_ZOOM = 0.2;
 const TEXT_MIN_ZOOM = 0.3;
-const SHADOW_MIN_ZOOM = 0.3;
+const SHADOW_MIN_ZOOM = 0.5;
+const SHADOW_COLOUR = "rgba(0,0,0,0.12)";
 const SELECTION = { colour: "#F700A8", width: 2 };
 
 export type Renderer = {
@@ -32,6 +34,21 @@ export function createRenderer(
 
   const font = `${STICKY.fontPx}px ${family || "sans-serif"}`;
   const measure = (s: string) => ctx?.measureText(s).width ?? 0;
+
+  // Wrapping measures text, which is slow; a sticky's layout changes only with its text and size.
+  type Laid = ReturnType<typeof layoutSticky> & { overflows: boolean };
+  const layouts = new Map<string, { key: string; layout: Laid }>();
+  function layoutOf(s: Item) {
+    const key = `${s.w}|${s.h}|${s.text}`;
+    const hit = layouts.get(s.id);
+    if (hit?.key === key) return hit.layout;
+    if (layouts.size > 5000) layouts.clear();
+    if (ctx) ctx.font = font;
+    const base = layoutSticky(measure, s);
+    const layout = { ...base, overflows: base.lines.some((line) => measure(line) > s.w) };
+    layouts.set(s.id, { key, layout });
+    return layout;
+  }
 
   /**
    * A line's baseline below its top, placed as CSS places it in a line box (half the
@@ -66,14 +83,18 @@ export function createRenderer(
     const v = visibleRect(camera, size);
     ctx.globalAlpha = alpha;
     ctx.fillStyle = DOT_COLOUR;
-    const x0 = Math.floor(v.x / DOT_SPACING) * DOT_SPACING;
-    const y0 = Math.floor(v.y / DOT_SPACING) * DOT_SPACING;
-    for (let by = y0; by <= v.y + v.h; by += DOT_SPACING) {
-      for (let bx = x0; bx <= v.x + v.w; bx += DOT_SPACING) {
+    // Thinned out when close together; kept aligned to the full grid so dots do not shift.
+    const step = DOT_SPACING * dotStride(camera.zoom, DOT_SPACING);
+    const x0 = Math.floor(v.x / step) * step;
+    const y0 = Math.floor(v.y / step) * step;
+    ctx.beginPath();
+    for (let by = y0; by <= v.y + v.h; by += step) {
+      for (let bx = x0; bx <= v.x + v.w; bx += step) {
         const p = boardToScreen(camera, size, { x: bx, y: by });
-        ctx.fillRect(p.x - 1, p.y - 1, 2, 2);
+        ctx.rect(p.x - 1, p.y - 1, 2, 2);
       }
     }
+    ctx.fill();
     ctx.globalAlpha = 1;
   }
 
@@ -101,37 +122,45 @@ export function createRenderer(
     const z = camera.zoom;
     const baseline = showText ? baselineOffset() : 0;
 
+    // Text state is set once: changing the font per sticky is slow.
+    // Drawn at the screen size rather than scaled by a transform, as the textarea overlay is.
+    const screenFont = `${STICKY.fontPx * z}px ${family || "sans-serif"}`;
+    if (showText) {
+      ctx.font = screenFont;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "alphabetic";
+    }
+    if (shadows) {
+      ctx.shadowBlur = 8 * dpr;
+      ctx.shadowOffsetY = 2 * dpr;
+    }
+
     for (const s of visible) {
       const p = boardToScreen(camera, size, s);
-      ctx.save();
-      if (shadows) {
-        ctx.shadowColor = "rgba(0,0,0,0.12)";
-        ctx.shadowBlur = 8 * dpr;
-        ctx.shadowOffsetY = 2 * dpr;
-      }
+      if (shadows) ctx.shadowColor = SHADOW_COLOUR;
       ctx.fillStyle = STICKY.fill;
       ctx.fillRect(p.x, p.y, s.w * z, s.h * z);
-      ctx.restore();
+      if (shadows) ctx.shadowColor = "transparent";
 
       // The text overlay shows the text of the sticky being edited.
       if (showText && s.text !== "" && s.id !== editingId) {
-        ctx.save();
-        ctx.beginPath();
-        ctx.rect(p.x, p.y, s.w * z, s.h * z);
-        ctx.clip();
-        ctx.translate(p.x, p.y);
-        ctx.scale(z, z);
-        ctx.font = font;
+        const { lines, lineHeight, top, overflows } = layoutOf(s);
+        // Only a line wider than the sticky (one long word) needs clipping to it.
+        if (overflows) {
+          ctx.save();
+          ctx.beginPath();
+          ctx.rect(p.x, p.y, s.w * z, s.h * z);
+          ctx.clip();
+        }
         ctx.fillStyle = STICKY.text;
-        ctx.textAlign = "center";
-        ctx.textBaseline = "alphabetic";
-        const { lines, lineHeight, top } = layoutSticky(measure, s);
+        const cx = p.x + (s.w / 2) * z;
         lines.forEach((line, i) => {
-          ctx.fillText(line, s.w / 2, top + i * lineHeight + baseline);
+          ctx.fillText(line, cx, p.y + (top + i * lineHeight + baseline) * z);
         });
-        ctx.restore();
+        if (overflows) ctx.restore();
       }
     }
+    ctx.shadowColor = "transparent";
 
     const found = selectedId ? items[selectedId] : undefined;
     const selected = found && shift(found);
@@ -158,6 +187,7 @@ export function createRenderer(
     },
     setFontReady() {
       fontReady = true;
+      layouts.clear();
       schedule();
     },
     destroy() {

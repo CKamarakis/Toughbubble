@@ -25,12 +25,16 @@ export type StormBoardProps = {
   initial: { body: StormBody; version: number };
   userId: string;
   onStatus: (label: string) => void;
+  /** No saving of any kind (board, undo history, view). Used by the dev speed gate. */
+  readOnly?: boolean;
 };
 
 declare global {
   interface Window {
     /** Development only: lets the console seed and inspect the board. */
     __stormStore?: StormStore;
+    /** Dev speed gate only: the store of a read-only synthetic board and its viewport. */
+    __stormBench?: { store: StormStore; viewport: { w: number; h: number } };
   }
 }
 
@@ -42,16 +46,7 @@ export default function StormBoard(props: StormBoardProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [store, setStore] = useState<StormStore | null>(null);
   const [family, setFamily] = useState("");
-  const { itemId, userId } = props;
-  const storeRef = useRef<StormStore | null>(null);
-  const autosave = useStormAutosave(store, itemId, initial.version, {
-    // Quiet after a save: keep the undo history for a reload at this version.
-    onQuietSave: (version) => {
-      if (storeRef.current) void saveUndo(userId, itemId, version, storeRef.current.getHistory());
-    },
-  });
-  const { onStatus } = props;
-  useEffect(() => onStatus(autosave.status), [onStatus, autosave.status]);
+  const { itemId, userId, readOnly = false, onStatus } = props;
   const getViewport = useCallback(() => {
     const r = boxRef.current?.getBoundingClientRect();
     return { w: r?.width ?? 0, h: r?.height ?? 0 };
@@ -67,11 +62,15 @@ export default function StormBoard(props: StormBoardProps) {
     // this version) has been read, so it never shows an empty history and swaps.
     let cancelled = false;
     let teardown: (() => void) | undefined;
-    void withTimeout<History | null>(loadUndo(userId, itemId, initial.version), UNDO_LOAD_TIMEOUT_MS, null).then(
-      (history) => {
-        if (!cancelled) teardown = start(history ?? undefined, surface, box, canvas);
-      },
-    );
+    if (readOnly) {
+      teardown = start(undefined, surface, box, canvas);
+    } else {
+      void withTimeout<History | null>(loadUndo(userId, itemId, initial.version), UNDO_LOAD_TIMEOUT_MS, null).then(
+        (history) => {
+          if (!cancelled) teardown = start(history ?? undefined, surface, box, canvas);
+        },
+      );
+    }
     return () => {
       cancelled = true;
       teardown?.();
@@ -80,18 +79,26 @@ export default function StormBoard(props: StormBoardProps) {
     function start(history: History | undefined, surface: HTMLDivElement, box: HTMLDivElement, canvas: HTMLCanvasElement) {
     const store = createStormStore({
       body: initial.body,
-      camera: loadView(props.itemId) ?? HOME_CAMERA,
+      camera: (readOnly ? null : loadView(props.itemId)) ?? HOME_CAMERA,
       history,
     });
-    storeRef.current = store;
     setStore(store);
     if (process.env.NODE_ENV !== "production") window.__stormStore = store;
+    if (readOnly && process.env.NODE_ENV !== "production") {
+      window.__stormBench = {
+        store,
+        get viewport() {
+          return getViewport();
+        },
+      };
+    }
 
     // Remember the view 500 ms after the last camera change.
     let lastCamera = store.getSnapshot().camera;
     let pendingSave = false;
     let saveTimer: ReturnType<typeof setTimeout> | undefined;
     const unsubscribeView = store.subscribe(() => {
+      if (readOnly) return;
       const { camera } = store.getSnapshot();
       if (camera === lastCamera) return;
       lastCamera = camera;
@@ -123,7 +130,6 @@ export default function StormBoard(props: StormBoardProps) {
 
     return () => {
       alive = false;
-      storeRef.current = null;
       detachInput();
       unsubscribeView();
       clearTimeout(saveTimer);
@@ -132,6 +138,7 @@ export default function StormBoard(props: StormBoardProps) {
       renderer.destroy();
       setStore(null);
       if (window.__stormStore === store) delete window.__stormStore;
+      if (window.__stormBench?.store === store) delete window.__stormBench;
     };
     }
     // The store is created once per mount from the initial body.
@@ -163,6 +170,29 @@ export default function StormBoard(props: StormBoardProps) {
           <ZoomControl store={store} getViewport={getViewport} />
         </>
       )}
+      {store && !readOnly && (
+        <AutosaveHost store={store} itemId={itemId} userId={userId} version={initial.version} onStatus={onStatus} />
+      )}
+    </div>
+  );
+}
+
+/** Saves the board and shows the conflict banner; kept apart so a read-only board needs no workspace. */
+function AutosaveHost(props: {
+  store: StormStore;
+  itemId: string;
+  userId: string;
+  version: number;
+  onStatus: (label: string) => void;
+}) {
+  const { store, itemId, userId, version, onStatus } = props;
+  const autosave = useStormAutosave(store, itemId, version, {
+    // Quiet after a save: keep the undo history for a reload at this version.
+    onQuietSave: (v) => void saveUndo(userId, itemId, v, store.getHistory()),
+  });
+  useEffect(() => onStatus(autosave.status), [onStatus, autosave.status]);
+  return (
+    <>
       {autosave.state.phase === "conflict" && (
         <div className="absolute inset-x-4 top-4 mx-auto max-w-2xl rounded-lg bg-card shadow-md">
           <div
@@ -183,6 +213,6 @@ export default function StormBoard(props: StormBoardProps) {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

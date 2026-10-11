@@ -46,7 +46,11 @@ function ToolbarButton({ label, Icon, pressed, disabled, onClick }: ToolButton) 
 
 /** Bottom-centre toolbar: Select, Sticky, Undo, Redo. */
 export function StormToolbar({ store }: { store: StormStore }) {
-  const snap = useSyncExternalStore(store.subscribe, store.getSnapshot, store.getSnapshot);
+  // Primitives only, so panning and zooming do not re-render the toolbar.
+  const tool = useSyncExternalStore(store.subscribe, () => store.getSnapshot().tool, () => store.getSnapshot().tool);
+  const canUndo = useSyncExternalStore(store.subscribe, () => store.getSnapshot().canUndo, () => store.getSnapshot().canUndo);
+  const canRedo = useSyncExternalStore(store.subscribe, () => store.getSnapshot().canRedo, () => store.getSnapshot().canRedo);
+  const snap = { tool, canUndo, canRedo };
   return (
     <div
       onMouseDown={keepFocus}
