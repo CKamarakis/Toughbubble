@@ -339,6 +339,15 @@ describe("storm store", () => {
     expect(store.getSnapshot().camera.x).toBe(1);
   });
 
+  it("zoom is not undone", () => {
+    const { store } = setup(board(sticky("a", { x: 0 })));
+    store.commit({ upsert: [sticky("a", { x: 50 })], delete: [] });
+    store.setCamera({ x: 3, y: 4, zoom: 2 });
+    store.undo();
+    expect(store.getSnapshot().items.a.x).toBe(0);
+    expect(store.getSnapshot().camera).toEqual({ x: 3, y: 4, zoom: 2 });
+  });
+
   it("undo during an open edit ends the edit and undoes it", () => {
     const { store } = setup(board(sticky("a", { text: "hi" })));
     store.startEdit("a");

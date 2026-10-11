@@ -19,6 +19,7 @@ import { MAX_CHANGESET_BYTES } from "@/lib/storms/limits";
 import type { Items } from "@/lib/storms/model";
 import { useWorkspace } from "@/components/workspace/workspace-context";
 import type { StormStore } from "./engine/store";
+import { shouldPersist } from "./undo-store";
 import { ack, EMPTY_OUTBOX, isQuietOutbox, queue, restore, takeNext, type Outbox } from "./pending";
 
 const TOO_LARGE_MESSAGE = "This storm is too big to save. Remove some items.";
@@ -30,7 +31,12 @@ const TOO_LARGE_MESSAGE = "This storm is too big to save. Remove some items.";
  * saved version. Failures retry with backoff; a conflict pauses saving until the
  * user picks Load latest or Keep mine.
  */
-export function useStormAutosave(store: StormStore | null, itemId: string, initialVersion: number) {
+export function useStormAutosave(
+  store: StormStore | null,
+  itemId: string,
+  initialVersion: number,
+  options: { onQuietSave?: (version: number) => void } = {},
+) {
   const ws = useWorkspace();
   const [state, setState] = useState(() => initialAutosave(initialVersion));
   const [everSaved, setEverSaved] = useState(initialVersion > 0);
@@ -41,6 +47,7 @@ export function useStormAutosave(store: StormStore | null, itemId: string, initi
   const storeRef = useRef(store);
   // Through a ref so `save` (and the leave flush built on it) stays stable across renders.
   const touchRef = useRef(ws.touch);
+  const onQuietSaveRef = useRef(options.onQuietSave);
   /** Keep mine: once its save lands, show the stored board, which has the other tab's items. */
   const reloadAfterSave = useRef(false);
   const alive = useRef(true);
@@ -53,7 +60,8 @@ export function useStormAutosave(store: StormStore | null, itemId: string, initi
   useEffect(() => {
     storeRef.current = store;
     touchRef.current = ws.touch;
-  }, [store, ws.touch]);
+    onQuietSaveRef.current = options.onQuietSave;
+  }, [store, ws.touch, options.onQuietSave]);
 
   /** Shows the stored board with the changes not yet saved (or still in flight) on top. */
   const showStored = useCallback((items: Items) => {
@@ -88,6 +96,7 @@ export function useStormAutosave(store: StormStore | null, itemId: string, initi
       outbox.current = ack(outbox.current);
       send({ type: "save-ok", version: result.version });
       setEverSaved(true);
+      if (shouldPersist(isQuietOutbox(outbox.current), result)) onQuietSaveRef.current?.(result.version);
       touchRef.current(itemId, result.editedAt);
       if (reloadAfterSave.current) {
         reloadAfterSave.current = false;

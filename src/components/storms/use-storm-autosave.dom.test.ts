@@ -14,6 +14,7 @@ const mocks = vi.hoisted(() => ({
   stormVersion: vi.fn(),
   touch: vi.fn(),
   toastError: vi.fn(),
+  quietSave: vi.fn(),
 }));
 vi.mock("@/lib/storms/actions", () => ({
   saveStorm: mocks.saveStorm,
@@ -44,7 +45,7 @@ let store: StormStore;
 let autosave: ReturnType<typeof useStormAutosave>;
 
 function Harness({ s }: { s: StormStore }) {
-  const a = useStormAutosave(s, ID, 1);
+  const a = useStormAutosave(s, ID, 1, { onQuietSave: mocks.quietSave });
   useEffect(() => {
     autosave = a;
   });
@@ -171,5 +172,20 @@ describe("useStormAutosave", () => {
     await act(async () => root.unmount());
     expect(mocks.saveStorm).toHaveBeenCalledWith(ID, add(sticky("a")), 1);
     root = createRoot(host);
+  });
+});
+
+describe("useStormAutosave undo persistence hook", () => {
+  it("reports a quiet save only when nothing is pending", async () => {
+    const first = deferred<SaveStormActionResult>();
+    mocks.saveStorm.mockReturnValueOnce(first.promise).mockResolvedValueOnce(saved(3));
+    act(() => store.commit(add(sticky("a"))));
+    await advance(1000);
+    act(() => store.commit(add(sticky("b"))));
+    await act(async () => first.resolve(saved(2)));
+    expect(mocks.quietSave).not.toHaveBeenCalled();
+    await advance(1000);
+    expect(mocks.quietSave).toHaveBeenCalledTimes(1);
+    expect(mocks.quietSave).toHaveBeenCalledWith(3);
   });
 });

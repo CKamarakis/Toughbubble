@@ -15,6 +15,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { clearUndo, withTimeout } from "@/components/storms/undo-store";
 import { cn } from "@/lib/utils";
 
 const THEMES = [
@@ -84,7 +85,13 @@ export function AccountMenu({ email }: { email: string }) {
             </DropdownMenuRadioGroup>
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => signOut.current?.requestSubmit()}>
+          <DropdownMenuItem
+            onClick={async () => {
+              // Saved undo history belongs to this session: drop it before leaving.
+              await withTimeout(clearUndo(), 300, undefined);
+              signOut.current?.requestSubmit();
+            }}
+          >
             <LogOut />
             Sign out
           </DropdownMenuItem>
