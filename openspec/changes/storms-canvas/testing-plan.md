@@ -17,7 +17,7 @@ Tip: make a new Storm just for this test (New > Storm), and call it "Test". Anyt
 
 **1. Open a storm** _(storm-page layout: Open a storm; workspace: Open a storm)_
 - **Do:** In the sidebar, click a Storm (or make one with New > Storm).
-- **You should see:** A slim header with the path (breadcrumb), the Storm's title and its "..." menu. The board fills all the space below it. The page itself does not scroll.
+- **You should see:** A slim header with the path at the top (for example Workspace / My storm), the Storm's title and its "..." menu. The board fills all the space below it. The page itself does not scroll.
 - Also checked automatically by: browser only (URL routing: `src/lib/auth/routing.test.ts`).
 - Browser check 2026-10-11: Done.
 - [ ] Pass  [ ] Fail   Notes:
@@ -31,14 +31,14 @@ Tip: make a new Storm just for this test (New > Storm), and call it "Test". Anyt
 
 **3. A note still opens as before** _(workspace-tree: Open a note; note-editor: Open a new note, Reopen a note)_
 - **Do:** Open a note. For a brand new one, make a note, type a line with a bold word, leave, and come back.
-- **You should see:** A new note shows the title and an empty editor saying "Start writing...". A written note comes back exactly as you left it.
+- **You should see:** A new note shows the title and an empty editor saying "Start writing…". A written note comes back exactly as you left it.
 - Also checked automatically by: `tests/integration/note-body.test.ts`.
 - Browser check 2026-10-11: Not yet.
 - [ ] Pass  [ ] Fail   Notes:
 
 **4. Notes don't load the board** _(storm-page layout: Notes don't load the board)_
-- **Do:** Reload the browser, open only a note, then open DevTools (F12) > Network, and look through the files loaded.
-- **You should see:** Nothing that looks like the board's code (storm) loaded. This one needs the production build; skip it on the dev server.
+- **Do:** Reload the browser, open only a note, then press F12 (or right-click > Inspect) and click the **Network** tab, reload, and look through the files loaded. **Needs a production build; ask the developer to do this one.**
+- **You should see:** Nothing that looks like the board's code (storm) loaded. Ask the developer for a production build.
 - Also checked automatically by: browser only.
 - Browser check 2026-10-11: Done (production build).
 - [ ] Pass  [ ] Fail   Notes:
@@ -54,7 +54,7 @@ Tip: make a new Storm just for this test (New > Storm), and call it "Test". Anyt
 
 **6. Storm menu** _(workspace-tree: Storm menu)_
 - **Do:** Click the "..." menu in the Storm's header (and in the sidebar row).
-- **You should see:** Rename, Duplicate, Move to..., Reorder, Archive, Move to Trash, in that order.
+- **You should see:** Rename, Duplicate, Move to…, Reorder, Archive, Move to Trash, in that order.
 - Also checked automatically by: browser only.
 - Browser check 2026-10-11: Done.
 - [ ] Pass  [ ] Fail   Notes:
@@ -68,7 +68,7 @@ Tip: make a new Storm just for this test (New > Storm), and call it "Test". Anyt
 
 **8. Note menu** _(workspace-tree: Note menu)_
 - **Do:** Open a note's "..." menu.
-- **You should see:** Rename, Move to..., Reorder, Archive, Move to Trash. No "New inside", no Duplicate.
+- **You should see:** Rename, Move to…, Reorder, Archive, Move to Trash. No "New inside", no Duplicate.
 - Also checked automatically by: browser only.
 - Browser check 2026-10-11: Not yet.
 - [ ] Pass  [ ] Fail   Notes:
@@ -97,7 +97,7 @@ Tip: make a new Storm just for this test (New > Storm), and call it "Test". Anyt
 - [ ] Pass  [ ] Fail   Notes:
 
 **12. Dots fade at 10%** _(dot grid: Grid fades out)_
-- **Do:** Zoom out as far as it goes (click the minus at the bottom right until it reads 10%).
+- **Do:** Zoom out as far as it goes: click the minus at the bottom right four times from 100% (75%, 50%, 25%, 10%).
 - **You should see:** No dots at all, just a plain board. Zoom in a little and they come back.
 - Also checked automatically by: `src/components/storms/engine/dots.test.ts`.
 - Browser check 2026-10-11: Not yet.
@@ -291,7 +291,7 @@ Tip: make a new Storm just for this test (New > Storm), and call it "Test". Anyt
 
 **39. Saved after a pause** _(autosave: Saved after a pause)_
 - **Do:** Place a sticky and wait a couple of seconds. Then reload the page.
-- **You should see:** The header shows "Saving..." then "Saved". After the reload the sticky is still there.
+- **You should see:** The header shows "Saving…" then "Saved". After the reload the sticky is still there.
 - Also checked automatically by: `src/components/storms/use-storm-autosave.dom.test.ts`, `tests/integration/storm-board.test.ts`.
 - Browser check 2026-10-11: Done.
 - [ ] Pass  [ ] Fail   Notes:
@@ -304,7 +304,7 @@ Tip: make a new Storm just for this test (New > Storm), and call it "Test". Anyt
 - [ ] Pass  [ ] Fail   Notes:
 
 **41. Only changes are sent** _(autosave: Only changes are sent)_
-- **Do:** Developer-minded step; skip if unsure. Open DevTools > Network, move one sticky on a board with many, and look at the size of the save request.
+- **Do:** Developer-minded step; skip if unsure. Press F12 (or right-click > Inspect), click the **Network** tab, move one sticky on a board with many, and look at the size of the save request.
 - **You should see:** A tiny request (a few hundred bytes), not the whole board.
 - Also checked automatically by: `src/lib/storms/changeset.test.ts`, `tests/integration/storm-board.test.ts` ("a move saves only that sticky").
 - Browser check 2026-10-11: Not yet.
@@ -318,8 +318,8 @@ Tip: make a new Storm just for this test (New > Storm), and call it "Test". Anyt
 - [ ] Pass  [ ] Fail   Notes:
 
 **43. Offline and retry** _(save failures and retries: Offline)_
-- **Do:** Open DevTools (F12) > Network, set "No throttling" to **Offline**. Move a sticky. Wait a few seconds, then set it back to **No throttling**.
-- **You should see:** The header says "Couldn't save - retrying", the sticky stays where you moved it, and a bit after you are back online it says "Saved". Reload: the move is kept.
+- **Do:** Press F12 (or right-click > Inspect) and click the **Network** tab. The dropdown at the top that says "No throttling" has an **Offline** option; pick it. Move a sticky. Wait a few seconds, then set it back to **No throttling**.
+- **You should see:** The header says "Couldn't save — retrying", the sticky stays where you moved it, and a bit after you are back online it says "Saved". Reload: the move is kept.
 - Also checked automatically by: `src/components/storms/use-storm-autosave.dom.test.ts`, `src/components/storms/pending.test.ts`.
 - Browser check 2026-10-11: Not yet.
 - [ ] Pass  [ ] Fail   Notes:
@@ -354,32 +354,35 @@ Tip: make a new Storm just for this test (New > Storm), and call it "Test". Anyt
 
 ## 6. Two tabs
 
-Open the same Storm in two browser windows side by side (so clicking one does not hide the other): tab A and tab B. Put a sticky Y on the board and wait for "Saved" in both tabs (reload tab B).
+**How these steps work.** Open the same Storm in two browser windows side by side, so you can see both: tab A and tab B. To make tab B's save collide with tab A's, B must be holding a change it could not save yet. The reliable way is the Offline switch: press F12 (or right-click > Inspect), click the **Network** tab, and use the dropdown at the top that says "No throttling" to pick **Offline**. Do that in tab B only; pick "No throttling" again to go back online.
 
-**48. Two tabs: the later save is not lost** _(changed elsewhere: Two tabs)_
-- **Do:** In tab A add a sticky and wait for "Saved". Then in tab B (without switching back to A first, or after it says nothing new) move sticky Y.
-- **You should see:** Tab B shows a bar "This storm was changed in another tab or device" and the header says "Changed elsewhere". Tab A's sticky is still saved. (Do not click on tab B before making the change: simply switching back to a tab with nothing unsaved refreshes it quietly, see step 51.)
+Before each of steps 48-50, start fresh: make sure both tabs show the same Storm with at least one sticky (call it Y) and "Saved" in the header, reload both tabs.
+
+**48. Two tabs: nothing is lost** _(changed elsewhere: Two tabs)_
+- **Do:** (1) In tab B set the dropdown to **Offline**. (2) In tab B move sticky Y; the header says "Couldn't save — retrying". (3) In tab A add a new sticky and wait for "Saved". (4) In tab B set the dropdown back to "No throttling" and wait a few seconds.
+- **You should see:** Tab B shows a bar "This storm was changed in another tab or device. Saving is paused until you choose." and the header says "Changed elsewhere". Tab A's new sticky is safe: reload tab A and it is there.
+- **Good to know:** If you simply save in A and then click into B, B quietly shows A's change with no warning. That is expected: a tab with nothing unsaved refreshes itself when you return to it (step 51). The Offline trick stops that, because B has something unsaved. If the bar does not appear, redo the step and be quicker between (2) and (3).
 - Also checked automatically by: `src/components/storms/use-storm-autosave.dom.test.ts`, `tests/integration/storm-board.test.ts` ("stale base version").
 - Browser check 2026-10-11: Done.
 - [ ] Pass  [ ] Fail   Notes:
 
 **49. Keep mine** _(changed elsewhere: Keep mine)_
-- **Do:** Tab A adds sticky X and saves. Tab B moves sticky Y. In tab B click **Keep mine**.
-- **You should see:** Tab B now shows both X and the moved Y. Reload either tab: both are there.
+- **Do:** Reload both tabs. Repeat 48 steps (1) to (4), with tab A adding sticky X and tab B moving sticky Y. In tab B click **Keep mine**.
+- **You should see:** Tab B shows both X and the moved Y. Reload either tab: both are there.
 - Also checked automatically by: `use-storm-autosave.dom.test.ts`, `tests/integration/storm-board.test.ts` ("keep-mine upsert").
 - Browser check 2026-10-11: Done.
 - [ ] Pass  [ ] Fail   Notes:
 
 **50. Load latest** _(changed elsewhere: Load latest)_
-- **Do:** Repeat the setup of step 49, but in tab B click **Load latest**.
-- **You should see:** Tab B shows tab A's board. Your move of Y in tab B is gone.
+- **Do:** Reload both tabs. Repeat 48 steps (1) to (4) once more (tab A adds a sticky, tab B moves Y while offline). This time in tab B click **Load latest**.
+- **You should see:** Tab B shows tab A's board, with A's new sticky, and Y is back where A has it. Your move of Y in tab B is gone.
 - Also checked automatically by: `use-storm-autosave.dom.test.ts`.
 - Browser check 2026-10-11: Not yet.
 - [ ] Pass  [ ] Fail   Notes:
 
 **51. Refresh on focus** _(changed elsewhere: Refresh on focus)_
-- **Do:** In tab A add a sticky and wait for "Saved". Click over to tab B (which has no unsaved change).
-- **You should see:** Tab B quietly shows the new sticky. No warning bar.
+- **Do:** Reload both tabs and wait for "Saved". In tab A add a sticky and wait for "Saved". Then click over to tab B, touching nothing else.
+- **You should see:** Within a second or two tab B quietly shows the new sticky. No warning bar.
 - Also checked automatically by: `use-storm-autosave.dom.test.ts` ("returning to the tab...").
 - Browser check 2026-10-11: Not yet.
 - [ ] Pass  [ ] Fail   Notes:
@@ -479,7 +482,7 @@ Make a Storm called "Plan" with three stickies (wait for "Saved").
 ## 10. Speed and other browsers
 
 **64. Feels fast** _(extra: speed)_
-- **Do:** Open the "Plan" or a board with many stickies (ask for the 1,000-sticky test board if you want), then zoom and pan quickly.
+- **Do:** Open the "Plan" or a board with many stickies (ask the developer to open the 1,000-sticky test page, /dev/storm-bench, on a dev server), then zoom and pan quickly.
 - **You should see:** Smooth movement, no stutter.
 - Also checked automatically by: `npm run bench:storms` (see the end).
 - Browser check 2026-10-11: Not yet by eye (the bench passes).
@@ -504,6 +507,6 @@ Run these in a terminal in the project folder. They are for whoever maintains th
 | Style rules | `npm run lint` | `0 errors` (warnings from the `.claude` folder are expected) |
 | Unit tests | `npm test` | `Test Files  41 passed` and `Tests  498 passed`, no failures |
 | Database tests (several minutes, uses the dev database) | `npm run test:integration` | `Test Files  10 passed` and `Tests  117 passed` (about 9 minutes) |
-| Speed gate | Start `npx next dev -p 3101` in one terminal, then `npm run bench:storms` in another. On Windows it works as is; elsewhere use `BENCH_CHANNEL=chrome npm run bench:storms` | Three `PASS` lines (each about 60 fps, p95 under 33 ms) and `Speed gate passed.` |
+| Speed gate | Start `npx next dev -p 3101` in one terminal, then `npm run bench:storms` in another. On Windows it works as is; elsewhere use `BENCH_CHANNEL=chrome npm run bench:storms` | Three `PASS` lines (each about 60 fps, the slowest 5% of frames under 33 ms) and `Speed gate passed.` |
 
 The test counts above were from the run on 2026-10-11 and will grow as tests are added.
