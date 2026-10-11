@@ -19,7 +19,8 @@ A personal workspace for notes and visual boards: Notion-style notes and Miro-st
 - **Organize**: projects and folders in a sidebar tree; drag to reorder, move items anywhere,
   archive what's done, and restore from the trash.
 - **Make it yours**: light and dark themes, with your own sizes and colors for text and headings.
-- **Storms** *(coming next)*: an infinite canvas with stickies, text, shapes, and connectors.
+- **Storms**: an infinite canvas. Today you can place, type in, move, and delete stickies, zoom and
+  pan, and undo; text, shapes, and connectors are still to come.
 
 ## Stack
 
@@ -125,6 +126,7 @@ Requires [Node.js](https://nodejs.org/) 24+ and npm.
 | `npm run lint` | ESLint (includes the rule that keeps app code off the admin database client) |
 | `npm test` | Unit tests |
 | `npm run test:integration` | Tests against the dev database. Creates and deletes throwaway users; refuses to run unless `APP_ENV=development` |
+| `npm run bench:storms` | Storm speed gate: a 1,000-sticky board with the CPU slowed 4x must hold 50 fps median and 33 ms p95. Needs a dev server on port 3101 (`npx next dev -p 3101`); see [Storms](#storms) |
 | `npm run db:generate` | Generate a migration from changes to `src/db/schema.ts` |
 | `npm run db:migrate` | Apply pending migrations to the database in `DATABASE_ADMIN_URL` |
 | `npm run brand:generate` | Regenerate `public/brand/logo-{light,dark,disc}.png`, `src/app/favicon.ico`, `icon.png`, and `apple-icon.png` from the masters in `src/toughbubble_assets/`. Commit the outputs; never edit them by hand |
@@ -210,6 +212,50 @@ and is blocked from `src/` by a lint rule; it is for migrations, tests, and back
   needs no reload. A color saved before per-theme colors (`{ color }`) is read as both themes
   and rewritten on the next save, so no migration is needed. Each change shows a message with
   Undo. Removing a saved color doesn't change text already using it.
+
+## Storms
+
+- **Where it lives.** `src/components/storms/` (board, toolbar, zoom control, autosave hook) and
+  `src/components/storms/engine/` (store, canvas renderer, input); pure logic in `src/lib/storms/`
+  (camera, change sets, history, validation, duplicate). The board's code loads only when a Storm
+  is opened; notes never download it. The board is saved in `item_content` for the `storm` item.
+- **Light board.** The board, toolbar, and zoom control stay light in the dark theme (the `light`
+  class); the header and sidebar follow the app theme.
+- **Zoom** 10% to 400%. Mouse wheel, Ctrl or ⌘ + wheel, and trackpad pinch zoom toward the pointer;
+  the page itself never zooms. The zoom control (bottom right) has − and +, which step through 10,
+  25, 50, 75, 100, 150, 200, 300, 400%, a readout (click to reset to 100%), and Fit. Keys, with the
+  board focused: Ctrl or ⌘ + `=` / `-` step, Ctrl or ⌘ + `0` resets, Shift + `1` fits all items.
+- **Pan.** Two-finger trackpad scroll, right-button drag (no browser menu), or hold Space and drag
+  with the left button. Stops 1,000,000 px from the centre. Each Storm reopens at its last zoom and
+  position in that browser (`localStorage`, key `storm-view:<id>`).
+- **Toolbar** (bottom centre): Select (`V`), Sticky (`N`), Undo, Redo, with tooltips. Click the board
+  with Sticky to place a 200×200 sticky, which is then selected; the tool returns to Select.
+- **Stickies.** Click selects (topmost wins), click on empty board deselects, drag moves, arrows nudge
+  1 px (Shift: 10 px), Delete or Backspace removes. Double-click or Enter edits plain centred text
+  (max 5,000 characters; overflow is clipped, not lost); Esc or a click outside finishes.
+- **Saving.** Like notes, but only the items changed since the last save go out (a change set plus the
+  version it is based on), about a second after the last change; the header shows Saving…, then
+  Saved. Offline or server errors show "Couldn't save — retrying" and retry with growing pauses; work
+  stays on screen. Closing the tab with unsaved work asks first. The server
+  (`src/lib/storms/validate.ts`, `limits.ts`) rejects malformed change sets and boards over about 2 MB
+  ("Too big to save"); a pending set over 800 KB is sent as several saves.
+- **Changed elsewhere.** A save based on an older version never overwrites. The header says "Changed
+  elsewhere" and a bar offers **Load latest** (drop this tab's unsaved changes) or **Keep mine**
+  (save this tab's changes on top; this tab wins for the same sticky). Both clear undo. A tab that
+  regains focus with nothing unsaved quietly shows the newer board.
+- **Undo and redo.** Ctrl or ⌘ + Z, Ctrl or ⌘ + Shift + Z, Ctrl + Y, or the buttons. Placing, moving,
+  nudging (within a second, one step), typing (one editing session, one step), and deleting are steps;
+  zoom, pan, and selection are not. 30 steps are kept. The history is stored in IndexedDB
+  (`storms-undo`) per user and Storm once a save settles, and is restored on reload only if the stored
+  board has not changed since. Signing out deletes it.
+- **Duplicate** (Storm menu): creates "<title> (copy)" (shortened to fit the title limit), directly
+  below the original in the same parent, with a copy of every sticky, and opens it. A Storm that was
+  never saved is copied empty.
+- **Speed gate.** `npm run bench:storms` (`scripts/storms-bench.mjs`) drives Playwright against the
+  dev-only route `/dev/storm-bench` (not available in production), which loads 1,000 synthetic
+  stickies without saving. Start a dev server first with `npx next dev -p 3101` (override the address
+  with `BENCH_URL`; `BENCH_ITEMS` changes the sticky count). The script's GPU flags are tuned for
+  Windows; elsewhere use your installed Chrome with `BENCH_CHANNEL=chrome`.
 
 ## Attachments
 
