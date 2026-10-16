@@ -1,6 +1,6 @@
 # Storms sticky style: testing plan
 
-You are checking three additions to Storms: sticky text that **resizes itself to fit** (from big to small), **12 sticky colours**, and a **small toolbar above the selected sticky** where you pick the colour. It should stay quick and never lose your work.
+You are checking four additions to Storms: sticky text that **resizes itself to fit** (from big to small), **13 sticky colours**, a **small toolbar above the selected sticky** where you pick the colour, and a **colour palette next to the Sticky button** so you can choose the colour before you place a sticky. New stickies use the last colour you picked. It should stay quick and never lose your work.
 
 - **Time:** about 25 minutes. Sections 1 and 2 (the main things) take about 15.
 - **You need:** the app open and signed in (the deployed site or `http://localhost:3001`), a mouse and, if you have one, a laptop trackpad. Firefox is optional (step 22).
@@ -8,7 +8,8 @@ You are checking three additions to Storms: sticky text that **resizes itself to
 - **"Browser check: Not yet"** means nobody has looked at the step in a browser yet. Start there.
 - **"Also checked automatically by"** names the automated test that covers the same thing. "Browser only" means no test can check it, so your eyes are the only check.
 - The small italic line under each title names the requirement and scenario it covers (from `specs/storm-board` and `specs/storm-saving` in this change), so we can check nothing is missed.
-- Steps 20 to 23 are extra checks that only a real browser can do. They were flagged during code review.
+- Steps 10a, 13a to 13c and 23a to 23c are new since the palette was revised on 2026-10-16: tick them even if you ticked the older steps. Steps 10, 13 and 23 were rewritten.
+- Steps 20 to 23c are extra checks that only a real browser can do. They were flagged during code review.
 
 Tip: make a new Storm just for this test (New > Storm), and call it "Test". Anything you do in it can be thrown away. "Board px" means the size on the board at 100% zoom.
 
@@ -82,9 +83,16 @@ Tip: make a new Storm just for this test (New > Storm), and call it "Test". Anyt
 - [ ] Pass  [ ] Fail   Notes:
 
 **10. Pick a colour** _(storm-board, Sticky colour: Pick a colour)_
-- **Do:** Select a yellow sticky. Click the colour button on the toolbar. A grid of 12 colours opens. Click Pink. Reload the page after "Saved" shows.
+- **Do:** Select a yellow sticky. Click the colour button on the toolbar. A grid of 13 colours opens (4 per row). Click Pink. Reload the page after "Saved" shows.
 - **You should see:** The sticky turns pink. When you open the palette again, Pink is marked as the current colour. After the reload the sticky is still pink.
 - Also checked automatically by: `src/components/storms/sticky-toolbar.dom.test.ts` (a click on a swatch keeps the sticky selected and saves one step; the current colour is marked); `src/components/storms/engine/store.test.ts` (setColor); `tests/integration/storm-board.test.ts` (a save with colour round-trips).
+- Browser check: Not yet.
+- [ ] Pass  [ ] Fail   Notes:
+
+**10a. Colour from the first palette** _(storm-board, Sticky colour: Colour from the first palette)_
+- **Do:** Needs a Storm that has a sticky saved as Orange from the first palette. Ask the developer for one, or write "Not testable" in Notes. Open it and look at that sticky. Then move it a little and wait for "Saved", and reload.
+- **You should see:** The old Orange sticky shows as Light yellow straight away (Red and the old Pink show as Pink, Brown as Light yellow). Opening the Storm alone does not make it save. After you move it and reload, it is still Light yellow.
+- Also checked automatically by: `src/components/storms/engine/store.test.ts` (a loaded Orange sticky shows as Light yellow, its next move saves Light yellow, opening writes nothing); `src/lib/storms/validate.test.ts` (Orange is refused by the server).
 - Browser check: Not yet.
 - [ ] Pass  [ ] Fail   Notes:
 
@@ -102,10 +110,31 @@ Tip: make a new Storm just for this test (New > Storm), and call it "Test". Anyt
 - Browser check: Not yet.
 - [ ] Pass  [ ] Fail   Notes:
 
-**13. New stickies are yellow** _(storm-board, Sticky colour: New stickies are yellow)_
-- **Do:** Turn a sticky pink. Press `N` and place a new sticky.
-- **You should see:** The new sticky is yellow, not pink.
-- Also checked automatically by: `src/components/storms/engine/actions.test.ts` (a new sticky is yellow after another was turned pink).
+**13. New stickies use the last colour** _(storm-board, Sticky colour: New stickies use the last colour)_
+- **Do:** Turn a sticky pink with the toolbar. Press `N` and place a new sticky (the palette that opens can be ignored: click the board).
+- **You should see:** The new sticky is pink, not yellow. The palette that opened with `N` showed Pink as the marked colour.
+- Also checked automatically by: `src/components/storms/engine/actions.test.ts` and `src/components/storms/engine/store.test.ts` (a new sticky takes the colour of the last recolour); `src/components/storms/creation-color.test.ts`.
+- Browser check: Not yet.
+- [ ] Pass  [ ] Fail   Notes:
+
+**13a. Pick the colour before placing** _(storm-board, Sticky colour on creation: Pick the colour before placing)_
+- **Do:** Click the Sticky button in the toolbar at the bottom. A palette opens next to it (2 colours per row). Click Light green. Then click an empty spot on the board.
+- **You should see:** The palette opens as soon as the Sticky tool turns on, with the colour for new stickies marked. After you pick Light green the tool stays on (the Sticky button is still pressed). Your click on the board places a light green sticky there and the palette closes. Also try: open it with `N` (same palette); press Esc (palette closes and the tool turns off); check it stays light, not dark, when the app is in dark theme.
+- Also checked automatically by: `src/components/storms/sticky-tool-palette.dom.test.ts` (click Sticky opens it; pick Light green then click the board places a light green sticky and closes it; N opens it; Esc closes it and turns the tool off; keyboard path; light in dark theme).
+- Browser check: Not yet.
+- [ ] Pass  [ ] Fail   Notes:
+
+**13b. Remembered after a reload** _(storm-board, Sticky colour on creation: Remembered after a reload)_
+- **Do:** Pick Purple (in the Sticky tool's palette or on a sticky's toolbar). Reload the page. Press `N` and click the board.
+- **You should see:** The new sticky is purple. (The colour is remembered in this browser for your account, so another browser starts again at yellow.)
+- Also checked automatically by: `src/components/storms/creation-color.test.ts` (the stored value survives a new store; a corrupt value gives Yellow); `src/components/storms/engine/store.test.ts`.
+- Browser check: Not yet.
+- [ ] Pass  [ ] Fail   Notes:
+
+**13c. First use** _(storm-board, Sticky colour on creation: First use)_
+- **Do:** Use a browser or private window where you have never picked a colour in Storms (or ask the developer to clear the site data for the app). Press `N` and click the board.
+- **You should see:** The new sticky is yellow, and Yellow is the marked colour in the palette.
+- Also checked automatically by: `src/components/storms/creation-color.test.ts` (first use gives Yellow).
 - Browser check: Not yet.
 - [ ] Pass  [ ] Fail   Notes:
 
@@ -180,8 +209,29 @@ These five protect the server. A web page cannot send a bad request, so there is
 
 **23. Swatch names on hover** _(extra: every swatch can be told apart)_
 - **Do:** Open the palette and rest the mouse on each of a few swatches for a second.
-- **You should see:** A small label with the colour's name (for example "Light blue") shows for each. Check that you can tell the 12 apart, including Orange from Brown.
+- **You should see:** A small label with the colour's name (for example "Light blue") shows for each. Check that you can tell the 13 apart, especially the close pairs: Yellow and Light yellow, Pink and Magenta, Lavender and Purple, Sky blue and Light blue.
 - Also checked automatically by: `src/components/storms/sticky-toolbar.dom.test.ts` (every swatch has its colour's name); the hover label itself is browser only.
+- Browser check: Not yet.
+- [ ] Pass  [ ] Fail   Notes:
+
+**23a. Sticky tool palette on a short window** _(extra: the palette fits above the toolbar)_
+- **Do:** Make the browser window short (about 500 px high, or zoom the browser page in to 200%). Click the Sticky button.
+- **You should see:** The palette shows 4 colours per row instead of 2, so all 13 fit on screen without being cut off or covered by the top of the window.
+- Also checked automatically by: `src/components/storms/sticky-tool-palette.dom.test.ts` (4 per row when 2 per row would not fit); the real layout is browser only.
+- Browser check: Not yet.
+- [ ] Pass  [ ] Fail   Notes:
+
+**23b. Tooltip does not hide the palette** _(extra: the Sticky button's tooltip)_
+- **Do:** Hover the Sticky button for a second, then click it and keep the mouse on the button.
+- **You should see:** The "Sticky" tooltip does not sit on top of the palette or hide any swatch. Move the mouse onto the palette: it stays open.
+- Also checked automatically by: browser only.
+- Browser check: Not yet.
+- [ ] Pass  [ ] Fail   Notes:
+
+**23c. Keyboard open and mouse open** _(extra: where focus goes)_
+- **Do:** First with the mouse: click the Sticky button, then press the arrow keys. Press Esc. Then with the keyboard only: Tab to the Sticky button, press Enter, use the arrows, press Enter on a colour, press Esc.
+- **You should see:** After a mouse open the arrow keys still move through the swatches (the first key moves the focus ring to the current colour). After a keyboard open focus starts on the current swatch, Enter picks it and the tool stays on, and Esc closes the palette and turns the tool off. Pressing `N` afterwards does not drag focus into the palette.
+- Also checked automatically by: `src/components/storms/sticky-tool-palette.dom.test.ts` (keyboard path; keyboard open is decided by the click, not by focus); the real focus ring is browser only.
 - Browser check: Not yet.
 - [ ] Pass  [ ] Fail   Notes:
 
