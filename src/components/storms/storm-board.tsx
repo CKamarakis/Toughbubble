@@ -179,7 +179,7 @@ export default function StormBoard(props: StormBoardProps) {
             onExit={() => boxRef.current?.focus({ preventScroll: true })}
           />
           <StickyToolbar store={store} getViewport={getViewport} size={size} />
-          <StormToolbar store={store} />
+          <StormToolbar store={store} focusBoard={() => boxRef.current?.focus({ preventScroll: true })} />
           <ZoomControl store={store} getViewport={getViewport} />
         </>
       )}

@@ -1,12 +1,11 @@
 "use client";
 
-import { Check } from "lucide-react";
 import { useEffect, useId, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import { Button } from "@/components/ui/button";
 import { boardToScreen } from "@/lib/storms/camera";
 import type { Rect, Size, Sticky } from "@/lib/storms/model";
-import { colorOf, STICKY_COLORS } from "@/lib/storms/palette";
-import { cn } from "cn";
+import { colorOf } from "@/lib/storms/palette";
+import { ColorGrid, GRID_KEYS, type ColorGridHandle } from "./color-grid";
 import type { StormStore } from "./engine/store";
 import { BoardTip, keepFocus } from "./storm-toolbar";
 
@@ -16,13 +15,10 @@ const GAP = 8;
 const EDGE = 8;
 /** Screen px between the toolbar and its palette. */
 const PALETTE_GAP = 4;
-const COLUMNS = 4;
 /** Sizes used until the real ones are measured (and in tests, where nothing has a size). */
 const TOOLBAR_SIZE: Size = { w: 42, h: 42 };
 const PALETTE_SIZE: Size = { w: 178, h: 178 };
 
-/** Keys the open palette takes from the board. */
-const PALETTE_KEYS = new Set(["ArrowRight", "ArrowLeft", "ArrowDown", "ArrowUp", "Home", "End", "Enter", " "]);
 /** Board shortcuts that must not act while the palette is open (lower case). */
 const BOARD_KEYS = new Set(["delete", "backspace", "n"]);
 
@@ -85,15 +81,13 @@ function Bar({ store, sticky, rect, vp }: { store: StormStore; sticky: Sticky; r
   const barRef = useRef<HTMLDivElement>(null);
   const paletteRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
-  const swatchRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const gridRef = useRef<ColorGridHandle>(null);
   const [tb, setTb] = useState(TOOLBAR_SIZE);
   const [ps, setPs] = useState(PALETTE_SIZE);
   /** Open, and whether the keyboard opened it (then focus moves into the palette). */
   const [open, setOpen] = useState<null | { keyboard: boolean }>(null);
   const paletteId = useId();
   const current = colorOf(sticky);
-  const currentIndex = STICKY_COLORS.indexOf(current);
-  const [focusIndex, setFocusIndex] = useState(currentIndex);
 
   // Real sizes, once rendered; the fallbacks stand in before (and where layout gives none).
   useLayoutEffect(() => {
@@ -104,13 +98,6 @@ function Bar({ store, sticky, rect, vp }: { store: StormStore; sticky: Sticky; r
     measure(barRef.current, tb, setTb);
     measure(paletteRef.current, ps, setPs);
   }, [open, tb, ps]);
-
-  // Opened by the keyboard: focus the current colour.
-  useEffect(() => {
-    if (open?.keyboard) swatchRefs.current[currentIndex]?.focus();
-    // Only when the palette opens.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
 
   // Esc closes from anywhere (a palette opened with the mouse leaves focus on the board);
   // a press outside the toolbar closes it.
@@ -125,11 +112,10 @@ function Bar({ store, sticky, rect, vp }: { store: StormStore; sticky: Sticky; r
       const inside = barRef.current?.parentElement?.contains(e.target as Node);
       // The palette's own keys, pressed while focus is still on the board (a mouse open):
       // move focus to the current colour and act from there.
-      if (!inside && !e.ctrlKey && !e.metaKey && !e.altKey && PALETTE_KEYS.has(e.key)) {
+      if (!inside && !e.ctrlKey && !e.metaKey && !e.altKey && GRID_KEYS.has(e.key)) {
         e.preventDefault();
         e.stopPropagation();
-        swatchRefs.current[currentIndex]?.focus({ preventScroll: true });
-        paletteKey(e.key, currentIndex);
+        gridRef.current?.key(e.key);
         return;
       }
       // Board shortcuts stay off while the palette is open.
@@ -148,7 +134,6 @@ function Bar({ store, sticky, rect, vp }: { store: StormStore; sticky: Sticky; r
       document.removeEventListener("pointerdown", onPointerDown, true);
     };
     // Handlers read the current sticky through the closure; the Bar is keyed per sticky.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   const place = placeToolbar(rect, tb, vp);
@@ -162,41 +147,11 @@ function Bar({ store, sticky, rect, vp }: { store: StormStore; sticky: Sticky; r
     if (inside) buttonRef.current?.focus();
   }
   function openPalette(keyboard: boolean) {
-    setFocusIndex(currentIndex);
     setOpen({ keyboard });
   }
   function pick(hex: string) {
     store.setColor(sticky.id, hex);
     close();
-  }
-  function moveFocus(to: number) {
-    const n = STICKY_COLORS.length;
-    const i = ((to % n) + n) % n;
-    setFocusIndex(i);
-    swatchRefs.current[i]?.focus();
-  }
-  /** Acts on a palette key at swatch `i`; false when the key is not the palette's. */
-  function paletteKey(key: string, i: number): boolean {
-    const moves: Record<string, number> = {
-      ArrowRight: i + 1,
-      ArrowLeft: i - 1,
-      ArrowDown: i + COLUMNS,
-      ArrowUp: i - COLUMNS,
-      Home: 0,
-      End: STICKY_COLORS.length - 1,
-    };
-    if (key in moves) {
-      moveFocus(moves[key]);
-      return true;
-    }
-    if (key === "Enter" || key === " ") {
-      pick(STICKY_COLORS[i].hex);
-      return true;
-    }
-    return false;
-  }
-  function onSwatchKey(e: React.KeyboardEvent, i: number) {
-    if (paletteKey(e.key, i)) e.preventDefault();
   }
 
   return (
@@ -249,36 +204,8 @@ function Bar({ store, sticky, rect, vp }: { store: StormStore; sticky: Sticky; r
             if (!e.currentTarget.parentElement?.contains(e.relatedTarget as Node | null)) setOpen(null);
           }}
         >
-          <div role="radiogroup" aria-label="Sticky colour" className="grid grid-cols-4 gap-2">
-            {STICKY_COLORS.map((c, i) => {
-              const checked = c.hex === current.hex;
-              return (
-                <button
-                  key={c.id}
-                  ref={(el) => {
-                    swatchRefs.current[i] = el;
-                  }}
-                  type="button"
-                  role="radio"
-                  aria-checked={checked}
-                  aria-label={c.name}
-                  title={c.name}
-                  tabIndex={i === focusIndex ? 0 : -1}
-                  // Enter/Space pick on keydown (which stops the native click); this is a mouse click.
-                  onClick={() => pick(c.hex)}
-                  onKeyDown={(e) => onSwatchKey(e, i)}
-                  onFocus={() => setFocusIndex(i)}
-                  className={cn(
-                    "flex size-8 items-center justify-center rounded-full border outline-none transition-transform duration-100 hover:scale-110 focus-visible:ring-3 focus-visible:ring-ring/50 motion-reduce:transition-none motion-reduce:hover:scale-100",
-                    c.hex === "#FFFFFF" ? "border-[#D9D8D3]" : "border-black/15",
-                  )}
-                  style={{ background: c.hex }}
-                >
-                  {checked && <Check aria-hidden className="size-4" strokeWidth={3} style={{ color: c.ink }} />}
-                </button>
-              );
-            })}
-          </div>
+          {/* Esc is handled by the document listener above (from the board or the palette). */}
+          <ColorGrid ref={gridRef} label="Sticky colour" value={current.hex} columns={4} autoFocus={open.keyboard} onPick={pick} />
         </div>
       )}
     </div>
