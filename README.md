@@ -244,14 +244,32 @@ and is blocked from `src/` by a lint rule; it is for migrations, tests, and back
   the board, not lost, and long text scrolls inside the editor. The size is saved with the sticky
   (`fontSize`); a sticky from before that is fitted when drawn and gets its size saved the next time
   it changes. Rules: `fitFontSize` in `src/lib/storms/text-layout.ts`.
-- **Sticky colours.** 12 presets (Yellow, the default, Orange, Red, Pink, Purple, Light blue, Dark blue,
-  Light green, Dark green, Brown, Black, White), defined with their text colours in
-  `src/lib/storms/palette.ts`; text is white on Dark blue, Dark green and Black, and White has a thin
-  border. Saved as `color` (preset hex only: the server refuses any other); none means Yellow. Changing
-  a colour is one undo step.
+- **Sticky colours.** 13 presets (Yellow, the default, Light yellow, Pink, Magenta, Lavender, Purple,
+  Sky blue, Light blue, Dark blue, Light green, Dark green, Black, White), defined with their text
+  colours in `src/lib/storms/palette.ts`; text is white on Dark blue, Dark green and Black, and White
+  has a thin border. Saved as `color` (preset hex only: the server refuses any other); none means
+  Yellow. Changing a colour is one undo step. A sticky saved with a colour from the first palette
+  shows in the nearest preset (Orange and Brown as Light yellow, Red and the old Pink as Pink); this
+  writes nothing on open and is saved with the sticky's next change.
+- **Colour for new stickies.** Clicking Sticky (or pressing `N`) opens a palette next to the Sticky
+  button (2 per row, the current colour marked). Picking a colour there keeps the tool on; the next
+  click on the board places a sticky in that colour and the palette closes (Esc closes it and turns
+  the tool off). New stickies use the last colour picked, in this palette or the sticky toolbar's. It
+  is remembered per user in this browser (`localStorage`, `storm-sticky-color:<userId>`; not synced
+  across devices) and starts as Yellow (`creation-color.ts`).
+- **Copy, paste and duplicate** (one sticky). With the board focused and no text being edited:
+  Ctrl or ⌘ + `C` copies the selected sticky (text, colour, size); Ctrl or ⌘ + `V` pastes a copy
+  centred on the pointer, or at the centre of the view if the pointer is not over the board, in the
+  same Storm, another Storm or another tab; Ctrl or ⌘ + `D` duplicates it 20 px to its right (and, with
+  a sticky selected, keeps the browser's bookmark dialog closed). Text copied from elsewhere pastes
+  as a new sticky (first 500 characters) in the colour for new stickies. Each paste or duplicate is
+  one undo step and leaves the new sticky on top and selected. While typing in a sticky these keys
+  act on the text; while the colour palette is open they do nothing to the board. Rules:
+  `src/lib/storms/clipboard.ts`; a copy carries `text/plain` plus
+  `application/x-toughbubble-sticky+json`.
 - **Sticky toolbar** (`sticky-toolbar.tsx`). With exactly one sticky selected, a small toolbar sits
   centred above it (below when there is no room), follows it while the board pans and zooms, and hides
-  while you type, drag, or pan. Its Colour button opens the palette. Keyboard: Tab to the button (after
+  while you type, drag, or pan. Its Colour button opens the palette (4 swatches per row). Keyboard: Tab to the button (after
   the board), Enter or Space opens it, arrow keys, Home and End move between swatches, Enter or Space
   picks, Esc closes. With the palette open, those keys go to the palette even after a mouse click on the button, and Delete, N and undo do not act on the board. After Esc or a pick, focus returns to the button if it was inside the palette; after a mouse open it stays on the board. Clicking the toolbar does not deselect the sticky.
 - **Saving.** Like notes, but only the items changed since the last save go out (a change set plus the
