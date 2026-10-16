@@ -9,6 +9,7 @@ import { attachInput } from "./engine/input";
 import { createRenderer } from "./engine/renderer";
 import { createStormStore, type StormStore } from "./engine/store";
 import { StickyTextOverlay } from "./sticky-text-overlay";
+import { StickyToolbar } from "./sticky-toolbar";
 import type { History } from "@/lib/storms/history";
 import { StormToolbar } from "./storm-toolbar";
 import { loadUndo, saveUndo, withTimeout } from "./undo-store";
@@ -169,6 +170,7 @@ export default function StormBoard(props: StormBoardProps) {
             getViewport={getViewport}
             onExit={() => boxRef.current?.focus({ preventScroll: true })}
           />
+          <StickyToolbar store={store} getViewport={getViewport} />
           <StormToolbar store={store} />
           <ZoomControl store={store} getViewport={getViewport} />
         </>

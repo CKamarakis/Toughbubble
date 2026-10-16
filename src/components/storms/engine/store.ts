@@ -32,6 +32,8 @@ export type Snapshot = {
   selectedId: string | null;
   editingId: string | null;
   dragPreview: DragPreview | null;
+  /** A pan drag (right button, or Space + left) is in progress; the sticky toolbar hides meanwhile. */
+  panning: boolean;
   canUndo: boolean;
   canRedo: boolean;
   revision: number;
@@ -58,6 +60,7 @@ export type StormStore = {
   select(id: string | null): void;
   /** Shows a dragged sticky at an offset without committing or saving anything. */
   setDragPreview(p: DragPreview | null): void;
+  setPanning(panning: boolean): void;
   startEdit(id: string): void;
   /**
    * Commits the text and its fitted size (with the measure from `setMeasure`; none
@@ -132,6 +135,7 @@ export function createStormStore(init: {
     selectedId: null,
     editingId: null,
     dragPreview: null,
+    panning: false,
   };
   let history = init.history ?? EMPTY_HISTORY;
   let snapshot = build(0);
@@ -281,6 +285,9 @@ export function createStormStore(init: {
     },
     setDragPreview(p) {
       update({ dragPreview: p });
+    },
+    setPanning(panning) {
+      if (panning !== state.panning) update({ panning });
     },
     startEdit(id) {
       if (id === state.editingId) return;

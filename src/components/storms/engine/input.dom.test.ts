@@ -245,6 +245,22 @@ describe("attachInput item interactions", () => {
     expect(store.getHistory().undo).toHaveLength(0);
   });
 
+  it("a pan drag (right button, or Space + left) sets panning until it ends", () => {
+    setup(true);
+    expect(store.getSnapshot().panning).toBe(false);
+    ptr("pointerdown", { ...at(0, 0), button: 2 });
+    expect(store.getSnapshot().panning).toBe(true);
+    ptr("pointermove", { ...at(50, 0), button: 2 });
+    ptr("pointerup", { ...at(50, 0), button: 2 });
+    expect(store.getSnapshot().panning).toBe(false);
+    key(el, { key: " " });
+    ptr("pointerdown", at(0, 0));
+    expect(store.getSnapshot().panning).toBe(true);
+    ptr("pointercancel", at(0, 0));
+    expect(store.getSnapshot().panning).toBe(false);
+    window.dispatchEvent(new KeyboardEvent("keyup", { key: " " }));
+  });
+
   it("Space takes precedence over select/drag; other buttons do not select", () => {
     setup(true);
     key(el, { key: " " });

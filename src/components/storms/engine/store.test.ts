@@ -607,3 +607,18 @@ describe("setColor", () => {
     expect(validateChangeSet(emitted[0]).ok).toBe(true);
   });
 });
+
+describe("panning", () => {
+  it("setPanning changes the snapshot without history or emit, and only when it changes", () => {
+    const { store, emitted, notified } = setup();
+    expect(store.getSnapshot().panning).toBe(false);
+    store.setPanning(true);
+    store.setPanning(true);
+    expect(store.getSnapshot().panning).toBe(true);
+    expect(notified()).toBe(1);
+    store.setPanning(false);
+    expect(store.getSnapshot().panning).toBe(false);
+    expect(emitted).toEqual([]);
+    expect(store.getHistory().undo).toHaveLength(0);
+  });
+});

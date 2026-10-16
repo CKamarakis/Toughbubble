@@ -100,3 +100,30 @@ describe("StormBoard conflict bar", () => {
     await act(async () => again.unmount());
   });
 });
+
+describe("StormBoard sticky toolbar", () => {
+  it("shows the sticky toolbar for a selected sticky, inside the board's light scope", async () => {
+    const host = document.createElement("div");
+    document.body.append(host);
+    const root = createRoot(host);
+    await act(async () => {
+      root.render(
+        createElement(StormBoard, {
+          itemId: "bench",
+          initial: {
+            body: { schema: 1, items: { a: { id: "a", type: "sticky", x: 0, y: 0, z: "a0", w: 200, h: 200, text: "" } } },
+            version: 0,
+          },
+          userId: "bench",
+          onStatus: () => {},
+          readOnly: true,
+        }),
+      );
+    });
+    const find = () => host.querySelector('[role="toolbar"][aria-label="Sticky tools"]');
+    expect(find()).toBeNull();
+    await act(async () => window.__stormBench!.store.select("a"));
+    expect(find()?.closest(".light")).not.toBeNull();
+    await act(async () => root.unmount());
+  });
+});

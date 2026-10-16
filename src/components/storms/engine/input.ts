@@ -195,6 +195,7 @@ export function attachInput(
     drag = { pointerId: e.pointerId, button: e.button, x: e.clientX, y: e.clientY };
     el.setPointerCapture(e.pointerId);
     updateCursor();
+    store.setPanning(true);
   };
   /** Left button: Space pans, the Sticky tool places, the Select tool selects and drags. */
   const primaryDown = (e: PointerEvent) => {
@@ -304,6 +305,7 @@ export function attachInput(
     if (el.hasPointerCapture(drag.pointerId)) el.releasePointerCapture(drag.pointerId);
     drag = null;
     updateCursor();
+    store.setPanning(false);
   };
   const endDrag = (e: PointerEvent) => {
     if (itemDrag && e.pointerId === itemDrag.pointerId) return finishItemDrag(e.type === "pointerup");
@@ -427,5 +429,6 @@ export function attachInput(
     window.removeEventListener("keyup", onKeyUp);
     el.style.cursor = "";
     if (itemDrag) store.setDragPreview(null);
+    if (drag) store.setPanning(false);
   };
 }
