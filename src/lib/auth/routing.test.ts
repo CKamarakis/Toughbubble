@@ -42,6 +42,25 @@ describe("decideRoute", () => {
     expect(decideRoute("/reset-password", "", true)).toEqual({ type: "next", isProtected: true });
   });
 
+  describe("password reset pending", () => {
+    it("keeps a user who came from a reset link on reset-password", () => {
+      for (const path of ["/", "/items/abc", "/settings", ...GUEST_PAGES]) {
+        expect(decideRoute(path, "", true, true)).toEqual({ type: "redirect", to: "/reset-password" });
+      }
+    });
+
+    it("lets them reach reset-password and the auth routes (sign-out)", () => {
+      expect(decideRoute("/reset-password", "", true, true)).toEqual({ type: "next", isProtected: true });
+      for (const path of AUTH_ROUTES) {
+        expect(decideRoute(path, "", true, true)).toEqual({ type: "next", isProtected: false });
+      }
+    });
+
+    it("ignores the flag without a session", () => {
+      expect(decideRoute("/", "", false, true)).toEqual({ type: "redirect", to: "/sign-in" });
+    });
+  });
+
   it("does not treat look-alike paths as public", () => {
     expect(decideRoute("/sign-in-other", "", false).type).toBe("redirect");
     expect(decideRoute("/auth/callbackx", "", false).type).toBe("redirect");

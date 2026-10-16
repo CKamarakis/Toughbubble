@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { safeNextPath } from "@/lib/auth/redirect";
-import { SIGN_IN_PATH } from "@/lib/auth/routing";
+import { markResetPending } from "@/lib/auth/reset-pending";
+import { RESET_PASSWORD_PATH, SIGN_IN_PATH } from "@/lib/auth/routing";
 import { createClient } from "@/lib/supabase/server";
 
 // Fallback for email links that carry a PKCE `code` (Supabase's default
@@ -15,7 +16,9 @@ export async function GET(request: NextRequest) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
-      return NextResponse.redirect(new URL(next, origin));
+      const response = NextResponse.redirect(new URL(next, origin));
+      if (next === RESET_PASSWORD_PATH) markResetPending(response);
+      return response;
     }
   }
 

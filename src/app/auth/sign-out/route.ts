@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { SIGN_IN_PATH } from "@/lib/auth/routing";
+import { RESET_PENDING_COOKIE, SIGN_IN_PATH } from "@/lib/auth/routing";
 import { createClient } from "@/lib/supabase/server";
 
 // A plain form POST, so the browser does a full page load to sign-in and no
@@ -7,5 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
   await supabase.auth.signOut();
-  return NextResponse.redirect(new URL(SIGN_IN_PATH, request.nextUrl.origin), { status: 303 });
+  const response = NextResponse.redirect(new URL(SIGN_IN_PATH, request.nextUrl.origin), { status: 303 });
+  response.cookies.delete(RESET_PENDING_COOKIE);
+  return response;
 }

@@ -1,9 +1,9 @@
 "use server";
 
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { safeNextPath } from "@/lib/auth/redirect";
-import { RESET_PASSWORD_PATH } from "@/lib/auth/routing";
+import { RESET_PASSWORD_PATH, RESET_PENDING_COOKIE } from "@/lib/auth/routing";
 import { looksLikeEmail, passwordProblem } from "@/lib/auth/validation";
 import { createClient } from "@/lib/supabase/server";
 
@@ -176,5 +176,6 @@ export async function updatePassword(
     logUnexpected("update-password", error);
     return { error: "Could not update your password. Please try again." };
   }
+  (await cookies()).delete(RESET_PENDING_COOKIE);
   redirect("/");
 }

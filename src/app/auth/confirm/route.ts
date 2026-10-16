@@ -1,6 +1,7 @@
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 import { safeNextPath } from "@/lib/auth/redirect";
+import { markResetPending } from "@/lib/auth/reset-pending";
 import { RESET_PASSWORD_PATH, SIGN_IN_PATH } from "@/lib/auth/routing";
 import { createClient } from "@/lib/supabase/server";
 
@@ -20,7 +21,9 @@ export async function GET(request: NextRequest) {
     if (!error) {
       const fallback = type === "recovery" ? RESET_PASSWORD_PATH : "/";
       const next = searchParams.has("next") ? safeNextPath(searchParams.get("next")) : fallback;
-      return NextResponse.redirect(new URL(next, origin));
+      const response = NextResponse.redirect(new URL(next, origin));
+      if (type === "recovery") markResetPending(response);
+      return response;
     }
   }
 

@@ -1,6 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { decideRoute } from "@/lib/auth/routing";
+import { decideRoute, RESET_PENDING_COOKIE } from "@/lib/auth/routing";
 
 // Runs before every matched request: refreshes the Supabase session cookie and
 // keeps visitors without a session out of the workspace. Pages and data
@@ -34,7 +34,8 @@ export async function proxy(request: NextRequest) {
   const signedIn = Boolean(data?.claims);
 
   const { pathname, search } = request.nextUrl;
-  const decision = decideRoute(pathname, search, signedIn);
+  const resetPending = request.cookies.has(RESET_PENDING_COOKIE);
+  const decision = decideRoute(pathname, search, signedIn, resetPending);
 
   if (decision.type === "redirect") {
     const redirect = NextResponse.redirect(new URL(decision.to, request.url));

@@ -3,6 +3,13 @@ export const SIGN_UP_PATH = "/sign-up";
 export const FORGOT_PASSWORD_PATH = "/forgot-password";
 export const RESET_PASSWORD_PATH = "/reset-password";
 
+// Set when a password-reset email link signs the user in; cleared once the new
+// password is saved or they sign out. While set, the workspace stays closed.
+// A guard for the normal flow, not a security boundary: whoever holds the email
+// link can set a password anyway.
+export const RESET_PENDING_COOKIE = "tb-reset-pending";
+export const RESET_PENDING_MAX_AGE = 60 * 60 * 24;
+
 // Pages only for visitors without a session; signed-in users go to the workspace.
 const GUEST_ONLY_PATHS = [SIGN_IN_PATH, SIGN_UP_PATH, FORGOT_PASSWORD_PATH];
 
@@ -19,12 +26,23 @@ export type RouteDecision =
 const matches = (paths: string[], pathname: string) =>
   paths.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 
-/** Where a request should go, given whether it carries a valid session. */
+/**
+ * Where a request should go, given whether it carries a valid session and
+ * whether a password reset is still pending.
+ */
 export function decideRoute(
   pathname: string,
   search: string,
   signedIn: boolean,
+  resetPending = false,
 ): RouteDecision {
+  if (
+    signedIn &&
+    resetPending &&
+    !matches([RESET_PASSWORD_PATH, "/auth"], pathname)
+  ) {
+    return { type: "redirect", to: RESET_PASSWORD_PATH };
+  }
   if (signedIn && matches(GUEST_ONLY_PATHS, pathname)) {
     return { type: "redirect", to: "/" };
   }
