@@ -115,23 +115,54 @@ function withText(item: Item, text: string, fontSize: number | undefined): Item 
 }
 
 /**
- * Brings a board that enters the store up to today's rules, so later change sets validate:
- * text over MAX_TEXT (saved before the limit dropped) is clamped, and a clamped sticky's
- * stored size no longer matches, so it is fitted again; a colour removed from the palette
- * becomes its nearest preset (D5). Nothing is written: the fixed sticky is saved with its
- * next change (whole-item upserts).
+ * An item brought up to today's rules, so change sets that carry it validate: text over
+ * MAX_TEXT (saved before the limit dropped) is clamped, and a clamped sticky's stored size
+ * no longer matches, so it is fitted again; a colour removed from the palette becomes its
+ * nearest preset (D5). The same item when nothing needs fixing.
+ */
+function normalizeItem(item: Item): Item {
+  let next = item;
+  if (next.text.length > MAX_TEXT) next = withText(next, next.text.slice(0, MAX_TEXT), undefined);
+  if (next.color !== undefined && currentHex(next.color) !== next.color) next = { ...next, color: currentHex(next.color) };
+  return next;
+}
+
+/**
+ * Normalises a board that enters the store (`normalizeItem`). Nothing is written: a fixed
+ * sticky is saved with its next change (whole-item upserts).
  */
 function clampItems(items: Items): Items {
   let out: Items | null = null;
   for (const [id, item] of Object.entries(items)) {
-    let next = item;
-    if (next.text.length > MAX_TEXT) next = withText(next, next.text.slice(0, MAX_TEXT), undefined);
-    if (next.color !== undefined && currentHex(next.color) !== next.color) next = { ...next, color: currentHex(next.color) };
+    const next = normalizeItem(item);
     if (next === item) continue;
     out ??= { ...items };
     out[id] = next;
   }
   return out ?? items;
+}
+
+/**
+ * Normalises the upserts of a history restored from a reload (saved before a rule changed),
+ * so an undo or redo never puts a removed colour or over-long text back on the board.
+ * The same history when nothing needs fixing.
+ */
+function clampHistory(h: History): History {
+  let changed = false;
+  const fixSet = (cs: ChangeSet): ChangeSet => {
+    const upsert = cs.upsert.map(normalizeItem);
+    if (upsert.every((item, i) => item === cs.upsert[i])) return cs;
+    changed = true;
+    return { ...cs, upsert };
+  };
+  const fixSteps = (steps: Step[]) =>
+    steps.map((s) => {
+      const d = fixSet(s.do);
+      const u = fixSet(s.undo);
+      return d === s.do && u === s.undo ? s : { do: d, undo: u };
+    });
+  const out = { undo: fixSteps(h.undo), redo: fixSteps(h.redo) };
+  return changed ? out : h;
 }
 
 const sameCamera = (a: Camera, b: Camera) => a.x === b.x && a.y === b.y && a.zoom === b.zoom;
@@ -154,7 +185,7 @@ export function createStormStore(init: {
     creationColor:
       init.creationColor && PRESET_HEXES.has(init.creationColor) ? init.creationColor : DEFAULT_STICKY_COLOR,
   };
-  let history = init.history ?? EMPTY_HISTORY;
+  let history = init.history ? clampHistory(init.history) : EMPTY_HISTORY;
   let snapshot = build(0);
   /** The edited sticky as it was when the edit session started. */
   let editBefore: Item | null = null;

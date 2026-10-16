@@ -42,12 +42,14 @@ afterEach(() => {
   host.remove();
 });
 
-/** What a mouse click does: mousedown (its default may move focus), then click. */
+/** What a mouse click does: mousedown (its default may move focus), then a click with a click count. */
 function mouseClick(btn: HTMLElement) {
   const down = new MouseEvent("mousedown", { bubbles: true, cancelable: true });
   btn.dispatchEvent(down);
   if (!down.defaultPrevented) btn.focus();
-  act(() => btn.click());
+  act(() => {
+    btn.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, detail: 1 }));
+  });
 }
 const press = (k: string) =>
   board.dispatchEvent(new KeyboardEvent("keydown", { key: k, bubbles: true, cancelable: true }));

@@ -21,19 +21,17 @@ export function BoardTip({ label, children }: { label: string; children: React.R
 export const keepFocus = (e: React.MouseEvent) => e.preventDefault();
 
 type ToolButton = {
-  ref?: React.Ref<HTMLButtonElement>;
   label: string;
   Icon: LucideIcon;
   pressed?: boolean;
   disabled?: boolean;
-  onClick: () => void;
+  onClick: (e: React.MouseEvent) => void;
 };
 
-function ToolbarButton({ ref, label, Icon, pressed, disabled, onClick }: ToolButton) {
+function ToolbarButton({ label, Icon, pressed, disabled, onClick }: ToolButton) {
   return (
     <BoardTip label={label}>
       <Button
-        ref={ref}
         variant={pressed ? "secondary" : "ghost"}
         size="icon"
         aria-label={label}
@@ -51,8 +49,18 @@ function ToolbarButton({ ref, label, Icon, pressed, disabled, onClick }: ToolBut
  * Bottom-centre toolbar: Sticky, Undo, Redo; with the Sticky tool on, the palette for new
  * stickies sits above the Sticky button.
  */
-export function StormToolbar({ store, focusBoard = () => {} }: { store: StormStore; focusBoard?: () => void }) {
-  const stickyRef = useRef<HTMLButtonElement>(null);
+export function StormToolbar({
+  store,
+  focusBoard = () => {},
+  boardHeight,
+}: {
+  store: StormStore;
+  focusBoard?: () => void;
+  /** The board's height; the Sticky tool palette fits itself above the toolbar. */
+  boardHeight?: number;
+}) {
+  /** Whether the last Sticky click came from the keyboard (detail 0), not a pointer. */
+  const openedByKeyboardRef = useRef(false);
   // Primitives only, so panning and zooming do not re-render the toolbar.
   const tool = useSyncExternalStore(store.subscribe, () => store.getSnapshot().tool, () => store.getSnapshot().tool);
   const canUndo = useSyncExternalStore(store.subscribe, () => store.getSnapshot().canUndo, () => store.getSnapshot().canUndo);
@@ -60,7 +68,14 @@ export function StormToolbar({ store, focusBoard = () => {} }: { store: StormSto
   const snap = { tool, canUndo, canRedo };
   return (
     <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
-      {snap.tool === "sticky" && <StickyToolPalette store={store} anchor={stickyRef} focusBoard={focusBoard} />}
+      {snap.tool === "sticky" && (
+        <StickyToolPalette
+          store={store}
+          openedByKeyboardRef={openedByKeyboardRef}
+          focusBoard={focusBoard}
+          boardHeight={boardHeight}
+        />
+      )}
       <div
         onMouseDown={keepFocus}
         role="toolbar"
@@ -68,11 +83,14 @@ export function StormToolbar({ store, focusBoard = () => {} }: { store: StormSto
         className="flex items-center gap-1 rounded-xl border border-border bg-card p-1 shadow-md"
       >
         <ToolbarButton
-          ref={stickyRef}
           label="Sticky note (N)"
           Icon={StickyNote}
           pressed={snap.tool === "sticky"}
-          onClick={() => store.setTool(snap.tool === "sticky" ? "select" : "sticky")}
+          onClick={(e) => {
+            // A pointer click has a click count; Enter/Space or assistive tech gives 0.
+            openedByKeyboardRef.current = snap.tool !== "sticky" && e.detail === 0;
+            store.setTool(snap.tool === "sticky" ? "select" : "sticky");
+          }}
         />
         <span className="mx-0.5 h-5 w-px bg-border" aria-hidden />
         <ToolbarButton

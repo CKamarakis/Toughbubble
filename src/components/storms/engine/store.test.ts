@@ -552,6 +552,59 @@ describe("removed colours on load", () => {
   });
 });
 
+describe("restored history is brought up to today's rules", () => {
+  const ID = "11111111-1111-4111-8111-111111111111";
+  const ORANGE = "#FFDEB9";
+
+  /** A store whose saved history holds one step that turned the sticky from `before` to `after`. */
+  function restored(before: Sticky, after: Sticky) {
+    const history = pushStep(EMPTY_HISTORY, {
+      do: { upsert: [after], delete: [] },
+      undo: { upsert: [before], delete: [] },
+    });
+    return createStormStore({ body: board(after), camera, history });
+  }
+
+  it("undo of a step saved with Orange gives a change set that validates (Light yellow)", () => {
+    const store = restored(sticky(ID, { color: ORANGE, fontSize: 30 }), sticky(ID, { color: "#141310", fontSize: 30 }));
+    const emitted: ChangeSet[] = [];
+    store.onChange((cs) => emitted.push(cs));
+    store.undo();
+    expect(emitted[0].upsert[0]).toEqual(sticky(ID, { color: "#FFF0A0", fontSize: 30 }));
+    expect(validateChangeSet(emitted[0]).ok).toBe(true);
+    store.redo();
+    expect(validateChangeSet(emitted[1]).ok).toBe(true);
+  });
+
+  it("redo of a step saved with Orange validates too", () => {
+    const store = restored(sticky(ID, { fontSize: 30 }), sticky(ID, { color: ORANGE, fontSize: 30 }));
+    const emitted: ChangeSet[] = [];
+    store.onChange((cs) => emitted.push(cs));
+    store.undo();
+    store.redo();
+    expect(emitted[1].upsert[0].color).toBe("#FFF0A0");
+    expect(emitted.every((cs) => validateChangeSet(cs).ok)).toBe(true);
+  });
+
+  it("undo of a step saved with 600 characters is clamped to 500, its size dropped, and validates", () => {
+    const store = restored(sticky(ID, { text: "x".repeat(600), fontSize: 8 }), sticky(ID, { text: "short", fontSize: 64 }));
+    const emitted: ChangeSet[] = [];
+    store.onChange((cs) => emitted.push(cs));
+    store.undo();
+    expect(emitted[0].upsert[0].text).toHaveLength(500);
+    expect("fontSize" in emitted[0].upsert[0]).toBe(false);
+    expect(validateChangeSet(emitted[0]).ok).toBe(true);
+  });
+
+  it("a history with nothing to fix is kept as is", () => {
+    const history = pushStep(EMPTY_HISTORY, {
+      do: { upsert: [sticky(ID, { color: "#141310" })], delete: [] },
+      undo: { upsert: [sticky(ID)], delete: [] },
+    });
+    expect(createStormStore({ body: board(), camera, history }).getHistory()).toBe(history);
+  });
+});
+
 describe("getHistoryForPersist", () => {
   it("is the history itself when no edit is open", () => {
     const { store } = setup();

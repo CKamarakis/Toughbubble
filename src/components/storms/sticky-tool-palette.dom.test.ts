@@ -203,3 +203,52 @@ describe("Sticky tool palette", () => {
     expect(palette()!.closest(".light")).toBe(surface);
   });
 });
+
+describe("Sticky tool palette on a short board", () => {
+  const render = (boardHeight: number) =>
+    act(() => root.render(createElement(StormToolbar, { store, focusBoard: () => board.focus(), boardHeight })));
+  const dialog = () => host.querySelector<HTMLElement>('[role="dialog"][aria-label="Colour for new stickies"]')!;
+
+  it("2 per row when the board is tall enough", () => {
+    render(800);
+    mouseClick(stickyButton());
+    expect(palette()!.className).toContain("grid-cols-2");
+    expect(dialog().style.maxHeight).toBe("");
+  });
+
+  it("4 per row when 2 per row would not fit above the toolbar", () => {
+    render(320);
+    mouseClick(stickyButton());
+    expect(palette()!.className).toContain("grid-cols-4");
+    expect(dialog().style.maxHeight).toBe("");
+  });
+
+  it("capped and scrolling when even 4 per row would not fit", () => {
+    render(200);
+    mouseClick(stickyButton());
+    expect(palette()!.className).toContain("grid-cols-4");
+    expect(dialog().style.maxHeight).toBe(`${200 - 74}px`);
+    expect(dialog().className).toContain("overflow-y-auto");
+  });
+});
+
+describe("Sticky tool palette: keyboard open is decided by the click, not by focus", () => {
+  it("a mouse click on the Sticky button while it has keyboard focus leaves focus on the button", () => {
+    act(() => stickyButton().focus());
+    mouseClick(stickyButton());
+    expect(palette()).not.toBeNull();
+    expect(document.activeElement).toBe(stickyButton());
+  });
+
+  it("N after a keyboard open and Esc does not move focus into the palette", () => {
+    act(() => stickyButton().focus());
+    act(() => {
+      stickyButton().dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, detail: 0 }));
+    });
+    expect(document.activeElement).toBe(swatch("Yellow"));
+    keydown(document.activeElement!, "Escape");
+    keydown(board, "n");
+    expect(palette()).not.toBeNull();
+    expect(document.activeElement).toBe(board);
+  });
+});
