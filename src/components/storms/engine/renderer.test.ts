@@ -104,7 +104,7 @@ describe("createRenderer selection outline", () => {
       expect(strokeRects.at(-1)).toEqual({
         style: "#F700A8",
         width: 1,
-        args: [left - 5, top - 5, 200 * zoom + 10, 200 * zoom + 10],
+        args: [left - 5.5, top - 5.5, 200 * zoom + 11, 200 * zoom + 11],
       });
     }
   });

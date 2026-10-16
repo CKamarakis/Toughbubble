@@ -140,7 +140,8 @@ export function createRenderer(
     const selected = found && shift(found);
     if (selected) {
       const p = boardToScreen(camera, size, selected);
-      const g = SELECTION.gap;
+      // Centre the 1 px line half a pixel further out so its inner edge is exactly `gap` from the sticky.
+      const g = SELECTION.gap + SELECTION.width / 2;
       ctx.strokeStyle = SELECTION.colour;
       ctx.lineWidth = SELECTION.width;
       ctx.strokeRect(p.x - g, p.y - g, selected.w * z + 2 * g, selected.h * z + 2 * g);
