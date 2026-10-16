@@ -133,6 +133,7 @@ The board container has a `light` class that sets the light design tokens locall
 - The `item_content` body is copied with version 1; a never-written note has no row, so the copy opens empty.
 - Attachments: the body's attachment nodes are collected (`attachment-nodes.ts`), copied with the existing `copyAttachments(tx, bucket, newId, ids)`, and their ids in the copied body are replaced with the new ids before it is stored. Any attachment that fails to copy is dropped from the copy's body rather than left pointing at the original's file.
 - Storage copies happen before the transaction commits; if the transaction then fails, the copied files are orphans under the never-created item's path and are removed with `removeStoredFiles`.
+- Trade-off: the Storage copies run inside the transaction while the sibling group is locked, so duplicating a note with many attachments holds the user's group lock for a few seconds; accepted for a single-user app.
 
 ### D12: Test-round fixes (2026-10-16)
 - **Notes don't load the board (step 4 failed):** production builds never load the board on a note page (verified with Playwright and the build manifests); `npm run check:note-chunks` guards it after `npx next build`. `next dev` lists the route's async chunks up front, so a dev server shows the board chunk on a note page: expected, not a bug. The user's failure was seen on the dev server on port 3001; step 4 now says it needs a production build.
