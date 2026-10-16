@@ -16,6 +16,10 @@ export type Sticky = {
   text: string;
   parentId?: string;
   rotation?: number;
+  /** One of the preset hexes (upper case); absent = Yellow. */
+  color?: string;
+  /** Fitted font size in board px, whole 8-64; absent = fitted when drawn. */
+  fontSize?: number;
 };
 
 export type Item = Sticky;

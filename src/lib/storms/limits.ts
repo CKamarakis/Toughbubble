@@ -5,3 +5,6 @@ export const MAX_TEXT = 500;
 export const MAX_ENTRIES = 5_000;
 export const MAX_CHANGESET_BYTES = 800_000;
 export const MAX_BODY_BYTES = 2 * 1024 * 1024;
+/** Sticky text auto-fit range, in board px. */
+export const MIN_FONT_PX = 8;
+export const MAX_FONT_PX = 64;
