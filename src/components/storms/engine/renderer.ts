@@ -1,6 +1,7 @@
 import { boardToScreen, visibleRect } from "@/lib/storms/camera";
-import { byZ, STICKY, type Item, type Size } from "@/lib/storms/model";
-import { LINE_HEIGHT_RATIO, layoutSticky } from "@/lib/storms/text-layout";
+import { byZ, STICKY, type Item, type Rect, type Size } from "@/lib/storms/model";
+import { LINE_HEIGHT_RATIO, REF_FONT_PX, layoutSticky, scaleMeasure } from "@/lib/storms/text-layout";
+import { refFont } from "./font";
 import type { StormStore } from "./store";
 
 const BACKGROUND = "#F2F2F2";
@@ -8,6 +9,8 @@ const TEXT_MIN_ZOOM = 0.3;
 const SHADOW_MIN_ZOOM = 0.5;
 const SHADOW_COLOUR = "rgba(0,0,0,0.12)";
 const SELECTION = { colour: "#F700A8", width: 1, gap: 5 };
+/** Board px per cell of the grid that finds overlapping stickies while drawing. */
+const CELL = 256;
 
 export type Renderer = {
   resize(size: Size, dpr: number): void;
@@ -27,42 +30,101 @@ export function createRenderer(
   let frame = 0;
   let destroyed = false;
 
-  const font = `${STICKY.fontPx}px ${family || "sans-serif"}`;
-  const measure = (s: string) => ctx?.measureText(s).width ?? 0;
+  // Text is measured at a 100 px reference font and scaled, as the store and the text
+  // overlay measure it, so all three agree on sizes and lines.
+  const font = refFont(family);
+  const measure = scaleMeasure((s) => ctx?.measureText(s).width ?? 0);
+  /** The reference font's ascent and descent, read once the font has loaded. */
+  let metrics: { ascent: number; descent: number } | null = null;
 
-  // Wrapping measures text, which is slow; a sticky's layout changes only with its text and size.
-  type Laid = ReturnType<typeof layoutSticky> & { overflows: boolean };
+  // Wrapping and fitting measure text, which is slow; a sticky's layout changes only with
+  // its text, size and stored font size. An unsized sticky is fitted here and cached, never
+  // written to the store (its size is stored the next time its text changes).
+  type Laid = ReturnType<typeof layoutSticky> & { overflows: boolean; baseline: number };
   const layouts = new Map<string, { key: string; layout: Laid }>();
-  function layoutOf(s: Item) {
-    const key = `${s.w}|${s.h}|${s.text}`;
+  function layoutOf(s: Item): Laid {
+    const key = `${s.w}|${s.h}|${s.fontSize ?? ""}|${s.text}`;
     const hit = layouts.get(s.id);
     if (hit?.key === key) return hit.layout;
     if (layouts.size > 5000) layouts.clear();
-    // Measure in board px with the board font, then put the caller's (screen) font back.
+    // Measure in board px with the reference font, then put the caller's (screen) font back.
     const previous = ctx?.font;
     if (ctx) ctx.font = font;
+    metrics ??= readMetrics();
     const base = layoutSticky(measure, s);
-    const layout = { ...base, overflows: base.lines.some((line) => measure(line) > s.w) };
+    const layout = {
+      ...base,
+      overflows: base.lines.some((line) => measure(line, base.fontSize) > s.w),
+      baseline: baselineOffset(base.fontSize),
+    };
     if (ctx && previous !== undefined) ctx.font = previous;
     layouts.set(s.id, { key, layout });
     return layout;
   }
 
+  function readMetrics() {
+    const m = ctx?.measureText("");
+    return { ascent: m?.fontBoundingBoxAscent ?? NaN, descent: m?.fontBoundingBoxDescent ?? NaN };
+  }
+
   /**
-   * A line's baseline below its top, placed as CSS places it in a line box (half the
-   * leading above the font's ascent), so canvas text lines up with the textarea overlay.
+   * A line's baseline below its top at `fontPx`, placed as CSS places it in a line box
+   * (half the leading above the font's ascent), so canvas text lines up with the overlay.
    */
-  function baselineOffset(): number {
-    const lineHeight = STICKY.fontPx * LINE_HEIGHT_RATIO;
-    if (!ctx) return lineHeight / 2;
-    ctx.font = font;
-    const m = ctx.measureText("");
-    const ascent = m.fontBoundingBoxAscent;
-    const descent = m.fontBoundingBoxDescent;
-    if (!Number.isFinite(ascent) || !Number.isFinite(descent)) {
-      return lineHeight / 2 + STICKY.fontPx * 0.35;
+  function baselineOffset(fontPx: number): number {
+    const lineHeight = fontPx * LINE_HEIGHT_RATIO;
+    const k = fontPx / REF_FONT_PX;
+    if (!metrics || !Number.isFinite(metrics.ascent) || !Number.isFinite(metrics.descent)) {
+      return lineHeight / 2 + fontPx * 0.35;
     }
-    return (lineHeight - (ascent + descent)) / 2 + ascent;
+    return (lineHeight - (metrics.ascent + metrics.descent) * k) / 2 + metrics.ascent * k;
+  }
+
+  type TextJob = { s: Item; p: { x: number; y: number }; layout: Laid };
+
+  /**
+   * Draws the queued text grouped by size, so `ctx.font` is set once per size rather than
+   * per sticky (changing the font is slow). Drawn at the screen size rather than scaled
+   * by a transform, as the textarea overlay is.
+   */
+  function drawText(jobs: TextJob[], z: number) {
+    if (!ctx || jobs.length === 0) return;
+    const bySize = new Map<number, TextJob[]>();
+    for (const job of jobs) {
+      const group = bySize.get(job.layout.fontSize);
+      if (group) group.push(job);
+      else bySize.set(job.layout.fontSize, [job]);
+    }
+    ctx.fillStyle = STICKY.text;
+    for (const [fontPx, group] of bySize) {
+      ctx.font = `${fontPx * z}px ${family || "sans-serif"}`;
+      for (const { s, p, layout } of group) {
+        const { lines, lineHeight, top, overflows, baseline } = layout;
+        // Only a line wider than the sticky (one long word) needs clipping to it.
+        if (overflows) {
+          ctx.save();
+          ctx.beginPath();
+          ctx.rect(p.x, p.y, s.w * z, s.h * z);
+          ctx.clip();
+        }
+        const cx = p.x + (s.w / 2) * z;
+        lines.forEach((line, i) => {
+          ctx.fillText(line, cx, p.y + (top + i * lineHeight + baseline) * z);
+        });
+        if (overflows) ctx.restore();
+      }
+    }
+    jobs.length = 0;
+  }
+
+  /** Calls `visit` with each grid cell `r` touches; stops and returns true when it does. */
+  function someCell(r: Rect, visit: (key: number) => boolean): boolean {
+    for (let cx = Math.floor(r.x / CELL); cx <= Math.floor((r.x + r.w) / CELL); cx++) {
+      for (let cy = Math.floor(r.y / CELL); cy <= Math.floor((r.y + r.h) / CELL); cy++) {
+        if (visit(cx * 100_000 + cy)) return true;
+      }
+    }
+    return false;
   }
 
   function schedule() {
@@ -94,13 +156,8 @@ export function createRenderer(
     const shadows = camera.zoom >= SHADOW_MIN_ZOOM;
     const showText = fontReady && camera.zoom >= TEXT_MIN_ZOOM;
     const z = camera.zoom;
-    const baseline = showText ? baselineOffset() : 0;
 
-    // Text state is set once: changing the font per sticky is slow.
-    // Drawn at the screen size rather than scaled by a transform, as the textarea overlay is.
-    const screenFont = `${STICKY.fontPx * z}px ${family || "sans-serif"}`;
     if (showText) {
-      ctx.font = screenFont;
       ctx.textAlign = "center";
       ctx.textBaseline = "alphabetic";
     }
@@ -109,8 +166,24 @@ export function createRenderer(
       ctx.shadowOffsetY = 2 * dpr;
     }
 
+    // Text is queued and drawn grouped by size. A sticky that overlaps one whose text is
+    // queued draws the queue first, so text never shows through a sticky above it.
+    const jobs: TextJob[] = [];
+    const queued = new Map<number, Rect[]>();
+    const overlapsQueued = (r: Rect) =>
+      someCell(r, (key) =>
+        (queued.get(key) ?? []).some(
+          (q) => q.x < r.x + r.w && r.x < q.x + q.w && q.y < r.y + r.h && r.y < q.y + q.h,
+        ),
+      );
+
     for (const s of visible) {
       const p = boardToScreen(camera, size, s);
+      if (jobs.length > 0 && overlapsQueued(s)) {
+        if (shadows) ctx.shadowColor = "transparent";
+        drawText(jobs, z);
+        queued.clear();
+      }
       if (shadows) ctx.shadowColor = SHADOW_COLOUR;
       ctx.fillStyle = STICKY.fill;
       ctx.fillRect(p.x, p.y, s.w * z, s.h * z);
@@ -118,23 +191,17 @@ export function createRenderer(
 
       // The text overlay shows the text of the sticky being edited.
       if (showText && s.text !== "" && s.id !== editingId) {
-        const { lines, lineHeight, top, overflows } = layoutOf(s);
-        // Only a line wider than the sticky (one long word) needs clipping to it.
-        if (overflows) {
-          ctx.save();
-          ctx.beginPath();
-          ctx.rect(p.x, p.y, s.w * z, s.h * z);
-          ctx.clip();
-        }
-        ctx.fillStyle = STICKY.text;
-        const cx = p.x + (s.w / 2) * z;
-        lines.forEach((line, i) => {
-          ctx.fillText(line, cx, p.y + (top + i * lineHeight + baseline) * z);
+        jobs.push({ s, p, layout: layoutOf(s) });
+        someCell(s, (key) => {
+          const list = queued.get(key);
+          if (list) list.push(s);
+          else queued.set(key, [s]);
+          return false;
         });
-        if (overflows) ctx.restore();
       }
     }
     ctx.shadowColor = "transparent";
+    drawText(jobs, z);
 
     const found = selectedId ? items[selectedId] : undefined;
     const selected = found && shift(found);
@@ -163,6 +230,7 @@ export function createRenderer(
     setFontReady() {
       fontReady = true;
       layouts.clear();
+      metrics = null;
       schedule();
     },
     destroy() {
