@@ -148,7 +148,7 @@ export default function StormBoard(props: StormBoardProps) {
   return (
     <div
       ref={surfaceRef}
-      className="light relative size-full overflow-hidden bg-background text-foreground"
+      className="light relative size-full overflow-hidden bg-[#F2F2F2] text-foreground"
     >
       <div
         ref={boxRef}

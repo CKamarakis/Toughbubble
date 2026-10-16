@@ -70,7 +70,7 @@
 - [x] 11.2 Step 35: long pasted text missing after double-click (D12). Reproduce with a failing test, then fix. Verify that typed or pasted text up to 500 characters is all in the editor after finishing and double-clicking again.
 - [x] 11.3 `MAX_TEXT` 5,000 → 500 in `limits.ts`, the textarea `maxLength` and `validate.ts`; pasting longer text keeps the first 500. Verify with unit tests: validation rejects 501 characters and accepts 500; a paste of 800 keeps 500.
 - [x] 11.4 Remove the Select tool and the V key; the Sticky tool turns off after placing and on Esc. Verify with the toolbar test (Sticky, Undo, Redo only) and in the browser.
-- [ ] 11.5 Replace the dot grid with a plain `#F2F2F2` background; remove the grid code and its tests. Verify in the browser at 10%, 100% and 400%.
+- [x] 11.5 Replace the dot grid with a plain `#F2F2F2` background; remove the grid code and its tests. Verify in the browser at 10%, 100% and 400%.
 - [ ] 11.6 Zoom steps 10, 25, 50, 75, 100, 125, 150, 175, 200, 250, 300, 350, 400. Verify with camera unit tests (+ at 100% → 125%, − at 400% → 350%) and in the browser.
 - [ ] 11.7 Stronger pinch factor as a named constant (D5). Verify with a unit test that a typical pinch delta zooms about 2.5× more than before, then tune with the user on their trackpad (one pinch-out ≈ 100% → 200%).
 - [ ] 11.8 Edge auto-pan while dragging a sticky (D5). Verify with unit tests of the speed function (zero outside 40 px, rising to the cap at the edge) and in the browser: dragging to the sidebar edge pans and the sticky stays visible.

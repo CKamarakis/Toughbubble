@@ -7,10 +7,18 @@ afterEach(() => vi.unstubAllGlobals());
 
 function fakeCanvas() {
   const fillTextFonts: string[] = [];
+  const fillRects: { style: unknown; args: number[] }[] = [];
+  const strokeRects: { style: unknown; width: unknown; args: number[] }[] = [];
   const ctx = new Proxy(
     {
       font: "10px sans-serif",
       measureText: (s: string) => ({ width: s.length * 8, fontBoundingBoxAscent: 16, fontBoundingBoxDescent: 4 }),
+      fillRect: (...args: number[]) => {
+        fillRects.push({ style: ctx.fillStyle, args });
+      },
+      strokeRect: (...args: number[]) => {
+        strokeRects.push({ style: ctx.strokeStyle, width: ctx.lineWidth, args });
+      },
       fillText: () => {
         fillTextFonts.push(ctx.font);
       },
@@ -24,7 +32,7 @@ function fakeCanvas() {
     },
   ) as unknown as CanvasRenderingContext2D;
   const canvas = { getContext: () => ctx, width: 0, height: 0 } as unknown as HTMLCanvasElement;
-  return { canvas, fillTextFonts };
+  return { canvas, fillTextFonts, fillRects, strokeRects };
 }
 
 describe("createRenderer text font", () => {
@@ -45,5 +53,21 @@ describe("createRenderer text font", () => {
 
     expect(fillTextFonts.length).toBeGreaterThan(0);
     expect(new Set(fillTextFonts)).toEqual(new Set(["10px Test"]));
+  });
+});
+
+describe("createRenderer background", () => {
+  it("fills a plain #F2F2F2 background with no grid dots at any zoom", () => {
+    for (const zoom of [0.1, 1, 4]) {
+      const frames: (() => void)[] = [];
+      vi.stubGlobal("requestAnimationFrame", (cb: () => void) => frames.push(cb));
+      vi.stubGlobal("cancelAnimationFrame", () => {});
+      const store = createStormStore({ body: { schema: 1, items: {} }, camera: { x: 0, y: 0, zoom } });
+      const { canvas, fillRects } = fakeCanvas();
+      const renderer = createRenderer(canvas, store, "Test");
+      renderer.resize({ w: 400, h: 300 }, 1);
+      frames.splice(0).forEach((f) => f());
+      expect(fillRects).toEqual([{ style: "#F2F2F2", args: [0, 0, 400, 300] }, { style: "#F2F2F2", args: [0, 0, 400, 300] }]);
+    }
   });
 });

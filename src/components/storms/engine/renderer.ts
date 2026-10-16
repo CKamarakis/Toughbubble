@@ -1,14 +1,9 @@
 import { boardToScreen, visibleRect } from "@/lib/storms/camera";
 import { byZ, STICKY, type Item, type Size } from "@/lib/storms/model";
 import { LINE_HEIGHT_RATIO, layoutSticky } from "@/lib/storms/text-layout";
-import { dotStride } from "./dots";
 import type { StormStore } from "./store";
 
-const BACKGROUND = "#FFFFFF";
-const DOT_COLOUR = "#D9D8D3";
-const DOT_SPACING = 24;
-const DOT_FULL_ZOOM = 0.5;
-const DOT_NONE_ZOOM = 0.2;
+const BACKGROUND = "#F2F2F2";
 const TEXT_MIN_ZOOM = 0.3;
 const SHADOW_MIN_ZOOM = 0.5;
 const SHADOW_COLOUR = "rgba(0,0,0,0.12)";
@@ -78,29 +73,6 @@ export function createRenderer(
     });
   }
 
-  function drawGrid(snap: ReturnType<StormStore["getSnapshot"]>) {
-    if (!ctx) return;
-    const { camera } = snap;
-    const alpha = Math.min(1, Math.max(0, (camera.zoom - DOT_NONE_ZOOM) / (DOT_FULL_ZOOM - DOT_NONE_ZOOM)));
-    if (alpha === 0) return;
-    const v = visibleRect(camera, size);
-    ctx.globalAlpha = alpha;
-    ctx.fillStyle = DOT_COLOUR;
-    // Thinned out when close together; kept aligned to the full grid so dots do not shift.
-    const step = DOT_SPACING * dotStride(camera.zoom, DOT_SPACING);
-    const x0 = Math.floor(v.x / step) * step;
-    const y0 = Math.floor(v.y / step) * step;
-    ctx.beginPath();
-    for (let by = y0; by <= v.y + v.h; by += step) {
-      for (let bx = x0; bx <= v.x + v.w; bx += step) {
-        const p = boardToScreen(camera, size, { x: bx, y: by });
-        ctx.rect(p.x - 1, p.y - 1, 2, 2);
-      }
-    }
-    ctx.fill();
-    ctx.globalAlpha = 1;
-  }
-
   function draw() {
     if (!ctx || destroyed || size.w === 0 || size.h === 0) return;
     const snap = store.getSnapshot();
@@ -113,7 +85,6 @@ export function createRenderer(
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.fillStyle = BACKGROUND;
     ctx.fillRect(0, 0, size.w, size.h);
-    drawGrid(snap);
 
     const v = visibleRect(camera, size);
     const visible = Object.values(items)
