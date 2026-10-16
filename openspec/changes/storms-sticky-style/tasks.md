@@ -25,3 +25,10 @@
 - [x] 4.3 Write `openspec/changes/storms-sticky-style/testing-plan.md` in the same format as storms-canvas's: one numbered browser step per spec scenario (do / see / pass-fail / automated test). Verify every `#### Scenario:` in this change's specs appears in it.
 - [x] 4.4 Run types, lint, unit tests, integration tests and the speed gate. Verify all pass.
 - [ ] 4.5 Hand the testing plan to the user and record their results.
+
+## 5. Test-round changes (2026-10-16)
+
+- [ ] 5.1 Palette revised to the 13 presets in design D5 (palette.ts, validator, swatch grids 4 per row); removed colours map to the nearest preset when a board enters the store, writing nothing on open. Verify with unit tests: contrast ≥ 4.5 for all 13; validator accepts the 13 and rejects Orange #FFDEB9; a loaded Orange sticky shows as Light yellow and its next move saves Light yellow; opening writes nothing.
+- [ ] 5.2 Remembered creation colour (D8): `creation-color.ts` (per user in localStorage, try/catch, non-preset → Yellow), store `creationColor`, `placeSticky` uses it, `setColor` from the toolbar updates it. Verify with unit tests: first use → Yellow; recolouring a sticky pink → the next placed sticky is pink; stored value survives a new store (reload); a corrupt value → Yellow.
+- [ ] 5.3 Sticky tool palette (D8): opens next to the Sticky button when the tool turns on (button or N), 2 per row, current creation colour marked, picking keeps the tool on, closes on tool off / placement / Esc; shared `ColorGrid` with the sticky toolbar. Verify with DOM tests: click Sticky → palette open; pick Light green → click board → light green sticky and palette closed; N opens it; Esc closes it and turns the tool off; keyboard path works; light in dark theme.
+- [ ] 5.4 Update README and `testing-plan.md` (palette steps, new scenarios "Colour from the first palette", "New stickies use the last colour", "Pick the colour before placing", "Remembered after a reload", "First use"). Verify every `#### Scenario:` is in the plan, then run types, lint, unit and integration tests and the speed gate; all pass.

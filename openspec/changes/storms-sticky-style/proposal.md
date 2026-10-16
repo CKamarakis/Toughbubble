@@ -16,13 +16,13 @@ In the 2026-10-16 test round the user found sticky text hard to use: long text i
 
 **Sticky colour**
 - From: every sticky is yellow.
-- To: when one sticky is selected, a small toolbar appears above it with a colour button. It opens a palette of 12 preset colours: yellow (the current default), orange, red, pink, purple, light blue, dark blue, light green, dark green, brown, black and white. Picking one recolours the sticky in one undo step. The text is dark on light colours and white on dark ones.
-- New stickies stay yellow.
+- To: when one sticky is selected, a small toolbar appears above it with a colour button. It opens a palette of 13 preset colours (revised after the user's test on 2026-10-16): yellow, light yellow, pink, magenta, lavender, purple, sky blue, light blue, dark blue, light green, dark green, black and white. Picking one recolours the sticky in one undo step. The text is dark on light colours and white on dark ones.
+- New stickies use the last colour the user picked. Turning on the Sticky tool opens the same palette next to its button, so the colour can be chosen before placing (as in Miro). The colour is remembered per user in the browser.
 - Impact: non-breaking.
 
-**Deferred** (stay in storms-items): a manual font size next to "Auto", custom colours saved per user, new stickies remembering the last colour, colours for other item types, the full floating style toolbar (fonts, bold, links, alignment).
+**Deferred** (stay in storms-items): a manual font size next to "Auto", custom colours saved per user, colours for other item types, the full floating style toolbar (fonts, bold, links, alignment).
 
-**Decisions made without the user** (they asked to proceed on their own; each is recorded in `design.md`): size range 8–64 px; 12 PRD presets instead of Miro's 16; toolbar hidden while typing or dragging; new stickies stay yellow.
+**Decisions made without the user** (they asked to proceed on their own; each is recorded in `design.md`): size range 8–64 px; the 13-colour palette and its hex values (from the user's brief); toolbar hidden while typing or dragging; the last colour picked in either palette is the next sticky's colour.
 
 ## Capabilities
 

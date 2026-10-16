@@ -13,9 +13,9 @@ Builds on `storms-canvas` (code on `feat/storms-canvas`, archived before this ch
 
 ## Goals / Non-Goals
 
-**Goals:** sticky text auto-fits (8–64 px) with the fitted size stored; 12 preset sticky colours with readable text; a sticky toolbar above the selected sticky with a Colour button; one undo step per colour change; the speed gate still passes.
+**Goals:** sticky text auto-fits (8–64 px) with the fitted size stored; 13 preset sticky colours, chosen before placing or on a selected sticky, the last one remembered for new stickies with readable text; a sticky toolbar above the selected sticky with a Colour button; one undo step per colour change; the speed gate still passes.
 
-**Non-Goals:** manual font size, custom colours, last-used colour for new stickies, rich text, other item types, resize (all storms-items).
+**Non-Goals:** manual font size, custom colours, rich text, other item types, resize (all storms-items).
 
 ## Decisions
 
@@ -37,27 +37,31 @@ The user asked to proceed without them; these decisions were made on their behal
 - Undo of a text edit restores the old text and the old size together (both are fields of the same item in the change set).
 
 ### D4: Drawing per-sticky sizes and colours
-The renderer groups visible stickies by font size before drawing text (`ctx.font` set once per group, not per sticky) and draws fills and text colours per sticky. Colour lookup comes from `palette.ts`: `{ id, name, hex, ink }` for the 12 presets, `inkFor(hex)`; White gets a 1 px `#D9D8D3` (neutral 300) border. Text below 30% zoom is still skipped. Within a size group, text is drawn between overlaps so a sticky above another still hides the text below it (z-order is kept). While zooming, screen fonts are whole pixels; an exact redraw follows 150 ms after the zoom settles. Text is measured at a 100 px reference font and scaled.
+The renderer groups visible stickies by font size before drawing text (`ctx.font` set once per group, not per sticky) and draws fills and text colours per sticky. Colour lookup comes from `palette.ts`: `{ id, name, hex, ink }` for the 13 presets, `inkFor(hex)`; White gets a 1 px `#D9D8D3` (neutral 300) border. Text below 30% zoom is still skipped. Within a size group, text is drawn between overlaps so a sticky above another still hides the text below it (z-order is kept). While zooming, screen fonts are whole pixels; an exact redraw follows 150 ms after the zoom settles. Text is measured at a 100 px reference font and scaled.
 **Speed:** the 1,000-sticky bench gives every sticky a random preset colour and no stored size, so it measures the worst case (fit-on-first-draw plus grouping). The gate (median ≥ 50 fps, p95 ≤ 33 ms) must still pass.
 
-### D5: Palette
-| Name | Hex | Text |
-|---|---|---|
-| Yellow (default) | #F7D000 | #333129 |
-| Orange | #FFDEB9 | #333129 |
-| Red | #FFD7CF | #333129 |
-| Pink | #FFD5EE | #333129 |
-| Purple | #F3DDFF | #333129 |
-| Light blue | #BBF0FF | #333129 |
-| Dark blue | #3263C3 | #FFFFFF |
-| Light green | #D4F3C4 | #333129 |
-| Dark green | #008135 | #FFFFFF |
-| Brown | #E7CBB9 | #333129 |
-| Black | #141310 | #FFFFFF |
-| White | #FFFFFF | #333129 |
+### D5: Palette (revised 2026-10-16 after the user's test)
+The user removed Orange, Red, the pale Pink and Brown, and asked for a lighter yellow, a light blue, a purple, and a magenta and a pink close to the brand colours. 13 presets, by hue:
 
-Tints come from the spike-5 proposal; Yellow stays the brand yellow already used for stickies; Dark blue and Dark green use the spike's strong tones, so they are clearly different from the light ones (the spike flagged the two blue tints as too similar). All pairs meet WCAG AA 4.5:1 (spike measurements; a unit test computes each ratio).
-**Decision (on the user's behalf):** the PRD's 12 presets rather than Miro's 16; order as in the table, 4 per row.
+| Name | Hex | Text | Contrast | Why |
+|---|---|---|---|---|
+| Yellow | #F7D000 | #333129 | 8.7 | brand yellow (existing stickies) |
+| Light yellow | #FFF0A0 | #333129 | 11.3 | brand yellow hue, lighter |
+| Pink | #FFC6E8 | #333129 | 9.0 | brand magenta hue (≈320°), light tint |
+| Magenta | #FF8AD8 | #333129 | 6.1 | brand magenta hue, strong tint |
+| Lavender | #F3DDFF | #333129 | 10.3 | the first palette's "Purple", renamed |
+| Purple | #D3A1FF | #333129 | 6.3 | brand purple hue (≈275°), strong tint |
+| Sky blue | #BBF0FF | #333129 | 10.6 | the first palette's "Light blue", renamed |
+| Light blue | #B3CEFF | #333129 | 8.2 | a true light blue between Sky and Dark blue |
+| Dark blue | #3263C3 | #FFFFFF | 5.7 | |
+| Light green | #D4F3C4 | #333129 | 10.8 | |
+| Dark green | #008135 | #FFFFFF | 5.0 | |
+| Black | #141310 | #FFFFFF | 18.6 | |
+| White | #FFFFFF | #333129 | 13.0 | |
+
+Contrast is the WCAG ratio of text on the colour (computed; a unit test asserts ≥ 4.5 for every pair). Strong tints keep dark text rather than white: white on #FF8AD8 or #D3A1FF is only about 2:1.
+**Removed colours** stored by the first palette map to the nearest preset when a board enters the store (the same place long text is clamped): Orange #FFDEB9 → Light yellow, Red #FFD7CF → Pink, Pink #FFD5EE → Pink, Brown #E7CBB9 → Light yellow. The mapping writes nothing on open; the mapped colour is saved with the sticky's next change (whole-item upserts). The server accepts only the 13 presets.
+**Decisions (on the user's behalf):** 13 colours (the user's list gives 8 kept + 5 new); the two existing pale colours stay under clearer names; grids show 4 per row (toolbar palette) and 2 per row (Sticky tool palette, like Miro), with White and Black last.
 
 ### D6: Sticky toolbar
 - `sticky-toolbar.tsx`: an HTML element inside the board's light scope, positioned from the selected sticky's screen rect (`boardToScreen`), centred above it with an 8 px gap, flipped below when it would leave the top of the board, clamped inside the board horizontally. It subscribes to the engine store (`useSyncExternalStore`); hidden when the selection isn't exactly one sticky, while `editingId` is set, during an item drag or a pan (a `panning` flag in the store, set for the duration of a pan drag), and it repositions when the board is resized.
@@ -65,6 +69,12 @@ Tints come from the spike-5 proposal; Yellow stays the brand yellow already used
 - Pointer and key events on the toolbar don't reach the board (`stopPropagation`), so clicking it doesn't deselect or start a pan; wheel over it still zooms the board (as the zoom control does).
 - Store action `setColor(id, hex)`: one `commit` with history (one undo step); no-op if unchanged.
 **Decision (on the user's behalf):** hidden while typing or dragging (Miro keeps it while typing; ours would cover the text overlay's top lines on small stickies).
+
+### D8: Colour on creation (added 2026-10-16)
+- **Remembered colour:** `creation-color.ts` keeps the colour for new stickies in `localStorage` under `storm-sticky-color:<userId>` (per user in this browser, like the undo store's keying), wrapped in try/catch; missing, unreadable or non-preset → Yellow. The engine store holds it as `creationColor`; `placeSticky` uses it. Picking a colour in either palette (`setColor` from the sticky toolbar, or the Sticky tool's palette) updates it and writes it.
+- **Sticky tool palette:** `sticky-tool-palette.tsx`, anchored above the Sticky button in the bottom toolbar, inside the board's light scope. It opens whenever the Sticky tool turns on (button or N) and closes when the tool turns off, a sticky is placed, or on Esc. It reuses the swatch grid from the sticky toolbar (extracted into one `ColorGrid` component: radiogroup, roving focus, arrows/Home/End, Enter/Space, Esc), 2 per row. Picking keeps the tool on; focus returns to the board so the next click places.
+- Placing a sticky is still one undo step; picking the creation colour is not an undo step (it changes no board item).
+**Decision (on the user's behalf):** the toolbar recolour also sets the creation colour, so "the last colour I picked" means either palette; per user per browser, not synced across devices (no server setting exists for Storms yet).
 
 ### D7: Verification
 - Unit: `fitFontSize` (short text → 64, growing text shrinks monotonically, 500 chars → ≥ 8, empty → 64, long word breaks), `layoutSticky` with stored and missing size, palette contrast ≥ 4.5 for every pair, `validate` (preset accepted, other hex rejected, size 7/65/12.5 rejected, missing fields accepted), store `setColor` (one history step, undo restores), `setText` stores text + size together.
