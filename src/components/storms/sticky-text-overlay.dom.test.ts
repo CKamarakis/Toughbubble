@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { HOME_CAMERA } from "@/lib/storms/camera";
 import { MAX_TEXT } from "@/lib/storms/limits";
 import type { Sticky } from "@/lib/storms/model";
+import { fitFontSize, layoutSticky, type SizedMeasure } from "@/lib/storms/text-layout";
 import { createStormStore, type StormStore } from "./engine/store";
 import { StickyTextOverlay } from "./sticky-text-overlay";
 
@@ -150,5 +151,91 @@ describe("finishing", () => {
   });
   it("starting an edit on text that fits leaves scrollTop at 0", async () => {
     expect(textarea()!.scrollTop).toBe(0);
+  });
+});
+
+describe("fitted size (no jump)", () => {
+  /** Every character is half the font size wide. */
+  const measure: SizedMeasure = (t, px) => t.length * px * 0.5;
+  const px = (v: string) => Number.parseFloat(v);
+
+  /** Restarts the edit with the board's measure set, as the board does once the font loads. */
+  async function withMeasure(zoom = 1) {
+    await act(async () => {
+      store.endEdit();
+      store.setMeasure(measure);
+      store.setCamera({ x: 0, y: 0, zoom });
+      store.startEdit("a");
+    });
+  }
+
+  it("the textarea font size equals the fitted size after each keystroke, as the text shrinks", async () => {
+    await withMeasure(2);
+    const words = "Long text gets smaller as you keep on typing more and more words into it";
+    let previous = Infinity;
+    for (let n = 1; n <= words.length; n += 3) {
+      const text = words.slice(0, n);
+      await act(async () => type(textarea()!, text));
+      const stored = store.getSnapshot().items.a.fontSize!;
+      expect(stored).toBe(fitFontSize(measure, text, 200, 200));
+      expect(px(textarea()!.style.fontSize)).toBe(stored * 2);
+      expect(px(textarea()!.style.lineHeight)).toBeCloseTo(stored * 1.3 * 2);
+      expect(stored).toBeLessThanOrEqual(previous);
+      previous = stored;
+    }
+    expect(previous).toBeLessThan(64);
+  });
+
+  it("text that fits at 40 px shrinks to the largest size that fits once it no longer does", async () => {
+    await withMeasure();
+    let text = "w";
+    while (fitFontSize(measure, text + " w", 200, 200) >= 40) text += " w";
+    await act(async () => type(textarea()!, text));
+    expect(px(textarea()!.style.fontSize)).toBeGreaterThanOrEqual(40);
+    await act(async () => type(textarea()!, text + " w"));
+    const size = fitFontSize(measure, text + " w", 200, 200);
+    expect(size).toBeLessThan(40);
+    expect(px(textarea()!.style.fontSize)).toBe(size);
+  });
+
+  it("starting an edit on an unsized sticky shows it at its fitted size, without changing it", async () => {
+    const changes: unknown[] = [];
+    store.onChange((cs) => changes.push(cs));
+    await withMeasure();
+    const s = store.getSnapshot().items.a;
+    expect(s.fontSize).toBeUndefined();
+    const layout = layoutSticky(measure, s);
+    expect(px(textarea()!.style.fontSize)).toBe(layout.fontSize);
+    expect(px(textarea()!.style.paddingTop)).toBeCloseTo(layout.top);
+    expect(changes).toEqual([]);
+  });
+
+  it("starting an edit on a sized sticky uses its stored size", async () => {
+    await act(async () => {
+      store.endEdit();
+      store.commit({ upsert: [{ ...a, text: "hi", fontSize: 30 }], delete: [] }, "none");
+    });
+    await withMeasure();
+    expect(px(textarea()!.style.fontSize)).toBe(30);
+  });
+
+  it("finishing keeps the size the editor showed, so the canvas draws the same lines", async () => {
+    await withMeasure();
+    const text = "Talk to users first, then cut scope and keep the core";
+    await act(async () => type(textarea()!, text));
+    const shown = px(textarea()!.style.fontSize);
+    const top = px(textarea()!.style.paddingTop);
+    await act(async () => {
+      textarea()!.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    });
+    const s = store.getSnapshot().items.a;
+    expect(s.fontSize).toBe(shown);
+    // The canvas lays out the finished sticky with the same measure and size.
+    const layout = layoutSticky(measure, s);
+    expect(layout.fontSize).toBe(shown);
+    expect(layout.top).toBeCloseTo(top);
+    await act(async () => store.startEdit("a"));
+    expect(px(textarea()!.style.fontSize)).toBe(shown);
+    expect(px(textarea()!.style.paddingTop)).toBeCloseTo(top);
   });
 });

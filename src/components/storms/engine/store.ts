@@ -65,6 +65,8 @@ export type StormStore = {
   setText(id: string, text: string): void;
   /** The board font's measure, once the font has loaded; `setText` fits text with it. */
   setMeasure(measure: SizedMeasure | null): void;
+  /** The measure `setText` fits with; the text overlay lays out with it, so the two agree. */
+  getMeasure(): SizedMeasure | null;
   endEdit(): void;
   /** Load latest / refresh: new items, no history, selection or edit; no `onChange`. */
   replaceBoard(body: StormBody): void;
@@ -278,6 +280,7 @@ export function createStormStore(init: {
     setMeasure(m) {
       measure = m;
     },
+    getMeasure: () => measure,
     endEdit,
     replaceBoard(body) {
       editBefore = null;

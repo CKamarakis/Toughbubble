@@ -5,12 +5,14 @@ import { boardToScreen, type Camera } from "@/lib/storms/camera";
 import { MAX_TEXT } from "@/lib/storms/limits";
 import { STICKY, type Size, type Sticky } from "@/lib/storms/model";
 import { layoutSticky } from "@/lib/storms/text-layout";
+import { createBoardMeasure } from "./engine/font";
 import type { StormStore } from "./engine/store";
 
-type Layout = { lineHeight: number; top: number; lines: number };
+type Layout = { fontSize: number; lineHeight: number; top: number; lines: number };
 
 /**
- * Screen px box for the textarea over `s`: the sticky's rect, with type, line height
+ * Screen px box for the textarea over `s`: the sticky's rect, with its laid-out (stored
+ * or fitted) font size, line height
  * and padding scaled by zoom. `paddingTop` is the canvas's first-line top, so lines sit
  * where the canvas draws them; the bottom `clipBottom` px (below the last line the
  * canvas draws) are hidden, so overflow is clipped where the canvas clips it.
@@ -23,21 +25,11 @@ export function overlayBox(s: Sticky, camera: Camera, vp: Size, layout: Layout) 
     top: p.y,
     width: s.w * z,
     height: s.h * z,
-    fontSize: STICKY.fontPx * z,
+    fontSize: layout.fontSize * z,
     lineHeight: layout.lineHeight * z,
     paddingTop: layout.top * z,
     paddingX: STICKY.padding * z,
     clipBottom: (s.h - layout.top - layout.lines * layout.lineHeight) * z,
-  };
-}
-
-/** Measures in board px with the same font the renderer draws with. */
-function createMeasure(font: string): (s: string) => number {
-  const ctx = typeof document === "undefined" ? null : document.createElement("canvas").getContext("2d");
-  return (s) => {
-    if (!ctx) return 0;
-    ctx.font = font;
-    return ctx.measureText(s).width;
   };
 }
 
@@ -67,8 +59,10 @@ type OverlayProps = {
 function StickyTextEditor({ store, family, getViewport, onExit }: OverlayProps) {
   const snap = useSyncExternalStore(store.subscribe, store.getSnapshot, store.getSnapshot);
   const ref = useRef<HTMLTextAreaElement>(null);
-  const font = `${STICKY.fontPx}px ${family || "sans-serif"}`;
-  const measure = useMemo(() => createMeasure(font), [font]);
+  // The store's measure is the one typing fits sizes with; before the font loads it has
+  // none, and the editor measures with the board font as the renderer will.
+  const fallback = useMemo(() => createBoardMeasure(family), [family]);
+  const measure = store.getMeasure() ?? fallback;
   const sticky = snap.editingId ? snap.items[snap.editingId] : undefined;
   const editingId = sticky?.id;
 
@@ -96,6 +90,7 @@ function StickyTextEditor({ store, family, getViewport, onExit }: OverlayProps) 
   if (!sticky) return null;
   const layout = layoutSticky(measure, sticky);
   const box = overlayBox(sticky, snap.camera, getViewport(), {
+    fontSize: layout.fontSize,
     lineHeight: layout.lineHeight,
     top: layout.top,
     lines: layout.lines.length,
