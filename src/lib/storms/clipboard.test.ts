@@ -117,3 +117,14 @@ describe("text cut inside a character", () => {
     expect(parseCopiedSticky(payload({ ...good, text: "a\ud83d" }))).toBeNull();
   });
 });
+
+describe("parseCopiedSticky colour from an older tab", () => {
+  it.each([
+    ["#FFDEB9", "#FFF0A0"],
+    ["#FFD7CF", "#FFC6E8"],
+    ["#FFD5EE", "#FFC6E8"],
+    ["#E7CBB9", "#FFF0A0"],
+  ])("maps removed colour %s to %s", (old, now) => {
+    expect(parseCopiedSticky(payload({ ...good, color: old }))?.color).toBe(now);
+  });
+});

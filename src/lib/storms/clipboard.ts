@@ -1,6 +1,6 @@
 import { BOARD_LIMIT, MAX_FONT_PX, MAX_TEXT, MIN_FONT_PX } from "./limits";
 import { STICKY, topZ, type Items, type Point, type Sticky } from "./model";
-import { DEFAULT_STICKY_COLOR, PRESET_HEXES } from "./palette";
+import { currentHex, DEFAULT_STICKY_COLOR, PRESET_HEXES } from "./palette";
 import { cutText, isWellFormedText } from "./cut-text";
 
 /** The clipboard type a copied sticky travels under, next to its plain text (D1). */
@@ -45,8 +45,10 @@ export function parseCopiedSticky(json: string): CopiedSticky | null {
   if (!isSide(w) || !isSide(h)) return null;
   const out: CopiedSticky = { text, w, h };
   if (color !== undefined) {
-    if (typeof color !== "string" || !PRESET_HEXES.has(color)) return null;
-    out.color = color;
+    if (typeof color !== "string") return null;
+    const now = currentHex(color); // a colour removed from the palette in an older tab pastes as its preset
+    if (!PRESET_HEXES.has(now)) return null;
+    out.color = now;
   }
   if (fontSize !== undefined) {
     if (!Number.isInteger(fontSize) || (fontSize as number) < MIN_FONT_PX || (fontSize as number) > MAX_FONT_PX) return null;
