@@ -86,6 +86,17 @@ function listeners<A extends unknown[]>() {
   };
 }
 
+/** Clamps text over MAX_TEXT (saved before the limit dropped), so later change sets validate. */
+function clampItems(items: Items): Items {
+  let out: Items | null = null;
+  for (const [id, item] of Object.entries(items)) {
+    if (item.text.length <= MAX_TEXT) continue;
+    out ??= { ...items };
+    out[id] = { ...item, text: item.text.slice(0, MAX_TEXT) };
+  }
+  return out ?? items;
+}
+
 const sameCamera = (a: Camera, b: Camera) => a.x === b.x && a.y === b.y && a.zoom === b.zoom;
 
 export function createStormStore(init: {
@@ -94,7 +105,7 @@ export function createStormStore(init: {
   history?: History;
 }): StormStore {
   let state: State = {
-    items: init.body.items,
+    items: clampItems(init.body.items),
     camera: init.camera,
     tool: "select",
     selectedId: null,
@@ -249,7 +260,7 @@ export function createStormStore(init: {
     endEdit,
     replaceBoard(body) {
       editBefore = null;
-      update({ items: body.items, selectedId: null, editingId: null, dragPreview: null }, EMPTY_HISTORY);
+      update({ items: clampItems(body.items), selectedId: null, editingId: null, dragPreview: null }, EMPTY_HISTORY);
       replaced.call();
     },
     onReplace: replaced.add,

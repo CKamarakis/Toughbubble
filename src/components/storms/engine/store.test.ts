@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import type { ChangeSet } from "@/lib/storms/changeset";
 import { pushStep, EMPTY_HISTORY } from "@/lib/storms/history";
 import type { Sticky, StormBody } from "@/lib/storms/model";
+import { validateChangeSet } from "@/lib/storms/validate";
+import { moveSticky } from "./actions";
 import { createStormStore } from "./store";
 
 const sticky = (id: string, over: Partial<Sticky> = {}): Sticky => ({
@@ -425,5 +427,23 @@ describe("getHistoryForPersist", () => {
     store.setText("a", "ho");
     store.setText("a", "hi");
     expect(store.getHistoryForPersist().undo).toHaveLength(0);
+  });
+
+  it("clamps long sticky text on load and on replaceBoard, so later change sets validate", () => {
+    for (const via of ["init", "replace"] as const) {
+      const ID = "11111111-1111-4111-8111-111111111111";
+      const long = sticky(ID, { text: "x".repeat(600) });
+      const store =
+        via === "init"
+          ? createStormStore({ body: board(long), camera })
+          : createStormStore({ body: board(), camera });
+      if (via === "replace") store.replaceBoard(board(long));
+      expect((store.getSnapshot().items[ID] as Sticky).text).toHaveLength(500);
+      const emitted: ChangeSet[] = [];
+      store.onChange((cs) => emitted.push(cs));
+      moveSticky(store, ID, 10, 10, "push");
+      expect(emitted).toHaveLength(1);
+      expect(validateChangeSet(emitted[0]).ok).toBe(true);
+    }
   });
 });
