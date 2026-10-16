@@ -273,6 +273,52 @@ describe("StickyToolbar with the mouse", () => {
     expect(palette()).toBeNull();
   });
 
+  const boardKey = (k: string) => {
+    const e = new KeyboardEvent("keydown", { key: k, bubbles: true, cancelable: true });
+    act(() => {
+      board.dispatchEvent(e);
+    });
+  };
+
+  it("an arrow while the palette is open by mouse moves focus into it, not the sticky", () => {
+    select("a");
+    mouseClick(colourButton());
+    expect(document.activeElement).toBe(board);
+    boardKey("ArrowRight");
+    expect(document.activeElement).toBe(swatch("Orange"));
+    expect(store.getSnapshot().items.a.x).toBe(0);
+  });
+
+  it("Delete, N and Enter do not reach the board while the palette is open", () => {
+    select("a");
+    mouseClick(colourButton());
+    boardKey("Delete");
+    boardKey("Backspace");
+    boardKey("n");
+    expect(store.getSnapshot().items.a).toBeDefined();
+    expect(store.getSnapshot().tool).toBe("select");
+    expect(palette()).not.toBeNull();
+    boardKey("Enter");
+    expect(store.getSnapshot().editingId).toBeNull();
+  });
+
+  it("Delete on a swatch does not delete the sticky", () => {
+    select("a");
+    mouseClick(colourButton());
+    keydown(board, "ArrowRight");
+    keydown(document.activeElement!, "Delete");
+    expect(store.getSnapshot().items.a).toBeDefined();
+  });
+
+  it("Esc after a mouse open and an arrow returns focus to Colour", () => {
+    select("a");
+    mouseClick(colourButton());
+    keydown(board, "ArrowRight");
+    keydown(document.activeElement!, "Escape");
+    expect(palette()).toBeNull();
+    expect(document.activeElement).toBe(colourButton());
+  });
+
   it("the wheel over the toolbar still zooms the board", () => {
     select("a");
     const zoom = store.getSnapshot().camera.zoom;

@@ -21,6 +21,11 @@ const COLUMNS = 4;
 const TOOLBAR_SIZE: Size = { w: 42, h: 42 };
 const PALETTE_SIZE: Size = { w: 178, h: 138 };
 
+/** Keys the open palette takes from the board. */
+const PALETTE_KEYS = new Set(["ArrowRight", "ArrowLeft", "ArrowDown", "ArrowUp", "Home", "End", "Enter", " "]);
+/** Board shortcuts that must not act while the palette is open (lower case). */
+const BOARD_KEYS = new Set(["delete", "backspace", "n"]);
+
 const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
 
 export type ToolbarPlace = { left: number; top: number; side: "above" | "below" };
@@ -104,9 +109,26 @@ function Bar({ store, sticky, rect, vp }: { store: StormStore; sticky: Sticky; r
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key !== "Escape") return;
-      e.preventDefault();
-      close();
+      if (e.key === "Escape") {
+        e.preventDefault();
+        close();
+        return;
+      }
+      const inside = barRef.current?.parentElement?.contains(e.target as Node);
+      // The palette's own keys, pressed while focus is still on the board (a mouse open):
+      // move focus to the current colour and act from there.
+      if (!inside && !e.ctrlKey && !e.metaKey && !e.altKey && PALETTE_KEYS.has(e.key)) {
+        e.preventDefault();
+        e.stopPropagation();
+        swatchRefs.current[currentIndex]?.focus({ preventScroll: true });
+        paletteKey(e.key, currentIndex);
+        return;
+      }
+      // Board shortcuts stay off while the palette is open.
+      if (BOARD_KEYS.has(e.key.toLowerCase()) || ((e.ctrlKey || e.metaKey) && ["z", "y"].includes(e.key.toLowerCase()))) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
     };
     const onPointerDown = (e: PointerEvent) => {
       if (!barRef.current?.parentElement?.contains(e.target as Node)) setOpen(null);
@@ -143,7 +165,8 @@ function Bar({ store, sticky, rect, vp }: { store: StormStore; sticky: Sticky; r
     setFocusIndex(i);
     swatchRefs.current[i]?.focus();
   }
-  function onSwatchKey(e: React.KeyboardEvent, i: number) {
+  /** Acts on a palette key at swatch `i`; false when the key is not the palette's. */
+  function paletteKey(key: string, i: number): boolean {
     const moves: Record<string, number> = {
       ArrowRight: i + 1,
       ArrowLeft: i - 1,
@@ -152,13 +175,18 @@ function Bar({ store, sticky, rect, vp }: { store: StormStore; sticky: Sticky; r
       Home: 0,
       End: STICKY_COLORS.length - 1,
     };
-    if (e.key in moves) {
-      e.preventDefault();
-      moveFocus(moves[e.key]);
-    } else if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      pick(STICKY_COLORS[i].hex);
+    if (key in moves) {
+      moveFocus(moves[key]);
+      return true;
     }
+    if (key === "Enter" || key === " ") {
+      pick(STICKY_COLORS[i].hex);
+      return true;
+    }
+    return false;
+  }
+  function onSwatchKey(e: React.KeyboardEvent, i: number) {
+    if (paletteKey(e.key, i)) e.preventDefault();
   }
 
   return (
