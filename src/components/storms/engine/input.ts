@@ -86,6 +86,26 @@ function isEditable(t: EventTarget | null): boolean {
 const WHEEL_ZOOM_RATE = 0.0015;
 const LINE_MODE_FACTOR = 20;
 
+/** Trackpad pinch (ctrl + wheel with small pixel deltas): 2.5x the wheel rate. */
+export const PINCH_ZOOM_FACTOR = WHEEL_ZOOM_RATE * 2.5;
+const PINCH_MAX_STEP_PX = 50;
+
+type ZoomWheel = Pick<WheelEvent, "deltaY" | "deltaMode" | "ctrlKey" | "metaKey">;
+
+/**
+ * Zoom multiplier for one wheel event. A trackpad pinch (ctrl/meta with small or
+ * fractional pixel deltas) uses PINCH_ZOOM_FACTOR; a mouse wheel, with or without
+ * Ctrl, keeps WHEEL_ZOOM_RATE.
+ */
+export function wheelZoomScale(e: ZoomWheel): number {
+  const delta = e.deltaMode === 1 ? e.deltaY * LINE_MODE_FACTOR : e.deltaY;
+  const pinch =
+    (e.ctrlKey || e.metaKey) &&
+    e.deltaMode === 0 &&
+    (Math.abs(e.deltaY) < PINCH_MAX_STEP_PX || !Number.isInteger(e.deltaY));
+  return Math.exp(-delta * (pinch ? PINCH_ZOOM_FACTOR : WHEEL_ZOOM_RATE));
+}
+
 const DRAG_THRESHOLD_PX = 3;
 
 type Drag = { pointerId: number; button: number; x: number; y: number };
@@ -136,8 +156,7 @@ export function attachInput(
       panScreen(-e.deltaX, -e.deltaY);
       return;
     }
-    const delta = e.deltaMode === 1 ? e.deltaY * LINE_MODE_FACTOR : e.deltaY;
-    zoomTo(local(e.clientX, e.clientY), camera().zoom * Math.exp(-delta * WHEEL_ZOOM_RATE));
+    zoomTo(local(e.clientX, e.clientY), camera().zoom * wheelZoomScale(e));
   };
 
   // --- Safari pinch ------------------------------------------------------

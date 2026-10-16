@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { routeKey, zoomKeyAction } from "./input";
+import { PINCH_ZOOM_FACTOR, routeKey, wheelZoomScale, zoomKeyAction } from "./input";
 
 const k = (key: string, over: Partial<Parameters<typeof zoomKeyAction>[0]> = {}) => ({
   key,
@@ -100,5 +100,30 @@ describe("routeKey", () => {
     expect(routeKey(idle, key("-", { ctrlKey: true }))).toBe("zoom-out");
     expect(routeKey(idle, key("!", { code: "Digit1", shiftKey: true }))).toBe("fit");
     expect(routeKey(idle, key("q"))).toBeNull();
+  });
+});
+
+describe("wheelZoomScale", () => {
+  const ev = (deltaY: number, o: object = {}) => ({
+    deltaY,
+    deltaMode: 0,
+    ctrlKey: true,
+    metaKey: false,
+    ...o,
+  });
+  const logZoom = (events: ReturnType<typeof ev>[]) =>
+    events.reduce((sum, e) => sum + Math.log(wheelZoomScale(e)), 0);
+
+  it("a typical pinch zooms 2.5x more (log zoom) than the old rate", () => {
+    const pinch = [-4.5, -8.25, -12.5, -9.75, -6.5, -3.25, -1.5].map((d) => ev(d));
+    const oldLog = pinch.reduce((s, e) => s + -e.deltaY * 0.0015, 0);
+    expect(logZoom(pinch) / oldLog).toBeCloseTo(2.5, 5);
+    expect(PINCH_ZOOM_FACTOR).toBeCloseTo(0.0015 * 2.5, 10);
+  });
+
+  it("leaves the mouse wheel and Ctrl+mouse-wheel unchanged", () => {
+    expect(wheelZoomScale(ev(-100, { ctrlKey: false }))).toBeCloseTo(Math.exp(0.15), 10);
+    expect(wheelZoomScale(ev(-100))).toBeCloseTo(Math.exp(0.15), 10);
+    expect(wheelZoomScale(ev(-3, { deltaMode: 1 }))).toBeCloseTo(Math.exp(3 * 20 * 0.0015), 10);
   });
 });
