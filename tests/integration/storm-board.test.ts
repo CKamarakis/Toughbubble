@@ -7,6 +7,7 @@ import * as storms from "@/lib/storms/operations";
 import { EMPTY_BOARD, type Sticky } from "@/lib/storms/model";
 import { MAX_BODY_BYTES, MAX_TEXT } from "@/lib/storms/limits";
 import type { ChangeSet } from "@/lib/storms/changeset";
+import { validateChangeSet } from "@/lib/storms/validate";
 import * as tree from "@/lib/tree/operations";
 import { sidebarCompare } from "@/lib/tree/order";
 import { createTestUser, deleteTestUser, type TestUser } from "./harness";
@@ -261,5 +262,38 @@ describe("duplicate a storm", () => {
   it("another user's storm → null", async () => {
     const id = await newStorm();
     expect(await duplicate(id, other)).toBeNull();
+  });
+});
+
+describe("sticky colour and font size", () => {
+  // The server action validates before saving; mirror that path here.
+  const validated = (cs: ChangeSet): ChangeSet => {
+    const r = validateChangeSet(cs);
+    if (!r.ok) throw new Error("refused");
+    return r.changes;
+  };
+
+  it("a save with colour and fontSize round-trips", async () => {
+    const id = await newStorm();
+    const s = sticky({ color: "#FFD5EE", fontSize: 27 });
+    expect(await save(id, validated(upsert(s)), 0)).toMatchObject({ status: "saved", version: 1 });
+    expect((await load(id))?.body.items[s.id]).toEqual(s);
+  });
+
+  it("an unknown colour is refused and the stored board is unchanged", async () => {
+    const id = await newStorm();
+    const a = sticky();
+    await save(id, validated(upsert(a)), 0);
+    const before = await load(id);
+    expect(() => validated(upsert(sticky({ color: "#123456" })))).toThrow("refused");
+    expect(() => validated(upsert({ ...a, fontSize: 65 }))).toThrow("refused");
+    expect(await load(id)).toEqual(before);
+  });
+
+  it("an older sticky without style is accepted", async () => {
+    const id = await newStorm();
+    const s = sticky();
+    expect(await save(id, validated(upsert(s)), 0)).toMatchObject({ status: "saved" });
+    expect((await load(id))?.body.items[s.id]).toEqual(s);
   });
 });

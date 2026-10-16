@@ -102,3 +102,32 @@ describe("isStormBody", () => {
     expect(isStormBody(null)).toBe(false);
   });
 });
+
+describe("validateChangeSet sticky style", () => {
+  const ok = (over: Record<string, unknown>) => expect(validateChangeSet(cs([sticky(A, over)])).ok).toBe(true);
+  const no = (over: Record<string, unknown>) => bad(cs([sticky(A, over)]));
+  it("accepts a preset colour and a whole size in range", () => {
+    ok({ color: "#3263C3", fontSize: 8 });
+    ok({ color: "#F7D000", fontSize: 64 });
+    ok({ fontSize: 12 });
+  });
+  it("keeps colour and size on the returned item", () => {
+    const r = validateChangeSet(cs([sticky(A, { color: "#FFD5EE", fontSize: 20 })]));
+    expect(r.ok && r.changes.upsert[0]).toMatchObject({ color: "#FFD5EE", fontSize: 20 });
+  });
+  it("accepts a sticky without style", () => ok({}));
+  it("rejects a colour that is not a preset", () => {
+    no({ color: "#123456" });
+    no({ color: "#f7d000" });
+    no({ color: "yellow" });
+    no({ color: 5 });
+    no({ color: null });
+  });
+  it("rejects sizes out of range or not whole", () => {
+    no({ fontSize: 7 });
+    no({ fontSize: 65 });
+    no({ fontSize: 12.5 });
+    no({ fontSize: "12" });
+    no({ fontSize: NaN });
+  });
+});

@@ -3,7 +3,7 @@
 ## 1. Model, palette and server checks
 
 - [x] 1.1 `src/lib/storms/palette.ts` with the 12 presets (D5) and `inkFor(hex)`; `Sticky` gains optional `color` and `fontSize` (D1). Verify with a unit test that every preset/ink pair has a contrast ratio ≥ 4.5 and that a missing colour resolves to Yellow.
-- [ ] 1.2 `validate.ts` accepts `color` (preset hex only) and `fontSize` (integer 8–64), both optional. Verify with unit tests: preset accepted, `#123456` rejected, sizes 7, 65 and 12.5 rejected, missing fields accepted; and with an integration test in `tests/integration/storm-board.test.ts` that a save with both fields round-trips and an unknown colour is refused.
+- [x] 1.2 `validate.ts` accepts `color` (preset hex only) and `fontSize` (integer 8–64), both optional. Verify with unit tests: preset accepted, `#123456` rejected, sizes 7, 65 and 12.5 rejected, missing fields accepted; and with an integration test in `tests/integration/storm-board.test.ts` that a save with both fields round-trips and an unknown colour is refused.
 
 ## 2. Auto-fit
 

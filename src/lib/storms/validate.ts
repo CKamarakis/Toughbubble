@@ -1,13 +1,14 @@
 import { changesBytes, type ChangeSet } from "./changeset";
-import { BOARD_LIMIT, MAX_CHANGESET_BYTES, MAX_ENTRIES, MAX_TEXT } from "./limits";
+import { BOARD_LIMIT, MAX_CHANGESET_BYTES, MAX_ENTRIES, MAX_FONT_PX, MAX_TEXT, MIN_FONT_PX } from "./limits";
 import type { Item, StormBody } from "./model";
+import { PRESET_HEXES } from "./palette";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const ERROR = "That change was not valid.";
 const MAX_Z = 64;
 
 const REQUIRED = ["id", "type", "x", "y", "z", "w", "h", "text"] as const;
-const ALLOWED = new Set<string>([...REQUIRED, "parentId", "rotation"]);
+const ALLOWED = new Set<string>([...REQUIRED, "parentId", "rotation", "color", "fontSize"]);
 
 const isId = (v: unknown): v is string => typeof v === "string" && UUID.test(v);
 const isNum = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
@@ -23,7 +24,7 @@ function parseItem(raw: unknown): Item | null {
   const keys = Object.keys(raw);
   if (!keys.every((k) => ALLOWED.has(k))) return null;
   if (!REQUIRED.every((k) => keys.includes(k))) return null;
-  const { id, type, x, y, z, w, h, text, parentId, rotation } = raw;
+  const { id, type, x, y, z, w, h, text, parentId, rotation, color, fontSize } = raw;
   if (!isId(id) || type !== "sticky") return null;
   if (!isNum(x) || !isNum(y) || !isNum(w) || !isNum(h)) return null;
   if (Math.abs(x) > BOARD_LIMIT || Math.abs(y) > BOARD_LIMIT) return null;
@@ -38,6 +39,14 @@ function parseItem(raw: unknown): Item | null {
   if (keys.includes("rotation")) {
     if (!isNum(rotation)) return null;
     item.rotation = rotation;
+  }
+  if (keys.includes("color")) {
+    if (typeof color !== "string" || !PRESET_HEXES.has(color)) return null;
+    item.color = color;
+  }
+  if (keys.includes("fontSize")) {
+    if (!Number.isInteger(fontSize) || (fontSize as number) < MIN_FONT_PX || (fontSize as number) > MAX_FONT_PX) return null;
+    item.fontSize = fontSize as number;
   }
   return item;
 }
