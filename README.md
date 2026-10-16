@@ -223,7 +223,7 @@ and is blocked from `src/` by a lint rule; it is for migrations, tests, and back
   `npx next build`, checks the build; `next dev` lists the chunk on note pages by design). The board is saved in `item_content` for the `storm` item.
 - **Light board.** The board, toolbar, and zoom control stay light in the dark theme (the `light`
   class); the header and sidebar follow the app theme.
-- **Zoom** 10% to 400%. Mouse wheel, Ctrl or ⌘ + wheel, and trackpad pinch zoom toward the pointer (one ordinary pinch-out takes 100% to about 200%);
+- **Zoom** 10% to 400%. Mouse wheel, Ctrl or ⌘ + wheel, and trackpad pinch zoom toward the pointer (pinch zoom is tuned to be quicker than the mouse wheel);
   the page itself never zooms. The zoom control (bottom right) has − and +, which step through 10,
   25, 50, 75, 100, 125, 150, 175, 200, 250, 300, 350, 400%, a readout (click to reset to 100%), and Fit. Keys, with the
   board focused: Ctrl or ⌘ + `=` / `-` step, Ctrl or ⌘ + `0` resets, Shift + `1` fits all items.

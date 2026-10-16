@@ -176,7 +176,7 @@ Tip: make a new Storm just for this test (New > Storm), and call it "Test". Anyt
 
 **22. Trackpad pinch** _(zoom: Pinch zoom; extra from design)_
 - **Do:** At 100%, pinch two fingers apart once, the way you normally would, then pinch together.
-- **You should see:** One ordinary pinch-out takes the board from about 100% to about 200%, toward the fingers; pinching together zooms out the same way. The whole page does not zoom. **Tell us if it is too strong or too weak** and how many pinches you needed.
+- **You should see:** The board zooms toward the fingers, and pinching together zooms out. The target is that one ordinary pinch-out takes it from about 100% to about 200%; this is not measured by a test, so please report what you got. The whole page does not zoom. **Tell us if it is too strong or too weak** and how many pinches you needed.
 - Also checked automatically by: `src/components/storms/engine/input.test.ts` (pinch rate), `src/lib/storms/wheel-source.test.ts`, `input.dom.test.ts`.
 - Browser check: Not yet (changed 2026-10-16).
 - [ ] Pass  [ ] Fail   Notes:
@@ -220,7 +220,7 @@ Tip: make a new Storm just for this test (New > Storm), and call it "Test". Anyt
 
 **27a. Pinch zoom scenario** _(zoom: Pinch zoom)_
 - **Do:** At 100% (click the percentage), make one ordinary pinch-out on a trackpad, as a normal quick gesture.
-- **You should see:** The board is at roughly 200% after that one pinch, without needing several. Tell us the readout and whether it feels too strong or too weak. (Skip if you have no trackpad.)
+- **You should see:** The target is roughly 200% after that one pinch, without needing several. This figure is what we want to check, not something a test proves. Tell us the readout and whether it feels too strong or too weak. (Skip if you have no trackpad.)
 - Also checked automatically by: `src/components/storms/engine/input.test.ts`, `input.dom.test.ts`.
 - Browser check: Not yet (new 2026-10-16).
 - [ ] Pass  [ ] Fail   Notes:
@@ -301,11 +301,12 @@ Tip: make a new Storm just for this test (New > Storm), and call it "Test". Anyt
 - Earlier result (2026-10-16): Fail — The text I put is not here. teh font size is suposed toadjust to text to fit things properly. I wonder waht is our character limit?
 
 **36. The text does not jump** _(type in a sticky: No jump)_
-- **Do:** Type two lines in a sticky. Watch the words as you start and finish typing, at 50%, 100% and 200% zoom.
-- **You should see:** The words stay exactly where they are. No flicker or shift.
-- Also checked automatically by: `src/lib/storms/text-layout.test.ts`, `sticky-text-overlay.test.ts`.
-- Browser check 2026-10-11: Done (50%, 100%, 200%).
-- [x ] Pass  [ ] Fail   Notes:
+- **Do:** Type two lines in a sticky. Watch the words as you start and finish typing, at 50%, 100% and 200% zoom. Then fill a sticky with long text (about 500 characters), double-click it, scroll the editor down to the end of the text, and press Esc.
+- **You should see:** The words stay exactly where they are. No flicker or shift. After Esc on the scrolled editor, the text returns to the top and sits where it did before you started editing.
+- Also checked automatically by: `src/lib/storms/text-layout.test.ts`, `src/components/storms/sticky-text-overlay.dom.test.ts`.
+- Browser check: Not yet (changed 2026-10-16).
+- [ ] Pass  [ ] Fail   Notes:
+- Earlier result (2026-10-16): Pass
 
 **37. Delete** _(delete a sticky: Delete)_
 - **Do:** Select a sticky and press Delete.
