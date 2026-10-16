@@ -6,6 +6,7 @@ import {
   stepZoom,
   zoomAt,
 } from "@/lib/storms/camera";
+import { edgePanSpeed } from "@/lib/storms/edge-pan";
 import { hitTest } from "@/lib/storms/hit-test";
 import { boundsOf, type Point, type Size } from "@/lib/storms/model";
 import { createWheelClassifier } from "@/lib/storms/wheel-source";
@@ -109,7 +110,18 @@ export function wheelZoomScale(e: ZoomWheel): number {
 const DRAG_THRESHOLD_PX = 3;
 
 type Drag = { pointerId: number; button: number; x: number; y: number };
-type ItemDrag = { pointerId: number; id: string; x: number; y: number; moved: boolean };
+type ItemDrag = {
+  pointerId: number;
+  id: string;
+  /** Press position (screen) and the board point under it; the preview is measured from here. */
+  x: number;
+  y: number;
+  startBoard: Point;
+  /** Latest pointer position (screen). */
+  px: number;
+  py: number;
+  moved: boolean;
+};
 
 type GestureEvent = Event & { scale: number; clientX?: number; clientY?: number };
 
@@ -130,6 +142,7 @@ export function attachInput(
   let drag: Drag | null = null;
   let itemDrag: ItemDrag | null = null;
   let gestureStartZoom = 1;
+  let panFrame: number | null = null;
 
   /** Point relative to the board element. */
   const local = (clientX: number, clientY: number): Point => {
@@ -190,7 +203,16 @@ export function attachInput(
     const hit = hitTest(snap.items, at);
     store.select(hit ? hit.id : null);
     if (!hit) return;
-    itemDrag = { pointerId: e.pointerId, id: hit.id, x: e.clientX, y: e.clientY, moved: false };
+    itemDrag = {
+      pointerId: e.pointerId,
+      id: hit.id,
+      x: e.clientX,
+      y: e.clientY,
+      startBoard: at,
+      px: e.clientX,
+      py: e.clientY,
+      moved: false,
+    };
     el.setPointerCapture(e.pointerId);
   };
   const buttonHandlers: Record<number, (e: PointerEvent) => void> = {
@@ -205,14 +227,47 @@ export function attachInput(
     if (drag || itemDrag) return;
     buttonHandlers[e.button]?.(e);
   };
+  /** Preview offset in board units, measured from the press so camera moves keep the sticky under the pointer. */
+  const updatePreview = () => {
+    if (!itemDrag) return;
+    const now = screenToBoard(camera(), getViewport(), local(itemDrag.px, itemDrag.py));
+    store.setDragPreview({
+      id: itemDrag.id,
+      dx: now.x - itemDrag.startBoard.x,
+      dy: now.y - itemDrag.startBoard.y,
+    });
+  };
+  /** Pan speed per axis for the held pointer, or null when it is outside the edge zone. */
+  const edgeSpeeds = (): Point | null => {
+    if (!itemDrag) return null;
+    const r = el.getBoundingClientRect();
+    const sx = edgePanSpeed(itemDrag.px, r.left, r.right);
+    const sy = edgePanSpeed(itemDrag.py, r.top, r.bottom);
+    return sx || sy ? { x: sx, y: sy } : null;
+  };
+  const stopEdgePan = () => {
+    if (panFrame !== null) cancelAnimationFrame(panFrame);
+    panFrame = null;
+  };
+  const panTick = () => {
+    panFrame = null;
+    const s = edgeSpeeds();
+    if (!s) return;
+    panScreen(-s.x, -s.y);
+    updatePreview();
+    panFrame = requestAnimationFrame(panTick);
+  };
+
   const onPointerMove = (e: PointerEvent) => {
     if (itemDrag && e.pointerId === itemDrag.pointerId) {
       const dx = e.clientX - itemDrag.x;
       const dy = e.clientY - itemDrag.y;
       if (!itemDrag.moved && Math.hypot(dx, dy) <= DRAG_THRESHOLD_PX) return;
       itemDrag.moved = true;
-      const z = camera().zoom;
-      store.setDragPreview({ id: itemDrag.id, dx: dx / z, dy: dy / z });
+      itemDrag.px = e.clientX;
+      itemDrag.py = e.clientY;
+      updatePreview();
+      if (panFrame === null && edgeSpeeds()) panFrame = requestAnimationFrame(panTick);
       return;
     }
     if (!drag || e.pointerId !== drag.pointerId) return;
@@ -223,6 +278,7 @@ export function attachInput(
   const endDrag = (e: PointerEvent) => {
     if (itemDrag && e.pointerId === itemDrag.pointerId) {
       const done = itemDrag;
+      stopEdgePan();
       itemDrag = null;
       if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId);
       const preview = store.getSnapshot().dragPreview;
@@ -239,6 +295,7 @@ export function attachInput(
   };
   /** A new board (Load latest, refresh) ends an item drag; the store already dropped its preview. */
   const onReplace = () => {
+    stopEdgePan();
     if (!itemDrag) return;
     if (el.hasPointerCapture(itemDrag.pointerId)) el.releasePointerCapture(itemDrag.pointerId);
     itemDrag = null;
@@ -325,6 +382,7 @@ export function attachInput(
 
   return () => {
     offReplace();
+    stopEdgePan();
     surface.removeEventListener("wheel", onWheel);
     surface.removeEventListener("gesturestart", onGestureStart);
     surface.removeEventListener("gesturechange", onGestureChange);

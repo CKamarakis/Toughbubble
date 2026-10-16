@@ -73,7 +73,7 @@
 - [x] 11.5 Replace the dot grid with a plain `#F2F2F2` background; remove the grid code and its tests. Verify in the browser at 10%, 100% and 400%.
 - [x] 11.6 Zoom steps 10, 25, 50, 75, 100, 125, 150, 175, 200, 250, 300, 350, 400. Verify with camera unit tests (+ at 100% → 125%, − at 400% → 350%) and in the browser.
 - [x] 11.7 Stronger pinch factor as a named constant (D5). Verify with a unit test that a typical pinch delta zooms about 2.5× more than before, then tune with the user on their trackpad (one pinch-out ≈ 100% → 200%).
-- [ ] 11.8 Edge auto-pan while dragging a sticky (D5). Verify with unit tests of the speed function (zero outside 40 px, rising to the cap at the edge) and in the browser: dragging to the sidebar edge pans and the sticky stays visible.
+- [x] 11.8 Edge auto-pan while dragging a sticky (D5). Verify with unit tests of the speed function (zero outside 40 px, rising to the cap at the edge) and in the browser: dragging to the sidebar edge pans and the sticky stays visible.
 - [x] 11.9 Selection outline: 1 px, 5 px gap (D6). Verify with a renderer test of the outline rectangle and in the browser.
 - [ ] 11.10 Duplicate a note (D10): shared title and placement helper with `duplicateStorm`, body copy, attachments copied with `copyAttachments` and ids rewritten, menu entry for notes. Verify with integration tests: copy below the original, body equal, attachment ids rewritten to new rows, deleting the original forever leaves the copy's attachment rows and files, never-written note copies empty, long title; and in the browser.
 - [ ] 11.11 Step 25 (board edge): waits for the user's retest; fix only if it still fails.
