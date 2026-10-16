@@ -275,23 +275,36 @@ export function attachInput(
     drag.x = e.clientX;
     drag.y = e.clientY;
   };
-  const endDrag = (e: PointerEvent) => {
-    if (itemDrag && e.pointerId === itemDrag.pointerId) {
-      const done = itemDrag;
-      stopEdgePan();
-      itemDrag = null;
-      if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId);
-      const preview = store.getSnapshot().dragPreview;
-      store.setDragPreview(null);
-      if (e.type === "pointerup" && done.moved && preview) {
-        moveSticky(store, done.id, preview.dx, preview.dy, "push");
-      }
-      return;
-    }
-    if (!drag || e.pointerId !== drag.pointerId) return;
-    if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId);
+  /** Ends the item drag; commits the move only when `commit` is set (a pointerup). */
+  const finishItemDrag = (commit: boolean) => {
+    if (!itemDrag) return;
+    const done = itemDrag;
+    stopEdgePan();
+    itemDrag = null;
+    if (el.hasPointerCapture(done.pointerId)) el.releasePointerCapture(done.pointerId);
+    const preview = store.getSnapshot().dragPreview;
+    store.setDragPreview(null);
+    if (commit && done.moved && preview) moveSticky(store, done.id, preview.dx, preview.dy, "push");
+  };
+  const finishPan = () => {
+    if (!drag) return;
+    if (el.hasPointerCapture(drag.pointerId)) el.releasePointerCapture(drag.pointerId);
     drag = null;
     updateCursor();
+  };
+  const endDrag = (e: PointerEvent) => {
+    if (itemDrag && e.pointerId === itemDrag.pointerId) return finishItemDrag(e.type === "pointerup");
+    if (drag && e.pointerId === drag.pointerId) finishPan();
+  };
+  /** Capture lost without pointerup/pointercancel: end the gesture like a cancel. */
+  const onLostCapture = (e: PointerEvent) => {
+    if (itemDrag && e.pointerId === itemDrag.pointerId) finishItemDrag(false);
+    if (drag && e.pointerId === drag.pointerId) finishPan();
+  };
+  /** The window lost focus (Alt-Tab): no pointerup will come. */
+  const onWindowBlur = () => {
+    finishItemDrag(false);
+    finishPan();
   };
   /** A new board (Load latest, refresh) ends an item drag; the store already dropped its preview. */
   const onReplace = () => {
@@ -373,6 +386,8 @@ export function attachInput(
   el.addEventListener("pointermove", onPointerMove);
   el.addEventListener("pointerup", endDrag);
   el.addEventListener("pointercancel", endDrag);
+  el.addEventListener("lostpointercapture", onLostCapture);
+  window.addEventListener("blur", onWindowBlur);
   el.addEventListener("contextmenu", onContextMenu);
   el.addEventListener("keydown", onKeyDown);
   el.addEventListener("dblclick", onDoubleClick);
@@ -390,6 +405,8 @@ export function attachInput(
     el.removeEventListener("pointermove", onPointerMove);
     el.removeEventListener("pointerup", endDrag);
     el.removeEventListener("pointercancel", endDrag);
+    el.removeEventListener("lostpointercapture", onLostCapture);
+    window.removeEventListener("blur", onWindowBlur);
     el.removeEventListener("contextmenu", onContextMenu);
     el.removeEventListener("keydown", onKeyDown);
     el.removeEventListener("dblclick", onDoubleClick);

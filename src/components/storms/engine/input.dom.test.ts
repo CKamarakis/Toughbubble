@@ -409,4 +409,47 @@ describe("edge auto-pan while dragging a sticky", () => {
     frame();
     expect(store.getSnapshot().camera.x).toBe(0);
   });
+
+  it.each([
+    ["lostpointercapture", () => ptr("lostpointercapture", { clientX: 10, clientY: 300 })],
+    ["window blur", () => window.dispatchEvent(new Event("blur"))],
+  ])("%s ends an item drag: no more panning, preview cleared, no commit", (_name, lose) => {
+    ptr("pointerdown", at(0, 0));
+    ptr("pointermove", { clientX: 10, clientY: 300 });
+    frame();
+    const x = store.getSnapshot().camera.x;
+    expect(x).not.toBe(0);
+    lose();
+    expect(store.getSnapshot().dragPreview).toBeNull();
+    frame();
+    frame();
+    expect(store.getSnapshot().camera.x).toBe(x);
+    expect(queue).toHaveLength(0);
+    expect(store.getHistory().undo).toHaveLength(0);
+    expect(store.getSnapshot().items.c.x).toBe(-100);
+  });
+
+  it.each([
+    ["lostpointercapture", () => ptr("lostpointercapture", { button: 2 })],
+    ["window blur", () => window.dispatchEvent(new Event("blur"))],
+  ])("%s ends a right-button pan", (_name, lose) => {
+    ptr("pointerdown", { button: 2, clientX: 100, clientY: 100 });
+    ptr("pointermove", { button: 2, clientX: 150, clientY: 100 });
+    const x = store.getSnapshot().camera.x;
+    expect(x).toBe(-50);
+    lose();
+    ptr("pointermove", { button: 2, clientX: 300, clientY: 100 });
+    expect(store.getSnapshot().camera.x).toBe(x);
+  });
+
+  it("detach removes the lost-pointer listeners", () => {
+    ptr("pointerdown", at(0, 0));
+    ptr("pointermove", { clientX: 10, clientY: 300 });
+    const spy = vi.spyOn(store, "setDragPreview");
+    detach();
+    spy.mockClear();
+    window.dispatchEvent(new Event("blur"));
+    ptr("lostpointercapture");
+    expect(spy).not.toHaveBeenCalled();
+  });
 });
