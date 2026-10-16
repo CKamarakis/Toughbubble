@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Sticky } from "./model";
-import { fitFontSize, layoutSticky, scaleMeasure, wrapText, type SizedMeasure } from "./text-layout";
+import { fitFontSize, layoutSticky, maxLinesAt, scaleMeasure, wrapText, type SizedMeasure } from "./text-layout";
 
 const measure = (s: string) => s.length * 10;
 /** Every character is half the font size wide. */
@@ -120,6 +120,29 @@ describe("fitFontSize", () => {
     const l = layoutSticky(sized, sticky(text));
     expect(l.lines.every((line) => sized(line, l.fontSize) <= INNER)).toBe(true);
     expect(l.lines.join("")).toBe(text);
+  });
+});
+
+describe("one fit rule", () => {
+  it("5 lines at 12 px fit a 110 px high sticky (78 px inside), and all 5 are drawn", () => {
+    expect(maxLinesAt(12, 110)).toBe(5);
+    const text = "a\nb\nc\nd\ne";
+    const narrow: SizedMeasure = (s, px) => s.length * px * 0.5;
+    // Wide enough that 13 px would fit by width; 5 × 13 × 1.3 = 84.5 > 78 doesn't by height.
+    expect(fitFontSize(narrow, text, 200, 110)).toBe(12);
+    expect(layoutSticky(narrow, sticky(text, { h: 110 })).lines).toHaveLength(5);
+  });
+
+  it("n lines that exactly fill the inside are all drawn, for every size 8-64", () => {
+    for (let f = 8; f <= 64; f++) {
+      for (let n = 1; n <= 20; n++) {
+        // The inside height as a sticky would store it: whole hundredths of a px.
+        const h = Math.round(n * f * 13) / 10 + 32;
+        expect(maxLinesAt(f, h)).toBe(n);
+        const text = Array.from({ length: n }, () => "a").join("\n");
+        expect(layoutSticky(sized, sticky(text, { h, fontSize: f })).lines).toHaveLength(n);
+      }
+    }
   });
 });
 

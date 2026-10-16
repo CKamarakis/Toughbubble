@@ -210,6 +210,15 @@ describe("fitted size (no jump)", () => {
     expect(changes).toEqual([]);
   });
 
+  it("an edit opened before the font loaded lays out again when the measure arrives", async () => {
+    const text = "Talk to users first, then cut scope and keep the core";
+    await act(async () => store.commit({ upsert: [{ ...a, text }], delete: [] }, "none"));
+    const fitted = fitFontSize(measure, text, 200, 200);
+    expect(px(textarea()!.style.fontSize)).not.toBe(fitted);
+    await act(async () => store.setMeasure(measure));
+    expect(px(textarea()!.style.fontSize)).toBe(fitted);
+  });
+
   it("starting an edit on a sized sticky uses its stored size", async () => {
     await act(async () => {
       store.endEdit();

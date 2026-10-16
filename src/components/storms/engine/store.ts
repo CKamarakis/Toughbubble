@@ -195,8 +195,25 @@ export function createStormStore(init: {
     notify();
   }
 
-  function commit(cs: ChangeSet, mode: CommitMode = "push") {
-    if (isEmptyChanges(cs)) return;
+  /**
+   * Adds the fitted size to upserted stickies that have none, so an older sticky's size
+   * is saved with whatever next changes it (a move, a nudge, a colour). It rides along on
+   * that change: no extra step or save. Without a measure (font not loaded) it does nothing.
+   */
+  function withSizes(cs: ChangeSet): ChangeSet {
+    const m = measure;
+    if (!m || !cs.upsert.some((i) => i.fontSize === undefined)) return cs;
+    return {
+      ...cs,
+      upsert: cs.upsert.map((i) =>
+        i.fontSize === undefined ? { ...i, fontSize: fitFontSize(m, i.text, i.w, i.h) } : i,
+      ),
+    };
+  }
+
+  function commit(input: ChangeSet, mode: CommitMode = "push") {
+    if (isEmptyChanges(input)) return;
+    const cs = withSizes(input);
     if (state.editingId !== null && cs.delete.includes(state.editingId)) {
       // Keep the text edit as its own step before the sticky goes.
       const topBefore = history.undo[history.undo.length - 1];
@@ -278,7 +295,10 @@ export function createStormStore(init: {
       commit({ upsert: [withText(item, text, fontSize)], delete: [] }, "none");
     },
     setMeasure(m) {
+      if (m === measure) return;
       measure = m;
+      // A new snapshot, so an editor opened before the font loaded lays out again.
+      update({});
     },
     getMeasure: () => measure,
     endEdit,

@@ -74,12 +74,20 @@ function fitTrailingSpaces(measure: (s: string) => number, line: string, maxWidt
   return base + " ".repeat(lo);
 }
 
+/**
+ * How many whole lines at `fontPx` fit inside a sticky `h` high: the one rule the fit
+ * and the layout share. The epsilon absorbs float error (12 px × 1.3 × 5 = 78.00000000000001).
+ */
+export function maxLinesAt(fontPx: number, h: number): number {
+  return Math.max(0, Math.floor((h - 2 * STICKY.padding) / (fontPx * LINE_HEIGHT_RATIO) + 1e-9));
+}
+
 function fits(measure: SizedMeasure, text: string, w: number, h: number, fontPx: number): boolean {
   const maxWidth = w - 2 * STICKY.padding;
   const m = at(measure, fontPx);
   const lines = wrapText(m, text, maxWidth);
   return (
-    lines.length * fontPx * LINE_HEIGHT_RATIO <= h - 2 * STICKY.padding &&
+    lines.length <= maxLinesAt(fontPx, h) &&
     lines.every((line) => m(line) <= maxWidth)
   );
 }
@@ -111,7 +119,6 @@ export function layoutSticky(
 ): { lines: string[]; lineHeight: number; top: number; fontSize: number } {
   const fontSize = s.fontSize ?? fitFontSize(measure, s.text, s.w, s.h);
   const lineHeight = fontSize * LINE_HEIGHT_RATIO;
-  const maxLines = Math.max(0, Math.floor((s.h - 2 * STICKY.padding) / lineHeight));
-  const lines = wrapText(at(measure, fontSize), s.text, s.w - 2 * STICKY.padding).slice(0, maxLines);
+  const lines = wrapText(at(measure, fontSize), s.text, s.w - 2 * STICKY.padding).slice(0, maxLinesAt(fontSize, s.h));
   return { lines, lineHeight, top: (s.h - lines.length * lineHeight) / 2, fontSize };
 }

@@ -459,6 +459,42 @@ describe("fitted size", () => {
     expect(store.getSnapshot().items.a).toMatchObject({ text: "", fontSize: 64 });
   });
 
+  it("moving an unsized sticky stores its fitted size in the same change set, with no extra step", () => {
+    const ID = "11111111-1111-4111-8111-111111111111";
+    const { store, emitted } = setup(board(sticky(ID, { text: long })));
+    store.setMeasure(measure);
+    moveSticky(store, ID, 10, 10, "push");
+    const size = fitFontSize(measure, long, 200, 200);
+    expect(emitted).toHaveLength(1);
+    expect(emitted[0].upsert).toEqual([sticky(ID, { text: long, x: 10, y: 10, fontSize: size })]);
+    expect(validateChangeSet(emitted[0]).ok).toBe(true);
+    expect(store.getHistory().undo).toHaveLength(1);
+    store.undo();
+    expect(store.getSnapshot().items[ID]).toEqual(sticky(ID, { text: long }));
+  });
+
+  it("a sticky with a stored size keeps it on a move", () => {
+    const { store, emitted } = setup(board(sticky("a", { text: long, fontSize: 30 })));
+    store.setMeasure(measure);
+    moveSticky(store, "a", 10, 10, "push");
+    expect(emitted[0].upsert[0].fontSize).toBe(30);
+  });
+
+  it("without a measure a move stores no size", () => {
+    const { store, emitted } = setup(board(sticky("a", { text: long })));
+    moveSticky(store, "a", 10, 10, "push");
+    expect("fontSize" in emitted[0].upsert[0]).toBe(false);
+  });
+
+  it("setMeasure notifies, so an editor opened before the font loaded lays out again", () => {
+    const { store, notified } = setup(board(sticky("a", { text: "hi" })));
+    const before = notified();
+    const snap = store.getSnapshot();
+    store.setMeasure(measure);
+    expect(notified()).toBe(before + 1);
+    expect(store.getSnapshot()).not.toBe(snap);
+  });
+
   it("text clamped on load drops its stored size, so it is fitted again", () => {
     const ID = "11111111-1111-4111-8111-111111111111";
     const store = createStormStore({ body: board(sticky(ID, { text: "x".repeat(600), fontSize: 8 })), camera });
