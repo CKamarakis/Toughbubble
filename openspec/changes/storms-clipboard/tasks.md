@@ -7,7 +7,7 @@
 
 ## 2. Keys and events
 
-- [ ] 2.1 `routeKey` maps Ctrl/⌘+D (no Shift/Alt, sticky selected, not editing) to `"duplicate"`, with `preventDefault` (D3). Verify with `input.test.ts` cases and a DOM test that Ctrl+D duplicates and its default is prevented.
+- [x] 2.1 `routeKey` maps Ctrl/⌘+D (no Shift/Alt, sticky selected, not editing) to `"duplicate"`, with `preventDefault` (D3). Verify with `input.test.ts` cases and a DOM test that Ctrl+D duplicates and its default is prevented.
 - [ ] 2.2 Document `copy` and `paste` listeners gated on board focus and not editing; pointer position tracked for paste; centre of view fallback (D1, D2). Verify with DOM tests: copy writes `text/plain` and the custom type; paste of the custom type places a copy at the pointer; paste of plain text creates a sticky in the creation colour; while editing, events pass through untouched; listeners removed on detach.
 
 ## 3. Docs and checks

@@ -357,6 +357,27 @@ describe("attachInput item interactions", () => {
     key(el, { key: "y", ctrlKey: true });
     expect(store.getSnapshot().items.a).toBeUndefined();
   });
+
+  it("Ctrl+D duplicates 20 px to the right with one undo step and prevents the bookmark default", () => {
+    setup(true);
+    store.select("a");
+    expect(key(el, { key: "d", ctrlKey: true }).defaultPrevented).toBe(true);
+    const s = store.getSnapshot();
+    const id = s.selectedId!;
+    expect(id).not.toBe("a");
+    expect(s.items[id]).toMatchObject({ x: 1220, y: 1000, w: 200, h: 200 });
+    expect(store.getHistory().undo).toHaveLength(1);
+    store.undo();
+    expect(Object.keys(store.getSnapshot().items)).toEqual(["a"]);
+  });
+
+  it("Ctrl+D with nothing selected or while editing does nothing and keeps the default", () => {
+    setup(true);
+    expect(key(el, { key: "d", ctrlKey: true }).defaultPrevented).toBe(false);
+    store.startEdit("a");
+    expect(key(el, { key: "d", ctrlKey: true }).defaultPrevented).toBe(false);
+    expect(Object.keys(store.getSnapshot().items)).toEqual(["a"]);
+  });
 });
 
 describe("edge auto-pan while dragging a sticky", () => {

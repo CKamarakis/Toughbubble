@@ -315,6 +315,20 @@ describe("StickyToolbar with the mouse", () => {
     expect(store.getSnapshot().editingId).toBeNull();
   });
 
+  it("Ctrl/Cmd+D does not duplicate (or open bookmarks) while the palette is open", () => {
+    select("a");
+    mouseClick(colourButton());
+    for (const init of [{ ctrlKey: true }, { metaKey: true }]) {
+      const e = new KeyboardEvent("keydown", { key: "d", bubbles: true, cancelable: true, ...init });
+      act(() => {
+        board.dispatchEvent(e);
+      });
+      expect(e.defaultPrevented).toBe(true);
+    }
+    expect(Object.keys(store.getSnapshot().items)).toEqual(["a"]);
+    expect(palette()).not.toBeNull();
+  });
+
   it("Delete on a swatch does not delete the sticky", () => {
     select("a");
     mouseClick(colourButton());

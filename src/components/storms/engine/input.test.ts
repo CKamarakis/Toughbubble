@@ -71,6 +71,21 @@ describe("routeKey", () => {
     expect(routeKey(sel, key("Backspace", { ctrlKey: true }))).toBeNull();
   });
 
+  it("Ctrl/Cmd+D duplicates only a selected sticky, without Shift or Alt, not while editing", () => {
+    expect(routeKey(sel, key("d", { ctrlKey: true }))).toBe("duplicate");
+    expect(routeKey(sel, key("D", { metaKey: true }))).toBe("duplicate");
+    expect(routeKey(idle, key("d", { ctrlKey: true }))).toBeNull();
+    expect(routeKey(editing, key("d", { ctrlKey: true }))).toBeNull();
+    expect(routeKey(sel, key("d", { ctrlKey: true, shiftKey: true }))).toBeNull();
+    expect(routeKey(sel, key("d", { ctrlKey: true, altKey: true }))).toBeNull();
+    expect(routeKey(sel, key("d"))).toBeNull();
+  });
+
+  it("Ctrl/Cmd+C and V are left to the browser, which fires copy and paste", () => {
+    expect(routeKey(sel, key("c", { ctrlKey: true }))).toBeNull();
+    expect(routeKey(sel, key("v", { metaKey: true }))).toBeNull();
+  });
+
   it("Enter edits the selection", () => {
     expect(routeKey(sel, key("Enter"))).toBe("edit");
     expect(routeKey(idle, key("Enter"))).toBeNull();

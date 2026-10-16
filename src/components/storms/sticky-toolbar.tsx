@@ -21,6 +21,8 @@ const PALETTE_SIZE: Size = { w: 178, h: 178 };
 
 /** Board shortcuts that must not act while the palette is open (lower case). */
 const BOARD_KEYS = new Set(["delete", "backspace", "n"]);
+/** With Ctrl or ⌘: undo, redo and duplicate. */
+const MOD_BOARD_KEYS = new Set(["z", "y", "d"]);
 
 const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
 
@@ -119,7 +121,7 @@ function Bar({ store, sticky, rect, vp }: { store: StormStore; sticky: Sticky; r
         return;
       }
       // Board shortcuts stay off while the palette is open.
-      if (BOARD_KEYS.has(e.key.toLowerCase()) || ((e.ctrlKey || e.metaKey) && ["z", "y"].includes(e.key.toLowerCase()))) {
+      if (BOARD_KEYS.has(e.key.toLowerCase()) || ((e.ctrlKey || e.metaKey) && MOD_BOARD_KEYS.has(e.key.toLowerCase()))) {
         e.preventDefault();
         e.stopPropagation();
       }

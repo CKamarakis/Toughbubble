@@ -10,7 +10,7 @@ import { edgePanSpeed } from "@/lib/storms/edge-pan";
 import { hitTest } from "@/lib/storms/hit-test";
 import { boundsOf, type Point, type Size } from "@/lib/storms/model";
 import { createWheelClassifier } from "@/lib/storms/wheel-source";
-import { deleteSelected, moveSticky, nudge, placeSticky } from "./actions";
+import { deleteSelected, duplicateSelected, moveSticky, nudge, placeSticky } from "./actions";
 import type { Snapshot, StormStore } from "./store";
 
 export type ZoomKeyAction = "zoom-in" | "zoom-out" | "zoom-reset" | "fit";
@@ -51,6 +51,7 @@ export type KeyAction =
   | "edit"
   | "undo"
   | "redo"
+  | "duplicate"
   | "tool-off"
   | "tool-sticky";
 
@@ -74,6 +75,7 @@ export function routeKey(
   if (e.key === "Enter") return snap.selectedId && plain ? "edit" : null;
   if (mod && !e.altKey && k === "z") return e.shiftKey ? "redo" : "undo";
   if (e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey && k === "y") return "redo";
+  if (mod && !e.altKey && !e.shiftKey && k === "d") return snap.selectedId ? "duplicate" : null;
   if (e.key === "Escape") return plain && snap.tool === "sticky" ? "tool-off" : null;
   if (plain && k === "n") return "tool-sticky";
   return zoomKeyAction(e);
@@ -362,6 +364,9 @@ export function attachInput(
         return store.undo();
       case "redo":
         return store.redo();
+      case "duplicate":
+        duplicateSelected(store);
+        return;
       case "tool-off":
         return store.setTool("select");
       case "tool-sticky":
