@@ -121,6 +121,19 @@ describe("wheelZoomScale", () => {
     expect(PINCH_ZOOM_FACTOR).toBeCloseTo(0.0015 * 2.5, 10);
   });
 
+  it("a fractional Ctrl+wheel notch (display scaling) uses the plain wheel rate", () => {
+    expect(wheelZoomScale(ev(-133.33))).toBeCloseTo(Math.exp(133.33 * 0.0015), 10);
+    expect(wheelZoomScale(ev(66.67))).toBeCloseTo(Math.exp(-66.67 * 0.0015), 10);
+  });
+
+  it("a single pinch event never changes zoom by more than 1.25x", () => {
+    for (const d of [-49.9, 49.9, -30, 30]) {
+      const s = wheelZoomScale(ev(d));
+      expect(s).toBeLessThanOrEqual(1.25);
+      expect(s).toBeGreaterThanOrEqual(1 / 1.25);
+    }
+  });
+
   it("leaves the mouse wheel and Ctrl+mouse-wheel unchanged", () => {
     expect(wheelZoomScale(ev(-100, { ctrlKey: false }))).toBeCloseTo(Math.exp(0.15), 10);
     expect(wheelZoomScale(ev(-100))).toBeCloseTo(Math.exp(0.15), 10);

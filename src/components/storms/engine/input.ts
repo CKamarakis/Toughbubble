@@ -90,21 +90,21 @@ const LINE_MODE_FACTOR = 20;
 /** Trackpad pinch (ctrl + wheel with small pixel deltas): 2.5x the wheel rate. */
 export const PINCH_ZOOM_FACTOR = WHEEL_ZOOM_RATE * 2.5;
 const PINCH_MAX_STEP_PX = 50;
+/** Safety cap on the zoom change of a single pinch event. */
+const PINCH_MAX_SCALE = 1.25;
 
 type ZoomWheel = Pick<WheelEvent, "deltaY" | "deltaMode" | "ctrlKey" | "metaKey">;
 
 /**
- * Zoom multiplier for one wheel event. A trackpad pinch (ctrl/meta with small or
- * fractional pixel deltas) uses PINCH_ZOOM_FACTOR; a mouse wheel, with or without
+ * Zoom multiplier for one wheel event. A trackpad pinch (ctrl/meta with pixel deltas under 50) uses PINCH_ZOOM_FACTOR; a mouse wheel, with or without
  * Ctrl, keeps WHEEL_ZOOM_RATE.
  */
 export function wheelZoomScale(e: ZoomWheel): number {
   const delta = e.deltaMode === 1 ? e.deltaY * LINE_MODE_FACTOR : e.deltaY;
-  const pinch =
-    (e.ctrlKey || e.metaKey) &&
-    e.deltaMode === 0 &&
-    (Math.abs(e.deltaY) < PINCH_MAX_STEP_PX || !Number.isInteger(e.deltaY));
-  return Math.exp(-delta * (pinch ? PINCH_ZOOM_FACTOR : WHEEL_ZOOM_RATE));
+  const pinch = (e.ctrlKey || e.metaKey) && e.deltaMode === 0 && Math.abs(e.deltaY) < PINCH_MAX_STEP_PX;
+  if (!pinch) return Math.exp(-delta * WHEEL_ZOOM_RATE);
+  const scale = Math.exp(-delta * PINCH_ZOOM_FACTOR);
+  return Math.min(PINCH_MAX_SCALE, Math.max(1 / PINCH_MAX_SCALE, scale));
 }
 
 const DRAG_THRESHOLD_PX = 3;
