@@ -7,7 +7,7 @@
 
 ## 2. Auto-fit
 
-- [ ] 2.1 `fitFontSize(measure, text, w, h)` and size-aware `layoutSticky` in `text-layout.ts`, with a measure that takes a font size (D2). Verify with unit tests: "Hi" in 200×200 → 64; growing text shrinks monotonically; 500 characters → ≥ 8 and clipped only below 8; empty → 64; a stored `fontSize` is used as is.
+- [x] 2.1 `fitFontSize(measure, text, w, h)` and size-aware `layoutSticky` in `text-layout.ts`, with a measure that takes a font size (D2). Verify with unit tests: "Hi" in 200×200 → 64; growing text shrinks monotonically; 500 characters → ≥ 8 and clipped only below 8; empty → 64; a stored `fontSize` is used as is.
 - [ ] 2.2 `store.setText` stores the text and its fitted size in one commit; undo restores both (D3). Verify with store unit tests.
 - [ ] 2.3 Text overlay renders at the fitted size and keeps lines in place while typing and on finish (D3). Verify with DOM tests: the textarea font size equals the fitted size after each keystroke, and starting/finishing an edit keeps the size.
 - [ ] 2.4 Renderer: per-sticky size (stored or fitted on first draw, cached per `w|h|text`), text drawn grouped by size (D4). Verify with renderer tests: an unsized sticky is drawn at its fitted size without a store change; groups set `ctx.font` once per size.
