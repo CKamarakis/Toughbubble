@@ -36,7 +36,7 @@ describe("placeSticky", () => {
 
   it("a new sticky is yellow after another was turned pink", () => {
     const store = make(sticky("a"));
-    store.setColor("a", "#FFD5EE");
+    store.setColor("a", "#FFC6E8");
     const id = placeSticky(store, { x: 500, y: 300 });
     expect(store.getSnapshot().items[id].color).toBeUndefined();
   });

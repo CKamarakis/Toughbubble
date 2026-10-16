@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_STICKY_COLOR, PRESET_HEXES, STICKY_COLORS, colorOf, inkFor } from "./palette";
+import { DEFAULT_STICKY_COLOR, PRESET_HEXES, STICKY_COLORS, colorOf, currentHex, inkFor } from "./palette";
 
 function luminance(hex: string): number {
   const [r, g, b] = [1, 3, 5].map((i) => {
@@ -14,13 +14,34 @@ const ratio = (a: string, b: string) => {
 };
 
 describe("palette", () => {
-  it("has the 12 presets in table order", () => {
-    expect(STICKY_COLORS.map((c) => c.name)).toEqual([
-      "Yellow", "Orange", "Red", "Pink", "Purple", "Light blue",
-      "Dark blue", "Light green", "Dark green", "Brown", "Black", "White",
+  it("has the 13 presets in table order (D5)", () => {
+    expect(STICKY_COLORS.map((c) => `${c.name} ${c.hex} ${c.ink}`)).toEqual([
+      "Yellow #F7D000 #333129",
+      "Light yellow #FFF0A0 #333129",
+      "Pink #FFC6E8 #333129",
+      "Magenta #FF8AD8 #333129",
+      "Lavender #F3DDFF #333129",
+      "Purple #D3A1FF #333129",
+      "Sky blue #BBF0FF #333129",
+      "Light blue #B3CEFF #333129",
+      "Dark blue #3263C3 #FFFFFF",
+      "Light green #D4F3C4 #333129",
+      "Dark green #008135 #FFFFFF",
+      "Black #141310 #FFFFFF",
+      "White #FFFFFF #333129",
     ]);
-    expect(PRESET_HEXES.size).toBe(12);
-    expect(new Set(STICKY_COLORS.map((c) => c.id)).size).toBe(12);
+    expect(PRESET_HEXES.size).toBe(13);
+    expect(new Set(STICKY_COLORS.map((c) => c.id)).size).toBe(13);
+  });
+  it("the first palette's removed colours map to the nearest preset; others pass through", () => {
+    expect(currentHex("#FFDEB9")).toBe("#FFF0A0"); // Orange -> Light yellow
+    expect(currentHex("#FFD7CF")).toBe("#FFC6E8"); // Red -> Pink
+    expect(currentHex("#FFD5EE")).toBe("#FFC6E8"); // the earlier Pink -> Pink
+    expect(currentHex("#E7CBB9")).toBe("#FFF0A0"); // Brown -> Light yellow
+    expect(currentHex("#ffdeb9")).toBe("#FFF0A0");
+    expect(currentHex("#3263C3")).toBe("#3263C3");
+    expect(currentHex("#123456")).toBe("#123456");
+    for (const old of ["#FFDEB9", "#FFD7CF", "#FFD5EE", "#E7CBB9"]) expect(PRESET_HEXES.has(old)).toBe(false);
   });
   it.each(STICKY_COLORS.map((c) => [c.name, c] as const))("%s text has contrast >= 4.5", (_n, c) => {
     expect(ratio(c.hex, c.ink)).toBeGreaterThanOrEqual(4.5);

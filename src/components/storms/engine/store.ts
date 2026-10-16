@@ -17,7 +17,7 @@ import {
   type Step,
 } from "@/lib/storms/history";
 import type { Item, Items, StormBody } from "@/lib/storms/model";
-import { colorOf, PRESET_HEXES } from "@/lib/storms/palette";
+import { colorOf, currentHex, PRESET_HEXES } from "@/lib/storms/palette";
 import { fitFontSize, type SizedMeasure } from "@/lib/storms/text-layout";
 
 export type Tool = "select" | "sticky";
@@ -108,15 +108,21 @@ function withText(item: Item, text: string, fontSize: number | undefined): Item 
 }
 
 /**
- * Clamps text over MAX_TEXT (saved before the limit dropped), so later change sets
- * validate; a clamped sticky's stored size no longer matches, so it is fitted again.
+ * Brings a board that enters the store up to today's rules, so later change sets validate:
+ * text over MAX_TEXT (saved before the limit dropped) is clamped, and a clamped sticky's
+ * stored size no longer matches, so it is fitted again; a colour removed from the palette
+ * becomes its nearest preset (D5). Nothing is written: the fixed sticky is saved with its
+ * next change (whole-item upserts).
  */
 function clampItems(items: Items): Items {
   let out: Items | null = null;
   for (const [id, item] of Object.entries(items)) {
-    if (item.text.length <= MAX_TEXT) continue;
+    let next = item;
+    if (next.text.length > MAX_TEXT) next = withText(next, next.text.slice(0, MAX_TEXT), undefined);
+    if (next.color !== undefined && currentHex(next.color) !== next.color) next = { ...next, color: currentHex(next.color) };
+    if (next === item) continue;
     out ??= { ...items };
-    out[id] = withText(item, item.text.slice(0, MAX_TEXT), undefined);
+    out[id] = next;
   }
   return out ?? items;
 }

@@ -19,7 +19,7 @@ const PALETTE_GAP = 4;
 const COLUMNS = 4;
 /** Sizes used until the real ones are measured (and in tests, where nothing has a size). */
 const TOOLBAR_SIZE: Size = { w: 42, h: 42 };
-const PALETTE_SIZE: Size = { w: 178, h: 138 };
+const PALETTE_SIZE: Size = { w: 178, h: 178 };
 
 /** Keys the open palette takes from the board. */
 const PALETTE_KEYS = new Set(["ArrowRight", "ArrowLeft", "ArrowDown", "ArrowUp", "Home", "End", "Enter", " "]);

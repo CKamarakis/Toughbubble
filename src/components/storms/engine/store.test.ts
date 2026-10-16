@@ -502,6 +502,56 @@ describe("fitted size", () => {
   });
 });
 
+describe("removed colours on load", () => {
+  const ID = "11111111-1111-4111-8111-111111111111";
+  const ORANGE = "#FFDEB9";
+  const LIGHT_YELLOW = "#FFF0A0";
+
+  it("a loaded Orange sticky shows as Light yellow, keeps its size, and opening writes nothing", () => {
+    for (const via of ["init", "replace"] as const) {
+      const old = sticky(ID, { color: ORANGE, fontSize: 30 });
+      const store =
+        via === "init" ? createStormStore({ body: board(old), camera }) : createStormStore({ body: board(), camera });
+      const emitted: ChangeSet[] = [];
+      store.onChange((cs) => emitted.push(cs));
+      if (via === "replace") store.replaceBoard(board(old));
+      expect(store.getSnapshot().items[ID]).toEqual(sticky(ID, { color: LIGHT_YELLOW, fontSize: 30 }));
+      expect(emitted).toEqual([]);
+      expect(store.getHistory().undo).toHaveLength(0);
+    }
+  });
+
+  it("its next move saves Light yellow, and the change set validates", () => {
+    const { store, emitted } = setup(board(sticky(ID, { color: ORANGE, fontSize: 30 })));
+    moveSticky(store, ID, 10, 0, "push");
+    expect(emitted).toHaveLength(1);
+    expect(emitted[0].upsert[0].color).toBe(LIGHT_YELLOW);
+    expect(validateChangeSet(emitted[0]).ok).toBe(true);
+  });
+
+  it("maps Red and the earlier Pink to Pink, Brown to Light yellow; presets untouched", () => {
+    const store = createStormStore({
+      body: board(
+        sticky("r", { color: "#FFD7CF" }),
+        sticky("p", { color: "#FFD5EE" }),
+        sticky("b", { color: "#E7CBB9" }),
+        sticky("k", { color: "#141310" }),
+        sticky("y"),
+      ),
+      camera,
+    });
+    const items = store.getSnapshot().items;
+    expect([items.r.color, items.p.color, items.b.color, items.k.color, items.y.color]).toEqual([
+      "#FFC6E8", "#FFC6E8", LIGHT_YELLOW, "#141310", undefined,
+    ]);
+  });
+
+  it("a board with only current colours is kept as is", () => {
+    const body = board(sticky("a", { color: "#D3A1FF" }), sticky("b"));
+    expect(createStormStore({ body, camera }).getSnapshot().items).toBe(body.items);
+  });
+});
+
 describe("getHistoryForPersist", () => {
   it("is the history itself when no edit is open", () => {
     const { store } = setup();
@@ -564,7 +614,7 @@ describe("getHistoryForPersist", () => {
 });
 
 describe("setColor", () => {
-  const PINK = "#FFD5EE";
+  const PINK = "#FFC6E8";
 
   it("a colour change is one history step, emitted once", () => {
     const { store, emitted } = setup(board(sticky("a", { fontSize: 30 })));

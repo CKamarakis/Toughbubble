@@ -275,7 +275,7 @@ describe("sticky colour and font size", () => {
 
   it("a save with colour and fontSize round-trips", async () => {
     const id = await newStorm();
-    const s = sticky({ color: "#FFD5EE", fontSize: 27 });
+    const s = sticky({ color: "#FFC6E8", fontSize: 27 });
     expect(await save(id, validated(upsert(s)), 0)).toMatchObject({ status: "saved", version: 1 });
     expect((await load(id))?.body.items[s.id]).toEqual(s);
   });
@@ -286,6 +286,7 @@ describe("sticky colour and font size", () => {
     await save(id, validated(upsert(a)), 0);
     const before = await load(id);
     expect(() => validated(upsert(sticky({ color: "#123456" })))).toThrow("refused");
+    expect(() => validated(upsert(sticky({ color: "#FFDEB9" })))).toThrow("refused"); // Orange, removed
     expect(() => validated(upsert({ ...a, fontSize: 65 }))).toThrow("refused");
     expect(await load(id)).toEqual(before);
   });

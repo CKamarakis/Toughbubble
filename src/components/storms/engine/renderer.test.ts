@@ -272,8 +272,8 @@ describe("createRenderer colours", () => {
   });
 
   it("draws a pink sticky pink with dark text", () => {
-    const { fillRects, texts } = draw([sticky("a", { text: "Hi", color: "#FFD5EE" })]);
-    expect(stickyFills(fillRects)).toEqual(["#FFD5EE"]);
+    const { fillRects, texts } = draw([sticky("a", { text: "Hi", color: "#FFC6E8" })]);
+    expect(stickyFills(fillRects)).toEqual(["#FFC6E8"]);
     expect(texts).toEqual([{ text: "Hi", style: "#333129" }]);
   });
 

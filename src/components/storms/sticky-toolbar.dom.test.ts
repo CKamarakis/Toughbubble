@@ -34,15 +34,15 @@ describe("placeToolbar", () => {
 });
 
 describe("placePalette", () => {
-  const P = { w: 178, h: 138 };
+  const P = { w: 178, h: 178 };
   it("opens below a toolbar that sits above the sticky, centred on it", () => {
     expect(placePalette({ left: 379, top: 150, side: "above" }, TB, P, VP)).toEqual({ left: 400 - 89, top: 196 });
   });
   it("opens above a toolbar that sits below the sticky", () => {
-    expect(placePalette({ left: 379, top: 400, side: "below" }, TB, P, VP)).toEqual({ left: 311, top: 400 - 4 - 138 });
+    expect(placePalette({ left: 379, top: 400, side: "below" }, TB, P, VP)).toEqual({ left: 311, top: 400 - 4 - 178 });
   });
   it("flips when its side has no room, and stays inside the board horizontally", () => {
-    expect(placePalette({ left: 8, top: 500, side: "above" }, TB, P, VP)).toEqual({ left: 8, top: 500 - 4 - 138 });
+    expect(placePalette({ left: 8, top: 500, side: "above" }, TB, P, VP)).toEqual({ left: 8, top: 500 - 4 - 178 });
     expect(placePalette({ left: 8, top: 20, side: "below" }, TB, P, VP)).toEqual({ left: 8, top: 66 });
   });
 });
@@ -173,10 +173,10 @@ describe("StickyToolbar palette by keyboard", () => {
     expect(button.getAttribute("aria-expanded")).toBe("true");
     // Focus starts on the current colour.
     expect(document.activeElement).toBe(swatch("Yellow"));
-    for (let i = 0; i < 4; i++) keydown(document.activeElement!, "ArrowRight");
+    for (let i = 0; i < 5; i++) keydown(document.activeElement!, "ArrowRight");
     expect(document.activeElement).toBe(swatch("Purple"));
     keydown(document.activeElement!, "Enter");
-    expect(store.getSnapshot().items.a.color).toBe("#F3DDFF");
+    expect(store.getSnapshot().items.a.color).toBe("#D3A1FF");
     expect(palette()).toBeNull();
     expect(document.activeElement).toBe(colourButton());
     expect(colourButton().getAttribute("aria-label")).toBe("Colour: Purple");
@@ -187,11 +187,11 @@ describe("StickyToolbar palette by keyboard", () => {
     act(() => colourButton().focus());
     keydown(colourButton(), " ");
     keydown(document.activeElement!, "ArrowDown");
-    expect(document.activeElement).toBe(swatch("Purple"));
+    expect(document.activeElement).toBe(swatch("Lavender"));
     keydown(document.activeElement!, "ArrowDown");
-    expect(document.activeElement).toBe(swatch("Dark green"));
+    expect(document.activeElement).toBe(swatch("Dark blue"));
     keydown(document.activeElement!, "ArrowLeft");
-    expect(document.activeElement).toBe(swatch("Light green"));
+    expect(document.activeElement).toBe(swatch("Light blue"));
     keydown(swatch("Yellow"), "ArrowLeft");
     expect(document.activeElement).toBe(swatch("White"));
     keydown(document.activeElement!, " ");
@@ -211,15 +211,17 @@ describe("StickyToolbar palette by keyboard", () => {
   });
 
   it("every swatch has its colour's name; the current colour is checked and marked", () => {
-    act(() => store.commit({ upsert: [{ ...a, color: "#FFD5EE" }], delete: [] }, "none"));
+    act(() => store.commit({ upsert: [{ ...a, color: "#FFC6E8" }], delete: [] }, "none"));
     select("a");
     act(() => colourButton().focus());
     keydown(colourButton(), "Enter");
     const radios = [...host.querySelectorAll('[role="radio"]')];
     expect(radios.map((r) => r.getAttribute("aria-label"))).toEqual([
-      "Yellow", "Orange", "Red", "Pink", "Purple", "Light blue",
-      "Dark blue", "Light green", "Dark green", "Brown", "Black", "White",
+      "Yellow", "Light yellow", "Pink", "Magenta", "Lavender", "Purple", "Sky blue",
+      "Light blue", "Dark blue", "Light green", "Dark green", "Black", "White",
     ]);
+    // 4 per row (D5).
+    expect(palette()!.className).toContain("grid-cols-4");
     expect(radios.map((r) => r.getAttribute("title"))).toEqual(radios.map((r) => r.getAttribute("aria-label")));
     expect(radios.filter((r) => r.getAttribute("aria-checked") === "true")).toEqual([swatch("Pink")]);
     expect(swatch("Pink").querySelector("svg")).not.toBeNull();
@@ -254,7 +256,7 @@ describe("StickyToolbar with the mouse", () => {
     mouseClick(swatch("Pink"));
     const snap = store.getSnapshot();
     expect(snap.selectedId).toBe("a");
-    expect(snap.items.a.color).toBe("#FFD5EE");
+    expect(snap.items.a.color).toBe("#FFC6E8");
     expect(snap.camera).toBe(camera);
     expect(snap.panning).toBe(false);
     expect(emitted).toHaveLength(1);
@@ -296,7 +298,7 @@ describe("StickyToolbar with the mouse", () => {
     mouseClick(colourButton());
     expect(document.activeElement).toBe(board);
     boardKey("ArrowRight");
-    expect(document.activeElement).toBe(swatch("Orange"));
+    expect(document.activeElement).toBe(swatch("Light yellow"));
     expect(store.getSnapshot().items.a.x).toBe(0);
   });
 

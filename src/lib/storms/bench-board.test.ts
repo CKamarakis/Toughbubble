@@ -17,13 +17,13 @@ describe("makeBenchBoard", () => {
     }
   });
 
-  it("gives every sticky a preset colour, all 12 used, and no stored font size", () => {
+  it("gives every sticky a preset colour, all 13 used, and no stored font size", () => {
     const items = Object.values(makeBenchBoard(1000).items);
     for (const s of items) {
       expect(PRESET_HEXES.has(s.color ?? "")).toBe(true);
       expect(s.fontSize).toBeUndefined();
     }
-    expect(new Set(items.map((s) => s.color)).size).toBe(12);
+    expect(new Set(items.map((s) => s.color)).size).toBe(13);
   });
 
   it("is deterministic", () => {

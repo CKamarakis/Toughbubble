@@ -7,21 +7,35 @@ const LIGHT_INK = "#FFFFFF";
 
 const c = (id: string, name: string, hex: string, ink: string = DARK_INK): StickyColor => ({ id, name, hex, ink });
 
-/** The 12 sticky presets, in picker order (4 per row). */
+/** The 13 sticky presets (design D5), in picker order: by hue, Black and White last. */
 export const STICKY_COLORS: readonly StickyColor[] = [
   c("yellow", "Yellow", "#F7D000"),
-  c("orange", "Orange", "#FFDEB9"),
-  c("red", "Red", "#FFD7CF"),
-  c("pink", "Pink", "#FFD5EE"),
-  c("purple", "Purple", "#F3DDFF"),
-  c("light-blue", "Light blue", "#BBF0FF"),
+  c("light-yellow", "Light yellow", "#FFF0A0"),
+  c("pink", "Pink", "#FFC6E8"),
+  c("magenta", "Magenta", "#FF8AD8"),
+  c("lavender", "Lavender", "#F3DDFF"),
+  c("purple", "Purple", "#D3A1FF"),
+  c("sky-blue", "Sky blue", "#BBF0FF"),
+  c("light-blue", "Light blue", "#B3CEFF"),
   c("dark-blue", "Dark blue", "#3263C3", LIGHT_INK),
   c("light-green", "Light green", "#D4F3C4"),
   c("dark-green", "Dark green", "#008135", LIGHT_INK),
-  c("brown", "Brown", "#E7CBB9"),
   c("black", "Black", "#141310", LIGHT_INK),
   c("white", "White", "#FFFFFF"),
 ];
+
+/** The first palette's colours that were removed, and the preset each now shows as (D5). */
+const REMOVED: ReadonlyMap<string, string> = new Map([
+  ["#FFDEB9", "#FFF0A0"], // Orange -> Light yellow
+  ["#FFD7CF", "#FFC6E8"], // Red -> Pink
+  ["#FFD5EE", "#FFC6E8"], // the earlier Pink -> Pink
+  ["#E7CBB9", "#FFF0A0"], // Brown -> Light yellow
+]);
+
+/** A stored colour as it is today: a removed colour becomes its nearest preset; anything else is unchanged. */
+export function currentHex(hex: string): string {
+  return REMOVED.get(hex.toUpperCase()) ?? hex;
+}
 
 export const DEFAULT_STICKY_COLOR = STICKY_COLORS[0].hex;
 export const PRESET_HEXES: ReadonlySet<string> = new Set(STICKY_COLORS.map((p) => p.hex));

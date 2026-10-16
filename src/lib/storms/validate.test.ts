@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { isStormBody, validateChangeSet } from "./validate";
+import { STICKY_COLORS } from "./palette";
 
 const A = "11111111-1111-4111-8111-111111111111";
 const B = "22222222-2222-4222-8222-222222222222";
@@ -112,10 +113,20 @@ describe("validateChangeSet sticky style", () => {
     ok({ fontSize: 12 });
   });
   it("keeps colour and size on the returned item", () => {
-    const r = validateChangeSet(cs([sticky(A, { color: "#FFD5EE", fontSize: 20 })]));
-    expect(r.ok && r.changes.upsert[0]).toMatchObject({ color: "#FFD5EE", fontSize: 20 });
+    const r = validateChangeSet(cs([sticky(A, { color: "#FFC6E8", fontSize: 20 })]));
+    expect(r.ok && r.changes.upsert[0]).toMatchObject({ color: "#FFC6E8", fontSize: 20 });
   });
   it("accepts a sticky without style", () => ok({}));
+  it("accepts each of the 13 presets", () => {
+    for (const c of STICKY_COLORS) ok({ color: c.hex });
+    expect(STICKY_COLORS).toHaveLength(13);
+  });
+  it("rejects the first palette's removed colours (Orange, Red, the earlier Pink, Brown)", () => {
+    no({ color: "#FFDEB9" });
+    no({ color: "#FFD7CF" });
+    no({ color: "#FFD5EE" });
+    no({ color: "#E7CBB9" });
+  });
   it("rejects a colour that is not a preset", () => {
     no({ color: "#123456" });
     no({ color: "#f7d000" });
