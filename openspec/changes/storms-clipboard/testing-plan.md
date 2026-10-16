@@ -124,4 +124,4 @@ Run these in a terminal in the project folder. They are for whoever maintains th
 | Database tests (several minutes, uses the dev database) | `npm run test:integration` | No failures (about 4 to 10 minutes) |
 | Speed gate | Start `npx next dev -p 3101` in one terminal, then `npm run bench:storms` in another. On Windows it works as is; elsewhere use `BENCH_CHANNEL=chrome npm run bench:storms` | Five `PASS` lines (each about 60 fps, the slowest 5% of frames under 33 ms) and `Speed gate passed.` |
 
-Exact counts from the run for this change are recorded in the task 3.3 commit.
+Results of the round-2 run (2026-10-17): types clean; lint 0 errors (94 warnings); unit 46 files, 736 tests passed; database tests 11 files, 129 tests passed; speed gate passed (all five PASS, about 59.9 fps).
