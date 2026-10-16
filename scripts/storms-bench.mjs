@@ -72,10 +72,37 @@ try {
       }),
     };
 
+    // One sticky selected (the one nearest the middle), so the sticky toolbar is on screen
+    // and re-renders on every camera frame. The pan stays small so the sticky stays in view.
+    const mid = items.reduce((a, b) =>
+      Math.hypot(a.x + a.w / 2 - centre.x, a.y + a.h / 2 - centre.y) <=
+      Math.hypot(b.x + b.w / 2 - centre.x, b.y + b.h / 2 - centre.y) ? a : b);
+    const mc = { x: mid.x + mid.w / 2, y: mid.y + mid.h / 2 };
+    const selectedPhases = {
+      "pan at 100%, 1 selected": (t) => ({
+        x: mc.x + 300 * Math.sin(t * Math.PI * 4),
+        y: mc.y + 150 * Math.sin(t * Math.PI * 2),
+        zoom: 1,
+      }),
+      "zoom 100% > 50%, 1 selected": (t) => ({
+        x: mc.x,
+        y: mc.y,
+        zoom: Math.exp(Math.log(0.5) * (1 - Math.abs(2 * t - 1))),
+      }),
+    };
+
     const out = { fitZoom: fit.zoom, phases: {} };
-    for (const [name, cameraAt] of Object.entries(phases)) {
+    const all = [
+      ...Object.entries(phases).map((e) => [...e, null]),
+      ...Object.entries(selectedPhases).map((e) => [...e, mid.id]),
+    ];
+    for (const [name, cameraAt, selectId] of all) {
+      store.select(selectId);
       store.setCamera(cameraAt(0));
       await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+      // A selected phase only means something if the sticky toolbar is really on the page.
+      if (selectId && !document.querySelector('[role="toolbar"][aria-label="Sticky tools"]'))
+        throw new Error("sticky toolbar not shown in phase: " + name);
       const frames = [];
       await new Promise((resolve) => {
         let start = 0;

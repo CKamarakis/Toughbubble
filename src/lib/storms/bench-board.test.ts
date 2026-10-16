@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { makeBenchBoard } from "./bench-board";
 import { STICKY } from "./model";
+import { PRESET_HEXES } from "./palette";
 
 describe("makeBenchBoard", () => {
   it("makes the requested number of stickies on a grid with unique ids and z keys", () => {
@@ -14,6 +15,15 @@ describe("makeBenchBoard", () => {
       expect(s.text.split("\n").length).toBeGreaterThanOrEqual(1);
       expect(s.text.split("\n").length).toBeLessThanOrEqual(3);
     }
+  });
+
+  it("gives every sticky a preset colour, all 12 used, and no stored font size", () => {
+    const items = Object.values(makeBenchBoard(1000).items);
+    for (const s of items) {
+      expect(PRESET_HEXES.has(s.color ?? "")).toBe(true);
+      expect(s.fontSize).toBeUndefined();
+    }
+    expect(new Set(items.map((s) => s.color)).size).toBe(12);
   });
 
   it("is deterministic", () => {
