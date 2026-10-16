@@ -1,31 +1,38 @@
-// Notes don't load the board (storms-canvas D12): after `next build`, the item
-// page's client modules (what a note page downloads) must not list the Storm
-// board chunk. The board is reachable only through its next/dynamic loader.
+// Notes don't load the board (storms-canvas D12): after `next build`, none of the
+// Storm board's chunks may appear in the item page's eager client-module lists
+// (what a note page downloads). The board is reachable only through its
+// next/dynamic loader. If a chunk is ever legitimately shared with other client
+// code, this fails loudly and the check should be refined, not loosened.
 // Production build only: the dev server lists the page's async chunks up front
-// (a Turbopack dev behaviour), so this check says nothing about `next dev`.
+// (a Turbopack dev behaviour), so this says nothing about `next dev`.
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 const dir = resolve(".next/server/app/(workspace)/items/[id]");
 const loadable = JSON.parse(readFileSync(resolve(dir, "page/react-loadable-manifest.json"), "utf8"));
-const boardEntry = Object.entries(loadable).find(([key]) => key.includes("storm-board")) ?? Object.entries(loadable)[0];
-if (!boardEntry) throw new Error("No next/dynamic entry found for the item page; has the board loader moved?");
-// The loader's own files; the shared ones also serve other code, so only the board-specific file matters.
-const boardFiles = new Set(boardEntry[1].files.map((f) => `/_next/${f}`));
-
 globalThis.__RSC_MANIFEST = {};
 await import(`file://${resolve(dir, "page_client-reference-manifest.js").replaceAll("\\", "/")}`);
 const manifest = Object.values(globalThis.__RSC_MANIFEST)[0];
-const eager = new Set(Object.values(manifest.clientModules).flatMap((m) => m.chunks));
 
-// A chunk used only by the board appears in no client module's list; shared ones (React, utils) do.
-const sharedWithBoard = [...boardFiles].filter((f) => eager.has(f));
-const boardOnly = [...boardFiles].filter((f) => !eager.has(f));
-console.log("board loader files:", [...boardFiles].join(", "));
-console.log("also loaded eagerly (shared):", sharedWithBoard.join(", ") || "none");
-console.log("board-only (lazy):", boardOnly.join(", ") || "none");
-if (boardOnly.length === 0) {
-  console.error("FAIL: every board chunk is eagerly loaded on the item page.");
+// Production keys are numeric module ids, so find the board by its code:
+// "gesturestart" (Safari pinch handling in the engine) is only in the board's chunks.
+const MARKER = "gesturestart";
+const has = (url) => readFileSync(resolve(".next", url.replace("/_next/", "")), "utf8").includes(MARKER);
+
+// 1. No chunk a client module loads eagerly may contain the board's code.
+const leaks = new Set();
+for (const [module, { chunks }] of Object.entries(manifest.clientModules)) {
+  for (const f of chunks) if (f.endsWith(".js") && has(f)) leaks.add(`${f} in ${module}`);
+}
+if (leaks.size) {
+  console.error("FAIL: board code is eagerly loaded on the item page:\n  " + [...leaks].join("\n  "));
   process.exit(1);
 }
-console.log("OK: the board's own chunk is not in any client module's eager list.");
+
+// 2. The board must still be a lazy entry (guards against the check going blind if the loader is renamed).
+const keys = Object.keys(loadable).filter((k) => loadable[k].files.some((f) => has(`/_next/${f}`)));
+if (keys.length !== 1) {
+  throw new Error(`Expected exactly one next/dynamic entry whose chunks contain "${MARKER}", found ${keys.length} (entries: ${Object.keys(loadable).join(", ") || "none"}). Has the board loader moved, or the marker changed?`);
+}
+console.log("board chunks (lazy):", loadable[keys[0]].files.join(", "));
+console.log("OK: no board code in any client module's eager chunks.");
