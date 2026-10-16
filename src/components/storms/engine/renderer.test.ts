@@ -207,6 +207,23 @@ describe("createRenderer fitted sizes", () => {
     expect(order).toEqual(["rect 500", "text Lower", "rect 600", "text Upper"]);
   });
 
+  it("while zooming draws text at whole screen px, then exactly once the zoom settles", () => {
+    vi.useFakeTimers();
+    try {
+      const { fillTextFonts, frame, store } = draw([sticky("a", { text: "Hi", fontSize: 30 })]);
+      fillTextFonts.length = 0;
+      store.setCamera({ x: 500, y: 500, zoom: 1.01 });
+      frame();
+      expect(new Set(fillTextFonts)).toEqual(new Set(["30px Test"]));
+      fillTextFonts.length = 0;
+      vi.advanceTimersByTime(200);
+      frame();
+      expect(new Set(fillTextFonts)).toEqual(new Set([`${30 * 1.01}px Test`]));
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("skips text below 30% zoom", () => {
     const { fillTextFonts } = draw([sticky("a", { text: "Hi" })], 0.25);
     expect(fillTextFonts).toEqual([]);

@@ -11,6 +11,8 @@ const SHADOW_COLOUR = "rgba(0,0,0,0.12)";
 const SELECTION = { colour: "#F700A8", width: 1, gap: 5 };
 /** Board px per cell of the grid that finds overlapping stickies while drawing. */
 const CELL = 256;
+/** How long after the last zoom change text is redrawn at its exact size. */
+const ZOOM_SETTLE_MS = 150;
 
 export type Renderer = {
   resize(size: Size, dpr: number): void;
@@ -29,11 +31,24 @@ export function createRenderer(
   let fontReady = false;
   let frame = 0;
   let destroyed = false;
+  let lastZoom = NaN;
+  let settle: ReturnType<typeof setTimeout> | undefined;
 
   // Text is measured at a 100 px reference font and scaled, as the store and the text
   // overlay measure it, so all three agree on sizes and lines.
   const font = refFont(family);
-  const measure = scaleMeasure((s) => ctx?.measureText(s).width ?? 0);
+  // Widths at the reference font are memoised: a fit tries up to 6 sizes, which wrap the
+  // same strings, and boards repeat text. Cleared when the font loads.
+  const widths = new Map<string, number>();
+  const measure = scaleMeasure((s) => {
+    let w = widths.get(s);
+    if (w === undefined) {
+      if (widths.size > 50_000) widths.clear();
+      w = ctx?.measureText(s).width ?? 0;
+      widths.set(s, w);
+    }
+    return w;
+  });
   /** The reference font's ascent and descent, read once the font has loaded. */
   let metrics: { ascent: number; descent: number } | null = null;
 
@@ -87,7 +102,7 @@ export function createRenderer(
    * per sticky (changing the font is slow). Drawn at the screen size rather than scaled
    * by a transform, as the textarea overlay is.
    */
-  function drawText(jobs: TextJob[], z: number) {
+  function drawText(jobs: TextJob[], z: number, zooming: boolean) {
     if (!ctx || jobs.length === 0) return;
     const bySize = new Map<number, TextJob[]>();
     for (const job of jobs) {
@@ -97,7 +112,10 @@ export function createRenderer(
     }
     ctx.fillStyle = STICKY.text;
     for (const [fontPx, group] of bySize) {
-      ctx.font = `${fontPx * z}px ${family || "sans-serif"}`;
+      // While zooming, every size is a new fractional font each frame, which is slow with
+      // many sizes; whole px repeat across frames. Exact again once the zoom settles.
+      const screenPx = zooming ? Math.round(fontPx * z) : fontPx * z;
+      ctx.font = `${screenPx}px ${family || "sans-serif"}`;
       for (const { s, p, layout } of group) {
         const { lines, lineHeight, top, overflows, baseline } = layout;
         // Only a line wider than the sticky (one long word) needs clipping to it.
@@ -156,6 +174,12 @@ export function createRenderer(
     const shadows = camera.zoom >= SHADOW_MIN_ZOOM;
     const showText = fontReady && camera.zoom >= TEXT_MIN_ZOOM;
     const z = camera.zoom;
+    const zooming = z !== lastZoom;
+    lastZoom = z;
+    if (zooming && showText) {
+      clearTimeout(settle);
+      settle = setTimeout(schedule, ZOOM_SETTLE_MS);
+    }
 
     if (showText) {
       ctx.textAlign = "center";
@@ -181,7 +205,7 @@ export function createRenderer(
       const p = boardToScreen(camera, size, s);
       if (jobs.length > 0 && overlapsQueued(s)) {
         if (shadows) ctx.shadowColor = "transparent";
-        drawText(jobs, z);
+        drawText(jobs, z, zooming);
         queued.clear();
       }
       if (shadows) ctx.shadowColor = SHADOW_COLOUR;
@@ -201,7 +225,7 @@ export function createRenderer(
       }
     }
     ctx.shadowColor = "transparent";
-    drawText(jobs, z);
+    drawText(jobs, z, zooming);
 
     const found = selectedId ? items[selectedId] : undefined;
     const selected = found && shift(found);
@@ -231,12 +255,14 @@ export function createRenderer(
       fontReady = true;
       layouts.clear();
       metrics = null;
+      widths.clear();
       schedule();
     },
     destroy() {
       destroyed = true;
       off();
       if (frame) cancelAnimationFrame(frame);
+      clearTimeout(settle);
       frame = 0;
     },
   };
