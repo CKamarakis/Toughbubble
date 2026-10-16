@@ -248,3 +248,21 @@ describe("fitted size (no jump)", () => {
     expect(px(textarea()!.style.paddingTop)).toBeCloseTo(top);
   });
 });
+
+describe("colour", () => {
+  const hex = (v: string) => {
+    const m = v.match(/\d+/g);
+    return m && v.startsWith("rgb") ? "#" + m.slice(0, 3).map((n) => Number(n).toString(16).padStart(2, "0")).join("").toUpperCase() : v.toUpperCase();
+  };
+  it("edits a yellow sticky's text in dark ink", () => {
+    expect(hex(textarea()!.style.color)).toBe("#333129");
+  });
+  it("edits a black sticky's text in white, as the canvas draws it", async () => {
+    await act(async () => {
+      store.endEdit();
+      store.commit({ upsert: [{ ...a, color: "#141310" }], delete: [] }, "none");
+      store.startEdit("a");
+    });
+    expect(hex(textarea()!.style.color)).toBe("#FFFFFF");
+  });
+});

@@ -1,5 +1,6 @@
 import { boardToScreen, visibleRect } from "@/lib/storms/camera";
-import { byZ, STICKY, type Item, type Rect, type Size } from "@/lib/storms/model";
+import { byZ, type Item, type Rect, type Size } from "@/lib/storms/model";
+import { colorOf } from "@/lib/storms/palette";
 import { LINE_HEIGHT_RATIO, REF_FONT_PX, layoutSticky, scaleMeasure } from "@/lib/storms/text-layout";
 import { refFont } from "./font";
 import type { StormStore } from "./store";
@@ -9,6 +10,8 @@ const TEXT_MIN_ZOOM = 0.3;
 const SHADOW_MIN_ZOOM = 0.5;
 const SHADOW_COLOUR = "rgba(0,0,0,0.12)";
 const SELECTION = { colour: "#F700A8", width: 1, gap: 5 };
+/** A white sticky's border, so it stays visible on the light board (neutral 300). */
+const WHITE_BORDER = { fill: "#FFFFFF", colour: "#D9D8D3", width: 1 };
 /** Board px per cell of the grid that finds overlapping stickies while drawing. */
 const CELL = 256;
 /** How long after the last zoom change text is redrawn at its exact size. */
@@ -95,7 +98,7 @@ export function createRenderer(
     return (lineHeight - (metrics.ascent + metrics.descent) * k) / 2 + metrics.ascent * k;
   }
 
-  type TextJob = { s: Item; p: { x: number; y: number }; layout: Laid };
+  type TextJob = { s: Item; p: { x: number; y: number }; layout: Laid; ink: string };
 
   /**
    * Draws the queued text grouped by size, so `ctx.font` is set once per size rather than
@@ -110,14 +113,19 @@ export function createRenderer(
       if (group) group.push(job);
       else bySize.set(job.layout.fontSize, [job]);
     }
-    ctx.fillStyle = STICKY.text;
+    // Most stickies share an ink, so the fill style is set only when it changes.
+    let ink = "";
     for (const [fontPx, group] of bySize) {
       // While zooming, every size is a new fractional font each frame, which is slow with
       // many sizes; whole px repeat across frames. Exact again once the zoom settles.
       const screenPx = zooming ? Math.round(fontPx * z) : fontPx * z;
       ctx.font = `${screenPx}px ${family || "sans-serif"}`;
-      for (const { s, p, layout } of group) {
+      for (const { s, p, layout, ink: jobInk } of group) {
         const { lines, lineHeight, top, overflows, baseline } = layout;
+        if (jobInk !== ink) {
+          ink = jobInk;
+          ctx.fillStyle = ink;
+        }
         // Only a line wider than the sticky (one long word) needs clipping to it.
         if (overflows) {
           ctx.save();
@@ -208,14 +216,22 @@ export function createRenderer(
         drawText(jobs, z, zooming);
         queued.clear();
       }
+      const colour = colorOf(s);
       if (shadows) ctx.shadowColor = SHADOW_COLOUR;
-      ctx.fillStyle = STICKY.fill;
+      ctx.fillStyle = colour.hex;
       ctx.fillRect(p.x, p.y, s.w * z, s.h * z);
       if (shadows) ctx.shadowColor = "transparent";
+      if (colour.hex === WHITE_BORDER.fill) {
+        // Inside the edge: centred half a pixel in, so the line is exactly 1 px wide.
+        const h = WHITE_BORDER.width / 2;
+        ctx.strokeStyle = WHITE_BORDER.colour;
+        ctx.lineWidth = WHITE_BORDER.width;
+        ctx.strokeRect(p.x + h, p.y + h, s.w * z - 2 * h, s.h * z - 2 * h);
+      }
 
       // The text overlay shows the text of the sticky being edited.
       if (showText && s.text !== "" && s.id !== editingId) {
-        jobs.push({ s, p, layout: layoutOf(s) });
+        jobs.push({ s, p, layout: layoutOf(s), ink: colour.ink });
         someCell(s, (key) => {
           const list = queued.get(key);
           if (list) list.push(s);

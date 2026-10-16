@@ -14,7 +14,7 @@
 
 ## 3. Colour
 
-- [ ] 3.1 Renderer draws each sticky's fill and text in its colour, White with a 1 px #D9D8D3 border (D4, D5). Verify with renderer tests for Yellow, Pink, Black (white text) and White (border).
+- [x] 3.1 Renderer draws each sticky's fill and text in its colour, White with a 1 px #D9D8D3 border (D4, D5). Verify with renderer tests for Yellow, Pink, Black (white text) and White (border).
 - [ ] 3.2 Store `setColor(id, hex)`: one undo step, no-op when unchanged (D6). Verify with store unit tests: colour change → one history step; undo restores yellow; redo reapplies.
 - [ ] 3.3 `sticky-toolbar.tsx` above the selected sticky with the Colour button and palette popover (D6): placement and flip, hidden while editing/dragging/panning, keyboard path, accessible names, clicks don't deselect, light in dark theme. Verify with DOM tests for show/hide, the keyboard path (Tab, Enter, arrows, Enter → colour applied, focus back on the button) and that a click on a swatch keeps the sticky selected.
 

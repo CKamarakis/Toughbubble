@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useSyncExternalStore } from "react";
 import { boardToScreen, type Camera } from "@/lib/storms/camera";
 import { MAX_TEXT } from "@/lib/storms/limits";
 import { STICKY, type Size, type Sticky } from "@/lib/storms/model";
+import { colorOf } from "@/lib/storms/palette";
 import { layoutSticky } from "@/lib/storms/text-layout";
 import { createBoardMeasure } from "./engine/font";
 import type { StormStore } from "./engine/store";
@@ -128,7 +129,8 @@ function StickyTextEditor({ store, family, getViewport, onExit }: OverlayProps) 
         fontFamily: family || "sans-serif",
         fontSize: box.fontSize,
         lineHeight: `${box.lineHeight}px`,
-        color: STICKY.text,
+        // The sticky's ink, as the canvas draws it (white on the dark colours).
+        color: colorOf(sticky).ink,
         textAlign: "center",
         whiteSpace: "pre-wrap",
         overflowWrap: "break-word",

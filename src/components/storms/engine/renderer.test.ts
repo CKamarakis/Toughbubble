@@ -8,6 +8,8 @@ afterEach(() => vi.unstubAllGlobals());
 
 function fakeCanvas() {
   const fillTextFonts: string[] = [];
+  /** `{ text, style }` of every fillText, in order. */
+  const texts: { text: string; style: unknown }[] = [];
   /** Every `ctx.font` assignment, and every fill call in order. */
   const fontSets: string[] = [];
   const ops: string[] = [];
@@ -39,6 +41,7 @@ function fakeCanvas() {
       fillText: (text: string) => {
         ops.push(`text ${text}`);
         fillTextFonts.push(ctx.font);
+        texts.push({ text, style: ctx.fillStyle });
       },
     } as Record<string, unknown>,
     {
@@ -51,7 +54,7 @@ function fakeCanvas() {
     },
   ) as unknown as CanvasRenderingContext2D;
   const canvas = { getContext: () => ctx, width: 0, height: 0 } as unknown as HTMLCanvasElement;
-  return { canvas, fillTextFonts, fillRects, strokeRects, pathCalls, fontSets, ops, measures: () => measures };
+  return { canvas, fillTextFonts, texts, fillRects, strokeRects, pathCalls, fontSets, ops, measures: () => measures };
 }
 
 describe("createRenderer text font", () => {
@@ -227,5 +230,82 @@ describe("createRenderer fitted sizes", () => {
   it("skips text below 30% zoom", () => {
     const { fillTextFonts } = draw([sticky("a", { text: "Hi" })], 0.25);
     expect(fillTextFonts).toEqual([]);
+  });
+});
+
+describe("createRenderer colours", () => {
+  const sticky = (id: string, over: Partial<Sticky>): Sticky => ({
+    id,
+    type: "sticky",
+    x: 0,
+    y: 0,
+    z: "a0",
+    w: 200,
+    h: 200,
+    text: "",
+    ...over,
+  });
+
+  function draw(items: Sticky[], select?: string) {
+    const frames: (() => void)[] = [];
+    vi.stubGlobal("requestAnimationFrame", (cb: () => void) => frames.push(cb));
+    vi.stubGlobal("cancelAnimationFrame", () => {});
+    const body: StormBody = { schema: 1, items: Object.fromEntries(items.map((i) => [i.id, i])) };
+    const store = createStormStore({ body, camera: { x: 500, y: 500, zoom: 1 } });
+    if (select) store.select(select);
+    const fake = fakeCanvas();
+    const renderer = createRenderer(fake.canvas, store, "Test");
+    renderer.resize({ w: 2000, h: 2000 }, 1);
+    renderer.setFontReady();
+    fake.fillRects.length = 0;
+    fake.texts.length = 0;
+    fake.strokeRects.length = 0;
+    frames.splice(0).forEach((f) => f());
+    return fake;
+  }
+  const stickyFills = (rects: { style: unknown }[]) => rects.map((r) => r.style).filter((s) => s !== "#F2F2F2");
+
+  it("draws a sticky with no colour yellow with dark text", () => {
+    const { fillRects, texts } = draw([sticky("a", { text: "Hi" })]);
+    expect(stickyFills(fillRects)).toEqual(["#F7D000"]);
+    expect(texts).toEqual([{ text: "Hi", style: "#333129" }]);
+  });
+
+  it("draws a pink sticky pink with dark text", () => {
+    const { fillRects, texts } = draw([sticky("a", { text: "Hi", color: "#FFD5EE" })]);
+    expect(stickyFills(fillRects)).toEqual(["#FFD5EE"]);
+    expect(texts).toEqual([{ text: "Hi", style: "#333129" }]);
+  });
+
+  it("draws a black sticky with white text", () => {
+    const { fillRects, texts } = draw([sticky("a", { text: "Hi", color: "#141310" })]);
+    expect(stickyFills(fillRects)).toEqual(["#141310"]);
+    expect(texts).toEqual([{ text: "Hi", style: "#FFFFFF" }]);
+  });
+
+  it("gives a white sticky a 1 px #D9D8D3 border inside its edge, and no other sticky one", () => {
+    const { strokeRects, fillRects } = draw([sticky("w", { color: "#FFFFFF" }), sticky("y", { x: 240, z: "a1" })]);
+    expect(stickyFills(fillRects)).toEqual(["#FFFFFF", "#F7D000"]);
+    // Board origin at screen (500, 500): the viewport centre minus the camera.
+    expect(strokeRects).toEqual([{ style: "#D9D8D3", width: 1, args: [500.5, 500.5, 199, 199] }]);
+  });
+
+  it("mixed colours in one size group each get their ink, in z order", () => {
+    const { texts } = draw([
+      sticky("a", { x: 0, z: "a0", text: "A", fontSize: 20, color: "#141310" }),
+      sticky("b", { x: 240, z: "a1", text: "B", fontSize: 20 }),
+      sticky("c", { x: 480, z: "a2", text: "C", fontSize: 20, color: "#3263C3" }),
+    ]);
+    expect(texts).toEqual([
+      { text: "A", style: "#FFFFFF" },
+      { text: "B", style: "#333129" },
+      { text: "C", style: "#FFFFFF" },
+    ]);
+  });
+
+  it("the selection outline stays magenta on a white sticky, drawn last", () => {
+    const { strokeRects } = draw([sticky("a", { color: "#FFFFFF" })], "a");
+    expect(strokeRects).toHaveLength(2);
+    expect(strokeRects.at(-1)).toMatchObject({ style: "#F700A8", width: 1, args: [494.5, 494.5, 211, 211] });
   });
 });
