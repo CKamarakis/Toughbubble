@@ -1,4 +1,5 @@
 import type { Camera } from "@/lib/storms/camera";
+import { MAX_TEXT } from "@/lib/storms/limits";
 import {
   applyChanges,
   invertChanges,
@@ -85,6 +86,17 @@ function listeners<A extends unknown[]>() {
   };
 }
 
+/** Clamps text over MAX_TEXT (saved before the limit dropped), so later change sets validate. */
+function clampItems(items: Items): Items {
+  let out: Items | null = null;
+  for (const [id, item] of Object.entries(items)) {
+    if (item.text.length <= MAX_TEXT) continue;
+    out ??= { ...items };
+    out[id] = { ...item, text: item.text.slice(0, MAX_TEXT) };
+  }
+  return out ?? items;
+}
+
 const sameCamera = (a: Camera, b: Camera) => a.x === b.x && a.y === b.y && a.zoom === b.zoom;
 
 export function createStormStore(init: {
@@ -93,7 +105,7 @@ export function createStormStore(init: {
   history?: History;
 }): StormStore {
   let state: State = {
-    items: init.body.items,
+    items: clampItems(init.body.items),
     camera: init.camera,
     tool: "select",
     selectedId: null,
@@ -239,7 +251,8 @@ export function createStormStore(init: {
       editBefore = item;
       update({ editingId: id, selectedId: id });
     },
-    setText(id, text) {
+    setText(id, rawText) {
+      const text = rawText.slice(0, MAX_TEXT); // input that bypasses the textarea's maxLength
       const item = state.items[id];
       if (id !== state.editingId || !item || item.text === text) return;
       commit({ upsert: [{ ...item, text }], delete: [] }, "none");
@@ -247,7 +260,7 @@ export function createStormStore(init: {
     endEdit,
     replaceBoard(body) {
       editBefore = null;
-      update({ items: body.items, selectedId: null, editingId: null, dragPreview: null }, EMPTY_HISTORY);
+      update({ items: clampItems(body.items), selectedId: null, editingId: null, dragPreview: null }, EMPTY_HISTORY);
       replaced.call();
     },
     onReplace: replaced.add,

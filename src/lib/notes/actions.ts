@@ -1,10 +1,14 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { UnauthenticatedError, withUserDb } from "@/db/client";
+import { createClient } from "@/lib/supabase/server";
+import type { ActionResult } from "@/lib/tree/actions";
+import { NOT_FOUND, treeErrorMessage } from "@/lib/tree/errors";
 import * as ops from "./operations";
 import { validateNoteBody } from "./validate";
 
-// Note body actions. They don't revalidate the layout: body text doesn't change
+// Note body actions. Saves don't revalidate the layout: body text doesn't change
 // the sidebar, and the client patches the note's "last edited" time itself.
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -47,4 +51,18 @@ export async function loadNote(itemId: string): Promise<ops.NoteBody | null> {
 export async function noteVersion(itemId: string): Promise<number | null> {
   if (!isId(itemId)) return null;
   return withUserDb((tx) => ops.getNoteVersion(tx, itemId));
+}
+
+/** Copies a note and its attachments; the sidebar order changes, so the layout is revalidated. */
+export async function duplicateNote(id: string): Promise<ActionResult<string>> {
+  if (!isId(id)) return { ok: false, error: "That request was not valid." };
+  try {
+    const bucket = (await createClient()).storage.from("attachments");
+    const copyId = await ops.duplicateNoteCleanly(withUserDb, bucket, id);
+    if (!copyId) return { ok: false, error: NOT_FOUND };
+    revalidatePath("/", "layout");
+    return { ok: true, value: copyId };
+  } catch (error) {
+    return { ok: false, error: treeErrorMessage(error) };
+  }
 }

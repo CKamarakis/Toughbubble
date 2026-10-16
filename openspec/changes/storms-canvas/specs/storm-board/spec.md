@@ -157,6 +157,7 @@ Double-clicking a sticky, or pressing Enter with one selected, SHALL start editi
 #### Scenario: No jump
 - **WHEN** a user starts or finishes editing a sticky's text
 - **THEN** the text's lines stay in the same position
+- **AND** if the editor was scrolled to show text beyond the sticky's edge, finishing returns the text to the top, so the lines are in the same position as before editing
 
 ### Requirement: Delete a sticky
 Pressing Delete or Backspace with a sticky selected, and not while editing its text, SHALL delete it.

@@ -5,6 +5,7 @@ You are checking the first version of Storms: an endless board where you place s
 - **Time:** about 45 minutes. Sections 1-4 (the basics) take about 20.
 - **You need:** the app open and signed in (the deployed site or `http://localhost:3001`), a second browser tab, a mouse and, if you have one, a laptop trackpad. Safari is optional (step 65).
 - **How to use it:** do each step, look at what happens, tick **Pass** or **Fail**, and write anything odd under Notes. A failed step is useful, not a problem.
+- **"Browser check: Not yet (changed 2026-10-16)"** means the step was rewritten after the first test round: tick it again. Your earlier tick and note are kept on the "Earlier result" line under it. Steps with an "a", "b" or "c" after the number are new.
 - **"Browser check 2026-10-11: Done"** means the controller already ran that step in a browser and it worked. You decide whether to repeat it; the steps marked "Not yet" are the ones nobody has looked at yet, so start there.
 - **"Also checked automatically by"** names the automated test that covers the same thing. "Browser only" means no test can check it, so your eyes are the only check.
 - The small italic line under each title names the requirement it covers, so we can check nothing is missed.
@@ -37,12 +38,12 @@ Tip: make a new Storm just for this test (New > Storm), and call it "Test". Anyt
 - [ x] Pass  [ ] Fail   Notes:
 
 **4. Notes don't load the board** _(storm-page layout: Notes don't load the board)_
-- **Do:** Reload the browser, open only a note, then press F12 (or right-click > Inspect) and click the **Network** tab, reload, and look through the files loaded. **Needs a production build; ask the developer to do this one.**
-- **You should see:** Nothing that looks like the board's code (storm) loaded. Ask the developer for a production build.
-- Also checked automatically by: browser only.
-- Browser check 2026-10-11: Done (production build).
-- [ ] Pass  [ x] Fail   Notes: 
-http://localhost:3001/_next/static/chunks/src_components_storms_storm-board_tsx_18eb8n8._.js
+- **Do:** Needs a production build, so ask the developer to run `npx next build` and `npx next start`, then open only a note (no Storm in that visit). Press F12 (or right-click > Inspect), click the **Network** tab, reload, and look through the files loaded. Do not do this on `npm run dev`: the dev server lists the board's code on note pages by design (design D12), so it shows the file even though a real build does not load it.
+- **You should see:** Nothing that looks like the board's code (a file with "storm-board" in its name). The developer can also run `npm run check:note-chunks` after `npx next build`, which checks the same thing from the build files.
+- Also checked automatically by: `npm run check:note-chunks` (`scripts/check-note-chunks.mjs`, run after `npx next build`).
+- Browser check: Not yet (changed 2026-10-16).
+- [ ] Pass  [ ] Fail   Notes:
+- Earlier result (2026-10-16): Fail — http://localhost:3001/_next/static/chunks/src_components_storms_storm-board_tsx_18eb8n8._.js (seen on the dev server, where this is expected).
 
 **5. A missing item** _(workspace-tree: Item not available)_
 - **Do:** Change a few letters in a Storm's address and press Enter. Also try the address of something in the Trash.
@@ -69,40 +70,44 @@ http://localhost:3001/_next/static/chunks/src_components_storms_storm-board_tsx_
 
 **8. Note menu** _(workspace-tree: Note menu)_
 - **Do:** Open a note's "..." menu.
-- **You should see:** Rename, Move to…, Reorder, Archive, Move to Trash. No "New inside", no Duplicate.
-- Also checked automatically by: browser only.
-- Browser check 2026-10-11: Not yet.
+- **You should see:** Rename, Duplicate, Move to…, Reorder, Archive, Move to Trash. No "New inside".
+- Also checked automatically by: browser only (Duplicate itself: `tests/integration/note-duplicate.test.ts`).
+- Browser check: Not yet (changed 2026-10-16).
 - [ ] Pass  [ ] Fail   Notes:
 
 **9. Submenu with the keyboard** _(workspace-tree: Submenu by keyboard)_
-- **Do:** Open a menu, move down to "Reorder" with the arrow keys, press the right arrow.
+- **Do:** Open a menu (a Storm's or a note's, which now both have Duplicate), move down to "Reorder" with the arrow keys, press the right arrow.
 - **You should see:** The submenu opens and its first available entry is highlighted.
 - Also checked automatically by: browser only.
-- Browser check 2026-10-11: Not yet.
-- [ x] Pass  [ ] Fail   Notes:Did we remove the duplicate function from notes? if yes we should implement them again
+- Browser check: Not yet (changed 2026-10-16).
+- [ ] Pass  [ ] Fail   Notes:
+- Earlier result (2026-10-16): Pass — Did we remove the duplicate function from notes? if yes we should implement them again
 
 ## 3. Moving around the board
 
 **10. The toolbar** _(bottom toolbar: Toolbar contents; Nothing to undo)_
 - **Do:** Look at the bottom centre of a fresh board. Hover each button.
-- **You should see:** Four buttons only: Select (V), Sticky note (N), Undo, Redo. No shape, text, image or line tools. Undo and Redo are greyed out. Each shows a tooltip with its shortcut.
+- **You should see:** Three buttons only: Sticky note (N), Undo, Redo. No Select, shape, text, image or line tools. Undo and Redo are greyed out. Each shows a tooltip with its shortcut.
 - Also checked automatically by: `src/components/storms/controls-focus.dom.test.ts`; the rest is browser only.
-- Browser check 2026-10-11: Not yet (the toolbar was seen working, the tooltips were not read).
-- [ x] Pass  [ ] Fail   Notes: We do not need a select button to select. The button does nothing
+- Browser check: Not yet (changed 2026-10-16).
+- [ ] Pass  [ ] Fail   Notes:
+- Earlier result (2026-10-16): Pass — We do not need a select button to select. The button does nothing
 
-**11. Dots follow the board** _(dot grid: Grid follows the board)_
+**11. A plain board** _(plain board background: Plain at every zoom)_
 - **Do:** Place a sticky (step 28), then drag the board with the right mouse button and zoom with the wheel.
-- **You should see:** The light dots slide and grow or shrink together with the sticky, never stay still.
-- Also checked automatically by: `src/components/storms/engine/dots.test.ts` and `renderer.test.ts` (spacing only).
-- Browser check 2026-10-11: Not yet.
-- [ x] Pass  [ ] Fail   Notes: Thedots look a bitweird. Especially when I zoom at 150> they are not helpful. Check the MIro images on assets storms for improvements
+- **You should see:** A plain light grey board (#F2F2F2) with no dots or lines at all. The sticky slides and grows or shrinks as you move and zoom.
+- Also checked automatically by: `src/components/storms/engine/renderer.test.ts` (no dots drawn).
+- Browser check: Not yet (changed 2026-10-16).
+- [ ] Pass  [ ] Fail   Notes:
+- Earlier result (2026-10-16): Pass — Thedots look a bitweird. Especially when I zoom at 150> they are not helpful. Check the MIro images on assets storms for improvements
 
-**12. Dots fade at 10%** _(dot grid: Grid fades out)_
-- **Do:** Zoom out as far as it goes: click the minus at the bottom right four times from 100% (75%, 50%, 25%, 10%).
-- **You should see:** No dots at all, just a plain board. Zoom in a little and they come back.
-- Also checked automatically by: `src/components/storms/engine/dots.test.ts`.
-- Browser check 2026-10-11: Not yet.
-- [ ] Pass  [x ] Fail   Notes:Theya re basically incvisible after 40-30%
+**12. Still plain at 10%, 100% and 400%** _(plain board background: Plain at every zoom)_
+- **Do:** Zoom out as far as it goes: click the minus at the bottom right four times from 100% (75%, 50%, 25%, 10%). Click the percentage to go back to 100%. Then click + eight times (125, 150, 175, 200, 250, 300, 350, 400%).
+- **You should see:** At 10%, 100% and 400% (and in between) the board is the same plain light grey, no dots or lines.
+- Also checked automatically by: `src/components/storms/engine/renderer.test.ts`.
+- Browser check: Not yet (changed 2026-10-16).
+- [ ] Pass  [ ] Fail   Notes:
+- Earlier result (2026-10-16): Fail — Theya re basically incvisible after 40-30%
 
 **13. Wheel zoom toward the mouse** _(zoom: Wheel zoom toward the pointer)_
 - **Do:** Place a sticky. Put the mouse pointer on a corner of it and turn the mouse wheel.
@@ -118,12 +123,13 @@ http://localhost:3001/_next/static/chunks/src_components_storms_storm-board_tsx_
 - Browser check 2026-10-11: Not yet.
 - [ x] Pass  [ ] Fail   Notes:
 
-**15. Plus button and readout** _(zoom: Step buttons and readout)_
-- **Do:** At 100%, click + at the bottom right.
-- **You should see:** The board zooms to 150% and the readout says "150%". The minus button steps back (100%, 75%, 50%...).
+**15. Plus and minus buttons and readout** _(zoom: Step buttons and readout)_
+- **Do:** At 100%, click + at the bottom right. Then click − repeatedly.
+- **You should see:** + zooms to 125% and the readout says "125%". The steps are 10, 25, 50, 75, 100, 125, 150, 175, 200, 250, 300, 350, 400%, so 100% to 400% takes eight clicks of +. − from 100% goes 75%, 50%, 25%, 10%.
 - Also checked automatically by: `src/lib/storms/camera.test.ts`.
-- Browser check 2026-10-11: Done.
-- [ ] Pass  [x ] Fail   Notes: 100% to 400% is 4 steps. DOubel that
+- Browser check: Not yet (changed 2026-10-16).
+- [ ] Pass  [ ] Fail   Notes:
+- Earlier result (2026-10-16): Fail — 100% to 400% is 4 steps. DOubel that
 
 **16. Reset to 100%** _(zoom: Reset to 100%)_
 - **Do:** Click the percentage itself.
@@ -141,10 +147,11 @@ http://localhost:3001/_next/static/chunks/src_components_storms_storm-board_tsx_
 
 **18. Keyboard zoom** _(zoom: keys)_
 - **Do:** Click an empty spot on the board, then press Ctrl+0, then Ctrl+= twice.
-- **You should see:** Ctrl+0 returns to 100%; each Ctrl+= steps up (150%, 200%).
-- Also checked automatically by: `src/components/storms/engine/input.test.ts`, `input.dom.test.ts`.
-- Browser check 2026-10-11: Done (Ctrl+0).
-- [x ] Pass  [ ] Fail   Notes:
+- **You should see:** Ctrl+0 returns to 100%; each Ctrl+= steps up (125%, 150%).
+- Also checked automatically by: `src/components/storms/engine/input.test.ts`, `input.dom.test.ts`, `src/lib/storms/camera.test.ts`.
+- Browser check: Not yet (changed 2026-10-16).
+- [ ] Pass  [ ] Fail   Notes:
+- Earlier result (2026-10-16): Pass
 
 **19. Fit a spread-out board** _(fit to items: Fit a spread-out board)_
 - **Do:** Place a sticky far left, another far right (pan or zoom out first), then click the fit button (bottom right) or press Shift+1.
@@ -167,19 +174,21 @@ http://localhost:3001/_next/static/chunks/src_components_storms_storm-board_tsx_
 - Browser check 2026-10-11: Not yet.
 - [ x] Pass  [ ] Fail   Notes:
 
-**22. Trackpad pinch** _(zoom: trackpad pinch; extra from design)_
-- **Do:** Pinch two fingers apart and together over the board.
-- **You should see:** The board zooms toward the fingers. The whole page does not zoom.
-- Also checked automatically by: `src/lib/storms/wheel-source.test.ts`, `input.dom.test.ts`.
-- Browser check 2026-10-11: Not yet.
-- [x ] Pass  [ ] Fail   Notes: Works but not smooth! Needs efford to actually zoom in and out
+**22. Trackpad pinch** _(zoom: Pinch zoom; extra from design)_
+- **Do:** At 100%, pinch two fingers apart once, the way you normally would, then pinch together.
+- **You should see:** The board zooms toward the fingers, and pinching together zooms out. The target is that one ordinary pinch-out takes it from about 100% to about 200%; this is not measured by a test, so please report what you got. The whole page does not zoom. **Tell us if it is too strong or too weak** and how many pinches you needed.
+- Also checked automatically by: `src/components/storms/engine/input.test.ts` (pinch rate), `src/lib/storms/wheel-source.test.ts`, `input.dom.test.ts`.
+- Browser check: Not yet (changed 2026-10-16).
+- [ ] Pass  [ ] Fail   Notes:
+- Earlier result (2026-10-16): Pass — Works but not smooth! Needs efford to actually zoom in and out
 
 **23. Right-drag pan** _(pan: Right-drag pan)_
-- **Do:** Hold the right mouse button on empty board and drag. Let go.
-- **You should see:** The board moves with the mouse. No browser menu appears, not even when you let go.
-- Also checked automatically by: `src/components/storms/engine/input.dom.test.ts`.
-- Browser check 2026-10-11: Done.
-- [ x] Pass  [ ] Fail   Notes: I can move the items under the pace of teh sidebar with out the camera changing , Basiclly I can move items out of my sight and lose them out of my site
+- **Do:** Hold the right mouse button on empty board and drag. Let go. Then drag a sticky toward the sidebar edge of the board and hold it there.
+- **You should see:** The board moves with the mouse. No browser menu appears, not even when you let go. When the sticky is dragged to the edge next to the sidebar, the board pans and the sticky stays visible; it never ends up hidden under the sidebar (see also 27b).
+- Also checked automatically by: `src/components/storms/engine/input.dom.test.ts`, `src/lib/storms/edge-pan.test.ts`.
+- Browser check: Not yet (changed 2026-10-16).
+- [ ] Pass  [ ] Fail   Notes:
+- Earlier result (2026-10-16): Pass — I can move the items under the pace of teh sidebar with out the camera changing , Basiclly I can move items out of my sight and lose them out of my site
 
 **24. Space-drag pan** _(pan: Space-drag pan)_
 - **Do:** Hold Space, then drag with the left button (over a sticky too).
@@ -209,14 +218,36 @@ http://localhost:3001/_next/static/chunks/src_components_storms_storm-board_tsx_
 - Browser check 2026-10-11: Done.
 - [ x] Pass  [ ] Fail   Notes:
 
+**27a. Pinch zoom scenario** _(zoom: Pinch zoom)_
+- **Do:** At 100% (click the percentage), make one ordinary pinch-out on a trackpad, as a normal quick gesture.
+- **You should see:** The target is roughly 200% after that one pinch, without needing several. This figure is what we want to check, not something a test proves. Tell us the readout and whether it feels too strong or too weak. (Skip if you have no trackpad.)
+- Also checked automatically by: `src/components/storms/engine/input.test.ts`, `input.dom.test.ts`.
+- Browser check: Not yet (new 2026-10-16).
+- [ ] Pass  [ ] Fail   Notes:
+
+**27b. Drag to the edge** _(select and move: Drag to the edge)_
+- **Do:** Place a sticky, then drag it to the left edge of the board (next to the sidebar) and hold it there for a second or two. Try the right, top and bottom edges too.
+- **You should see:** The board pans in that direction while you hold, and the sticky stays under the pointer. It never ends up hidden under the sidebar. It stops when you move away from the edge or let go.
+- Also checked automatically by: `src/lib/storms/edge-pan.test.ts`, `src/components/storms/engine/input.dom.test.ts`.
+- Browser check: Not yet (new 2026-10-16).
+- [ ] Pass  [ ] Fail   Notes:
+
+**27c. Plain at every zoom** _(plain board background: Plain at every zoom)_
+- **Do:** Roll the mouse wheel slowly from the lowest zoom (10%) to the highest (400%) and back.
+- **You should see:** The background stays the same plain light grey the whole way: no dots, grid or lines at any zoom.
+- Also checked automatically by: `src/components/storms/engine/renderer.test.ts`.
+- Browser check: Not yet (new 2026-10-16).
+- [ ] Pass  [ ] Fail   Notes:
+
 ## 4. Stickies
 
 **28. Place a sticky** _(place a sticky: Place a sticky)_
-- **Do:** Click the Sticky button (bottom centre), then click an empty spot.
-- **You should see:** A yellow square sticky centred on your click, with a magenta outline (selected), and the tool goes back to Select.
-- Also checked automatically by: `src/components/storms/engine/actions.test.ts`, `input.dom.test.ts`.
-- Browser check 2026-10-11: Done.
-- [ x] Pass  [ ] Fail   Notes: I can see that but it does not look nice. Eventually we will go with a Miro lie solutio when we imlement the arrows. Put a marging for now of 5px between the sticky and the magents border and make teh boarder slimmer
+- **Do:** Click the Sticky button (bottom centre), then click an empty spot. Then click Sticky again and press Esc without clicking the board.
+- **You should see:** A yellow square sticky centred on your click, selected with a thin magenta outline that sits about 5 px away from the sticky (a small gap, not touching the yellow). The Sticky tool turns off by itself (there is no Select tool). After the second try, Esc turns the Sticky tool off and nothing is placed.
+- Also checked automatically by: `src/components/storms/engine/actions.test.ts`, `input.dom.test.ts`, `engine/renderer.test.ts` (outline and gap).
+- Browser check: Not yet (changed 2026-10-16).
+- [ ] Pass  [ ] Fail   Notes:
+- Earlier result (2026-10-16): Pass — I can see that but it does not look nice. Eventually we will go with a Miro lie solutio when we imlement the arrows. Put a marging for now of 5px between the sticky and the magents border and make teh boarder slimmer
 
 **29. N shortcut** _(place a sticky: Shortcut)_
 - **Do:** Click an empty spot on the board, press N, click somewhere else.
@@ -254,22 +285,28 @@ http://localhost:3001/_next/static/chunks/src_components_storms_storm-board_tsx_
 - [ x] Pass  [ ] Fail   Notes:
 
 **34. Type in a sticky** _(type in a sticky: Type)_
+- **Do:** Double-click a sticky, type "Ideas", press Esc. Then double-click again and keep typing until it stops accepting letters.
+- **You should see:** The sticky shows "Ideas" centred. The text stops at 500 characters (a sticky holds at most 500).
+- Also checked automatically by: `src/components/storms/sticky-text-overlay.dom.test.ts`, `src/lib/storms/validate.test.ts`.
+- Browser check: Not yet (changed 2026-10-16).
+- [ ] Pass  [ ] Fail   Notes:
+- Earlier result (2026-10-16): Pass
 
-- [x ] Pass  [ ] Fail   Notes:
-
-**35. Long text is clipped** _(type in a sticky: Overflow is clipped)_
-- **Do:** Type many lines into a sticky, then press Esc.
-- **You should see:** Text past the sticky's edge is not shown. Double-click again: all the text is still there.
-- Also checked automatically by: `src/lib/storms/text-layout.test.ts`, `engine/renderer.test.ts`.
-- Browser check 2026-10-11: Not yet.
-- [ ] Pass  [ x] Fail   Notes: The text I put is not here. teh font size is suposed toadjust to text to fit things properly. I wonder waht is our character limit?
+**35. Long text is clipped, and all of it is kept** _(type in a sticky: Overflow is clipped)_
+- **Do:** Type or paste about 500 characters of many short lines into a sticky. While editing, scroll the text with the mouse wheel or the arrow keys. Press Esc. Double-click again.
+- **You should see:** While editing, long text scrolls inside the editor with the caret, so you can reach every line. After Esc the text past the sticky's edge is not shown, and the editor returns to the top. Double-click again: all the text is still there.
+- Also checked automatically by: `src/lib/storms/text-layout.test.ts`, `engine/renderer.test.ts`, `src/components/storms/sticky-text-overlay.dom.test.ts`.
+- Browser check: Not yet (changed 2026-10-16).
+- [ ] Pass  [ ] Fail   Notes:
+- Earlier result (2026-10-16): Fail — The text I put is not here. teh font size is suposed toadjust to text to fit things properly. I wonder waht is our character limit?
 
 **36. The text does not jump** _(type in a sticky: No jump)_
-- **Do:** Type two lines in a sticky. Watch the words as you start and finish typing, at 50%, 100% and 200% zoom.
-- **You should see:** The words stay exactly where they are. No flicker or shift.
-- Also checked automatically by: `src/lib/storms/text-layout.test.ts`, `sticky-text-overlay.test.ts`.
-- Browser check 2026-10-11: Done (50%, 100%, 200%).
-- [x ] Pass  [ ] Fail   Notes:
+- **Do:** Type two lines in a sticky. Watch the words as you start and finish typing, at 50%, 100% and 200% zoom. Then fill a sticky with long text (about 500 characters), double-click it, scroll the editor down to the end of the text, and press Esc.
+- **You should see:** The words stay exactly where they are. No flicker or shift. After Esc on the scrolled editor, the text returns to the top and sits where it did before you started editing.
+- Also checked automatically by: `src/lib/storms/text-layout.test.ts`, `src/components/storms/sticky-text-overlay.dom.test.ts`.
+- Browser check: Not yet (changed 2026-10-16).
+- [ ] Pass  [ ] Fail   Notes:
+- Earlier result (2026-10-16): Pass
 
 **37. Delete** _(delete a sticky: Delete)_
 - **Do:** Select a sticky and press Delete.
@@ -284,6 +321,13 @@ http://localhost:3001/_next/static/chunks/src_components_storms_storm-board_tsx_
 - Also checked automatically by: `src/components/storms/engine/input.dom.test.ts`.
 - Browser check 2026-10-11: Not yet.
 - [ x] Pass  [ ] Fail   Notes:
+
+**38a. Paste over the limit** _(type in a sticky: Paste over the limit)_
+- **Do:** Copy about 800 characters (for example, paste any long text into a note first and copy it from there). Double-click a sticky, paste, press Esc.
+- **You should see:** The sticky keeps only the first 500 characters. Double-click again and check the end of the text is cut at 500.
+- Also checked automatically by: `src/components/storms/sticky-text-overlay.dom.test.ts` ("800 characters ... keeps the first 500"), `src/lib/storms/validate.test.ts`.
+- Browser check: Not yet (new 2026-10-16).
+- [ ] Pass  [ ] Fail   Notes:
 
 ## 5. Saving
 
@@ -468,6 +512,27 @@ Make a Storm called "Plan" with three stickies (wait for "Saved").
 - Browser check 2026-10-11: Not yet.
 - [ ] Pass  [ ] Fail   Notes:
 
+**62a. Duplicate a note** _(workspace-tree: Duplicate a note)_
+- **Do:** Make a note called "Ideas" with a bold line. Open its "..." menu > Duplicate.
+- **You should see:** "Ideas (copy)" appears directly below "Ideas" in the sidebar, with the same text including the bold line, and it opens. A note you never wrote in copies as an empty note.
+- Also checked automatically by: `tests/integration/note-duplicate.test.ts`.
+- Browser check: Not yet (new 2026-10-16).
+- [ ] Pass  [ ] Fail   Notes:
+
+**62b. Attachments are copied** _(workspace-tree: Attachments are copied)_
+- **Do:** Make a note with an image dropped in (see Attachments in the README). Duplicate it. Open the original, move it to the Trash and delete it forever. Open the copy.
+- **You should see:** The copy still shows the image.
+- Also checked automatically by: `tests/integration/note-duplicate.test.ts` (attachments copied; deleting the original leaves the copy's files), `src/lib/notes/attachment-nodes.test.ts`.
+- Browser check: Not yet (new 2026-10-16).
+- [ ] Pass  [ ] Fail   Notes:
+
+**62c. Independent note copy** _(workspace-tree: Independent note copy)_
+- **Do:** In "Ideas (copy)", change the text. Open "Ideas".
+- **You should see:** The original's text has not changed.
+- Also checked automatically by: `tests/integration/note-duplicate.test.ts`.
+- Browser check: Not yet (new 2026-10-16).
+- [ ] Pass  [ ] Fail   Notes:
+
 ## 9. Dark mode
 
 **63. Dark theme** _(always-light board: Dark app theme)_
@@ -503,8 +568,9 @@ Run these in a terminal in the project folder. They are for whoever maintains th
 | --- | --- | --- |
 | Types | `npx next typegen` then `npx tsc --noEmit` | No output after the second command |
 | Style rules | `npm run lint` | `0 errors` (warnings from the `.claude` folder are expected) |
-| Unit tests | `npm test` | `Test Files  41 passed` and `Tests  498 passed`, no failures |
-| Database tests (several minutes, uses the dev database) | `npm run test:integration` | `Test Files  10 passed` and `Tests  117 passed` (about 9 minutes) |
+| Unit tests | `npm test` | `Test Files  41 passed` and `Tests  537 passed`, no failures |
+| Database tests (several minutes, uses the dev database) | `npm run test:integration` | `Test Files  11 passed` and `Tests  126 passed` (about 4 to 10 minutes) |
+| Notes don't load the board (step 4) | `npx next build`, then `npm run check:note-chunks` | `OK: no board chunk is in any client module's eager list.` (run it on a production build; `npm run dev` lists the chunk on note pages by design) |
 | Speed gate | Start `npx next dev -p 3101` in one terminal, then `npm run bench:storms` in another. On Windows it works as is; elsewhere use `BENCH_CHANNEL=chrome npm run bench:storms` | Three `PASS` lines (each about 60 fps, the slowest 5% of frames under 33 ms) and `Speed gate passed.` |
 
-The test counts above were from the run on 2026-10-11 and will grow as tests are added.
+The test counts above were from the run on 2026-10-16 and will grow as tests are added.

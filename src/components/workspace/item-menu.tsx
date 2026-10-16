@@ -52,6 +52,7 @@ export function ItemMenu({
 }) {
   const ws = useWorkspace();
   const container = isContainer(item.kind);
+  const copyable = item.kind === "note" || item.kind === "storm" ? item.kind : null;
   // Keyboard reorder within the item's group (sidebar-manual-order D5).
   const group = groupOf(ws.tree, item.id);
   const moveStep = (direction: "up" | "down") => {
@@ -113,8 +114,8 @@ export function ItemMenu({
           <Pencil />
           Rename
         </DropdownMenuItem>
-        {item.kind === "storm" && (
-          <DropdownMenuItem onClick={() => ws.duplicate(item.id)}>
+        {copyable && (
+          <DropdownMenuItem onClick={() => ws.duplicate(item.id, copyable)}>
             <Copy />
             Duplicate
           </DropdownMenuItem>

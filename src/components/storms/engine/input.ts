@@ -6,6 +6,7 @@ import {
   stepZoom,
   zoomAt,
 } from "@/lib/storms/camera";
+import { edgePanSpeed } from "@/lib/storms/edge-pan";
 import { hitTest } from "@/lib/storms/hit-test";
 import { boundsOf, type Point, type Size } from "@/lib/storms/model";
 import { createWheelClassifier } from "@/lib/storms/wheel-source";
@@ -50,7 +51,7 @@ export type KeyAction =
   | "edit"
   | "undo"
   | "redo"
-  | "tool-select"
+  | "tool-off"
   | "tool-sticky";
 
 /**
@@ -73,7 +74,7 @@ export function routeKey(
   if (e.key === "Enter") return snap.selectedId && plain ? "edit" : null;
   if (mod && !e.altKey && k === "z") return e.shiftKey ? "redo" : "undo";
   if (e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey && k === "y") return "redo";
-  if (plain && k === "v") return "tool-select";
+  if (e.key === "Escape") return plain && snap.tool === "sticky" ? "tool-off" : null;
   if (plain && k === "n") return "tool-sticky";
   return zoomKeyAction(e);
 }
@@ -86,10 +87,45 @@ function isEditable(t: EventTarget | null): boolean {
 const WHEEL_ZOOM_RATE = 0.0015;
 const LINE_MODE_FACTOR = 20;
 
+/** Trackpad pinch (ctrl + wheel with small pixel deltas): 2.5x the wheel rate. */
+export const PINCH_ZOOM_FACTOR = WHEEL_ZOOM_RATE * 2.5;
+const PINCH_MAX_STEP_PX = 50;
+/** Safety cap on the zoom change of a single pinch event. */
+const PINCH_MAX_SCALE = 1.25;
+
+type ZoomWheel = Pick<WheelEvent, "deltaY" | "deltaMode" | "ctrlKey" | "metaKey">;
+
+/**
+ * Zoom multiplier for one wheel event. A trackpad pinch (ctrl/meta with pixel deltas under 50) uses PINCH_ZOOM_FACTOR; a mouse wheel, with or without
+ * Ctrl, keeps WHEEL_ZOOM_RATE.
+ */
+export function wheelZoomScale(e: ZoomWheel): number {
+  const delta = e.deltaMode === 1 ? e.deltaY * LINE_MODE_FACTOR : e.deltaY;
+  const pinch = (e.ctrlKey || e.metaKey) && e.deltaMode === 0 && Math.abs(e.deltaY) < PINCH_MAX_STEP_PX;
+  if (!pinch) return Math.exp(-delta * WHEEL_ZOOM_RATE);
+  const scale = Math.exp(-delta * PINCH_ZOOM_FACTOR);
+  return Math.min(PINCH_MAX_SCALE, Math.max(1 / PINCH_MAX_SCALE, scale));
+}
+
 const DRAG_THRESHOLD_PX = 3;
+/** One 60 Hz frame; edge-pan speeds are per frame of this length. */
+const FRAME_MS = 1000 / 60;
+/** A stalled frame pans at most this long a step. */
+const MAX_FRAME_MS = 50;
 
 type Drag = { pointerId: number; button: number; x: number; y: number };
-type ItemDrag = { pointerId: number; id: string; x: number; y: number; moved: boolean };
+type ItemDrag = {
+  pointerId: number;
+  id: string;
+  /** Press position (screen) and the board point under it; the preview is measured from here. */
+  x: number;
+  y: number;
+  startBoard: Point;
+  /** Latest pointer position (screen). */
+  px: number;
+  py: number;
+  moved: boolean;
+};
 
 type GestureEvent = Event & { scale: number; clientX?: number; clientY?: number };
 
@@ -110,6 +146,8 @@ export function attachInput(
   let drag: Drag | null = null;
   let itemDrag: ItemDrag | null = null;
   let gestureStartZoom = 1;
+  let panFrame: number | null = null;
+  let lastPanTime: number | null = null;
 
   /** Point relative to the board element. */
   const local = (clientX: number, clientY: number): Point => {
@@ -136,8 +174,7 @@ export function attachInput(
       panScreen(-e.deltaX, -e.deltaY);
       return;
     }
-    const delta = e.deltaMode === 1 ? e.deltaY * LINE_MODE_FACTOR : e.deltaY;
-    zoomTo(local(e.clientX, e.clientY), camera().zoom * Math.exp(-delta * WHEEL_ZOOM_RATE));
+    zoomTo(local(e.clientX, e.clientY), camera().zoom * wheelZoomScale(e));
   };
 
   // --- Safari pinch ------------------------------------------------------
@@ -171,7 +208,16 @@ export function attachInput(
     const hit = hitTest(snap.items, at);
     store.select(hit ? hit.id : null);
     if (!hit) return;
-    itemDrag = { pointerId: e.pointerId, id: hit.id, x: e.clientX, y: e.clientY, moved: false };
+    itemDrag = {
+      pointerId: e.pointerId,
+      id: hit.id,
+      x: e.clientX,
+      y: e.clientY,
+      startBoard: at,
+      px: e.clientX,
+      py: e.clientY,
+      moved: false,
+    };
     el.setPointerCapture(e.pointerId);
   };
   const buttonHandlers: Record<number, (e: PointerEvent) => void> = {
@@ -186,14 +232,55 @@ export function attachInput(
     if (drag || itemDrag) return;
     buttonHandlers[e.button]?.(e);
   };
+  /** Preview offset in board units, measured from the press so camera moves keep the sticky under the pointer. */
+  const updatePreview = () => {
+    if (!itemDrag) return;
+    const now = screenToBoard(camera(), getViewport(), local(itemDrag.px, itemDrag.py));
+    store.setDragPreview({
+      id: itemDrag.id,
+      dx: now.x - itemDrag.startBoard.x,
+      dy: now.y - itemDrag.startBoard.y,
+    });
+  };
+  /** Pan speed per axis for the held pointer, or null when it is outside the edge zone. */
+  const edgeSpeeds = (): Point | null => {
+    if (!itemDrag) return null;
+    const r = el.getBoundingClientRect();
+    const sx = edgePanSpeed(itemDrag.px, r.left, r.right);
+    const sy = edgePanSpeed(itemDrag.py, r.top, r.bottom);
+    return sx || sy ? { x: sx, y: sy } : null;
+  };
+  const stopEdgePan = () => {
+    if (panFrame !== null) cancelAnimationFrame(panFrame);
+    panFrame = null;
+    lastPanTime = null;
+  };
+  const panTick = (time: number) => {
+    panFrame = null;
+    const s = edgeSpeeds();
+    if (!s) {
+      lastPanTime = null;
+      return;
+    }
+    // Speeds are px per 60 Hz frame; scale by the real time since the last frame.
+    const dt = lastPanTime === null ? FRAME_MS : Math.min(MAX_FRAME_MS, Math.max(0, time - lastPanTime));
+    lastPanTime = time;
+    const k = dt / FRAME_MS;
+    panScreen(-s.x * k, -s.y * k);
+    updatePreview();
+    panFrame = requestAnimationFrame(panTick);
+  };
+
   const onPointerMove = (e: PointerEvent) => {
     if (itemDrag && e.pointerId === itemDrag.pointerId) {
       const dx = e.clientX - itemDrag.x;
       const dy = e.clientY - itemDrag.y;
       if (!itemDrag.moved && Math.hypot(dx, dy) <= DRAG_THRESHOLD_PX) return;
       itemDrag.moved = true;
-      const z = camera().zoom;
-      store.setDragPreview({ id: itemDrag.id, dx: dx / z, dy: dy / z });
+      itemDrag.px = e.clientX;
+      itemDrag.py = e.clientY;
+      updatePreview();
+      if (panFrame === null && edgeSpeeds()) panFrame = requestAnimationFrame(panTick);
       return;
     }
     if (!drag || e.pointerId !== drag.pointerId) return;
@@ -201,25 +288,40 @@ export function attachInput(
     drag.x = e.clientX;
     drag.y = e.clientY;
   };
-  const endDrag = (e: PointerEvent) => {
-    if (itemDrag && e.pointerId === itemDrag.pointerId) {
-      const done = itemDrag;
-      itemDrag = null;
-      if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId);
-      const preview = store.getSnapshot().dragPreview;
-      store.setDragPreview(null);
-      if (e.type === "pointerup" && done.moved && preview) {
-        moveSticky(store, done.id, preview.dx, preview.dy, "push");
-      }
-      return;
-    }
-    if (!drag || e.pointerId !== drag.pointerId) return;
-    if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId);
+  /** Ends the item drag; commits the move only when `commit` is set (a pointerup). */
+  const finishItemDrag = (commit: boolean) => {
+    if (!itemDrag) return;
+    const done = itemDrag;
+    stopEdgePan();
+    itemDrag = null;
+    if (el.hasPointerCapture(done.pointerId)) el.releasePointerCapture(done.pointerId);
+    const preview = store.getSnapshot().dragPreview;
+    store.setDragPreview(null);
+    if (commit && done.moved && preview) moveSticky(store, done.id, preview.dx, preview.dy, "push");
+  };
+  const finishPan = () => {
+    if (!drag) return;
+    if (el.hasPointerCapture(drag.pointerId)) el.releasePointerCapture(drag.pointerId);
     drag = null;
     updateCursor();
   };
+  const endDrag = (e: PointerEvent) => {
+    if (itemDrag && e.pointerId === itemDrag.pointerId) return finishItemDrag(e.type === "pointerup");
+    if (drag && e.pointerId === drag.pointerId) finishPan();
+  };
+  /** Capture lost without pointerup/pointercancel: end the gesture like a cancel. */
+  const onLostCapture = (e: PointerEvent) => {
+    if (itemDrag && e.pointerId === itemDrag.pointerId) finishItemDrag(false);
+    if (drag && e.pointerId === drag.pointerId) finishPan();
+  };
+  /** The window lost focus (Alt-Tab): no pointerup will come. */
+  const onWindowBlur = () => {
+    finishItemDrag(false);
+    finishPan();
+  };
   /** A new board (Load latest, refresh) ends an item drag; the store already dropped its preview. */
   const onReplace = () => {
+    stopEdgePan();
     if (!itemDrag) return;
     if (el.hasPointerCapture(itemDrag.pointerId)) el.releasePointerCapture(itemDrag.pointerId);
     itemDrag = null;
@@ -257,7 +359,7 @@ export function attachInput(
         return store.undo();
       case "redo":
         return store.redo();
-      case "tool-select":
+      case "tool-off":
         return store.setTool("select");
       case "tool-sticky":
         return store.setTool("sticky");
@@ -297,6 +399,8 @@ export function attachInput(
   el.addEventListener("pointermove", onPointerMove);
   el.addEventListener("pointerup", endDrag);
   el.addEventListener("pointercancel", endDrag);
+  el.addEventListener("lostpointercapture", onLostCapture);
+  window.addEventListener("blur", onWindowBlur);
   el.addEventListener("contextmenu", onContextMenu);
   el.addEventListener("keydown", onKeyDown);
   el.addEventListener("dblclick", onDoubleClick);
@@ -306,6 +410,7 @@ export function attachInput(
 
   return () => {
     offReplace();
+    stopEdgePan();
     surface.removeEventListener("wheel", onWheel);
     surface.removeEventListener("gesturestart", onGestureStart);
     surface.removeEventListener("gesturechange", onGestureChange);
@@ -313,6 +418,8 @@ export function attachInput(
     el.removeEventListener("pointermove", onPointerMove);
     el.removeEventListener("pointerup", endDrag);
     el.removeEventListener("pointercancel", endDrag);
+    el.removeEventListener("lostpointercapture", onLostCapture);
+    window.removeEventListener("blur", onWindowBlur);
     el.removeEventListener("contextmenu", onContextMenu);
     el.removeEventListener("keydown", onKeyDown);
     el.removeEventListener("dblclick", onDoubleClick);

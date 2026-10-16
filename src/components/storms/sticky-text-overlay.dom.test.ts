@@ -3,6 +3,7 @@ import { act, createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { HOME_CAMERA } from "@/lib/storms/camera";
+import { MAX_TEXT } from "@/lib/storms/limits";
 import type { Sticky } from "@/lib/storms/model";
 import { createStormStore, type StormStore } from "./engine/store";
 import { StickyTextOverlay } from "./sticky-text-overlay";
@@ -98,10 +99,56 @@ describe("StickyTextOverlay", () => {
     expect(store.getSnapshot().editingId).toBeNull();
   });
 
-  it("never scrolls, so lines stay where the canvas draws them", async () => {
+  it("starts at the top, and keeps a scroll the caret caused so the rest of the text is reachable", async () => {
     const ta = textarea()!;
+    expect(ta.scrollTop).toBe(0);
+    // The browser scrolls the editor to follow the caret through text longer than the sticky.
     ta.scrollTop = 40;
     await act(async () => ta.dispatchEvent(new Event("scroll")));
+    expect(ta.scrollTop).toBe(40);
+    await act(async () => type(ta, "x ".repeat(100)));
+    expect(ta.scrollTop).toBe(40);
+  });
+
+  it("long pasted text is all in the editor after finishing and editing again", async () => {
+    const long = Array.from({ length: 60 }, (_, i) => `word${i}`).join(" ");
+    await act(async () => type(textarea()!, long));
+    await act(async () => {
+      textarea()!.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    });
+    await act(async () => store.startEdit("a"));
+    expect(textarea()!.value).toBe(long);
+    expect(textarea()!.scrollTop).toBe(0);
+  });
+});
+
+describe("text limit", () => {
+  it("a paste of 800 characters that bypasses maxLength keeps the first 500", async () => {
+    const pasted = "abcde".repeat(160);
+    await act(async () => type(textarea()!, pasted));
+    expect(store.getSnapshot().items.a.text).toBe(pasted.slice(0, 500));
+    expect(store.getSnapshot().items.a.text).toHaveLength(MAX_TEXT);
+  });
+});
+
+describe("finishing", () => {
+  it("returns the editor to scrollTop 0 on Esc", async () => {
+    const ta = textarea()!;
+    ta.scrollTop = 40;
+    await act(async () => {
+      ta.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    });
     expect(ta.scrollTop).toBe(0);
+  });
+  it("returns the editor to scrollTop 0 on a press outside", async () => {
+    const ta = textarea()!;
+    ta.scrollTop = 40;
+    await act(async () => {
+      document.body.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
+    });
+    expect(ta.scrollTop).toBe(0);
+  });
+  it("starting an edit on text that fits leaves scrollTop at 0", async () => {
+    expect(textarea()!.scrollTop).toBe(0);
   });
 });

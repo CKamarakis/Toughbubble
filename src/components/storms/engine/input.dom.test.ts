@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { HOME_CAMERA } from "@/lib/storms/camera";
 import type { Item } from "@/lib/storms/model";
 import { attachInput } from "./input";
@@ -137,11 +137,13 @@ describe("attachInput DOM handlers", () => {
     expect(key(el, { key: "=", ctrlKey: true }).defaultPrevented).toBe(true);
   });
 
-  it("N picks the sticky tool and V the select tool", () => {
+  it("N picks the sticky tool, Esc turns it off and V does nothing", () => {
     setup();
     expect(key(el, { key: "n", code: "KeyN" }).defaultPrevented).toBe(true);
     expect(store.getSnapshot().tool).toBe("sticky");
     key(el, { key: "V", code: "KeyV" });
+    expect(store.getSnapshot().tool).toBe("sticky");
+    key(el, { key: "Escape", code: "Escape" });
     expect(store.getSnapshot().tool).toBe("select");
   });
 
@@ -181,6 +183,8 @@ describe("attachInput item interactions", () => {
     el.setPointerCapture = () => {};
     el.releasePointerCapture = () => {};
     el.hasPointerCapture = () => false;
+    el.getBoundingClientRect = () =>
+      ({ left: 0, top: 0, right: 5000, bottom: 5000, width: 5000, height: 5000 }) as DOMRect;
   });
 
   it("sticky tool + click places a sticky, even over another", () => {
@@ -336,5 +340,132 @@ describe("attachInput item interactions", () => {
     key(el, { key: "z", metaKey: true });
     key(el, { key: "y", ctrlKey: true });
     expect(store.getSnapshot().items.a).toBeUndefined();
+  });
+});
+
+describe("edge auto-pan while dragging a sticky", () => {
+  const centred = { id: "c", x: -100, y: -100, w: 200, h: 200, text: "", color: "yellow" } as unknown as Item;
+  let queue: FrameRequestCallback[];
+  let now = 1000;
+  /** Runs the queued frames, `dt` ms after the previous one (default 60 Hz). */
+  const frame = (dt = 1000 / 60) => {
+    now += dt;
+    const run = queue;
+    queue = [];
+    run.forEach((cb) => cb(now));
+  };
+
+  beforeEach(() => {
+    queue = [];
+    vi.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) => queue.push(cb));
+    vi.stubGlobal("cancelAnimationFrame", () => {
+      queue = [];
+    });
+    el.setPointerCapture = () => {};
+    el.releasePointerCapture = () => {};
+    el.hasPointerCapture = () => false;
+    el.getBoundingClientRect = () =>
+      ({ left: 0, top: 0, right: 800, bottom: 600, width: 800, height: 600 }) as DOMRect;
+    store = createStormStore({ body: { items: { c: centred } } as never, camera: { ...HOME_CAMERA } });
+    detach = attachInput(el, store, () => VP);
+  });
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("dragging into the left edge zone pans the camera and the sticky stays under the pointer", () => {
+    ptr("pointerdown", at(0, 0));
+    ptr("pointermove", { clientX: 10, clientY: 300 });
+    expect(store.getSnapshot().dragPreview).toEqual({ id: "c", dx: -390, dy: 0 });
+    frame();
+    // 10 px from the edge: (40 - 10) / 40 * 15 = 11.25 px per frame; the view moves left.
+    expect(store.getSnapshot().camera.x).toBeCloseTo(-11.25);
+    expect(store.getSnapshot().dragPreview!.dx).toBeCloseTo(-401.25);
+    frame();
+    expect(store.getSnapshot().camera.x).toBeCloseTo(-22.5);
+    // Still one undo step, committed at the drop position.
+    expect(store.getHistory().undo).toHaveLength(0);
+    ptr("pointerup", { clientX: 10, clientY: 300 });
+    expect(store.getSnapshot().items.c.x).toBeCloseTo(-100 - 412.5);
+    expect(store.getHistory().undo).toHaveLength(1);
+    frame();
+    expect(store.getSnapshot().camera.x).toBeCloseTo(-22.5);
+  });
+
+  it("pans the same distance per second at any refresh rate, and clamps a stalled frame", () => {
+    ptr("pointerdown", at(0, 0));
+    ptr("pointermove", { clientX: 10, clientY: 300 });
+    frame(); // first frame: a full 60 Hz step (11.25 px)
+    expect(store.getSnapshot().camera.x).toBeCloseTo(-11.25);
+    frame(1000 / 120); // 120 Hz: half a step
+    expect(store.getSnapshot().camera.x).toBeCloseTo(-11.25 - 5.625);
+    frame(1000 / 30); // 30 Hz: two steps
+    expect(store.getSnapshot().camera.x).toBeCloseTo(-11.25 - 5.625 - 22.5);
+    frame(2000); // stalled: clamped to 50 ms = three steps
+    expect(store.getSnapshot().camera.x).toBeCloseTo(-11.25 - 5.625 - 22.5 - 33.75);
+  });
+
+  it("stops when the pointer leaves the zone and on cancel", () => {
+    ptr("pointerdown", at(0, 0));
+    ptr("pointermove", { clientX: 10, clientY: 300 });
+    frame();
+    ptr("pointermove", { clientX: 400, clientY: 300 });
+    const x = store.getSnapshot().camera.x;
+    frame();
+    expect(store.getSnapshot().camera.x).toBe(x);
+    ptr("pointermove", { clientX: 10, clientY: 300 });
+    ptr("pointercancel", { clientX: 10, clientY: 300 });
+    frame();
+    expect(store.getSnapshot().camera.x).toBe(x);
+    expect(store.getHistory().undo).toHaveLength(0);
+  });
+
+  it("detach cancels the pan loop", () => {
+    ptr("pointerdown", at(0, 0));
+    ptr("pointermove", { clientX: 10, clientY: 300 });
+    detach();
+    frame();
+    expect(store.getSnapshot().camera.x).toBe(0);
+  });
+
+  it.each([
+    ["lostpointercapture", () => ptr("lostpointercapture", { clientX: 10, clientY: 300 })],
+    ["window blur", () => window.dispatchEvent(new Event("blur"))],
+  ])("%s ends an item drag: no more panning, preview cleared, no commit", (_name, lose) => {
+    ptr("pointerdown", at(0, 0));
+    ptr("pointermove", { clientX: 10, clientY: 300 });
+    frame();
+    const x = store.getSnapshot().camera.x;
+    expect(x).not.toBe(0);
+    lose();
+    expect(store.getSnapshot().dragPreview).toBeNull();
+    frame();
+    frame();
+    expect(store.getSnapshot().camera.x).toBe(x);
+    expect(queue).toHaveLength(0);
+    expect(store.getHistory().undo).toHaveLength(0);
+    expect(store.getSnapshot().items.c.x).toBe(-100);
+  });
+
+  it.each([
+    ["lostpointercapture", () => ptr("lostpointercapture", { button: 2 })],
+    ["window blur", () => window.dispatchEvent(new Event("blur"))],
+  ])("%s ends a right-button pan", (_name, lose) => {
+    ptr("pointerdown", { button: 2, clientX: 100, clientY: 100 });
+    ptr("pointermove", { button: 2, clientX: 150, clientY: 100 });
+    const x = store.getSnapshot().camera.x;
+    expect(x).toBe(-50);
+    lose();
+    ptr("pointermove", { button: 2, clientX: 300, clientY: 100 });
+    expect(store.getSnapshot().camera.x).toBe(x);
+  });
+
+  it("detach removes the lost-pointer listeners", () => {
+    ptr("pointerdown", at(0, 0));
+    ptr("pointermove", { clientX: 10, clientY: 300 });
+    const spy = vi.spyOn(store, "setDragPreview");
+    detach();
+    spy.mockClear();
+    window.dispatchEvent(new Event("blur"));
+    ptr("lostpointercapture");
+    expect(spy).not.toHaveBeenCalled();
   });
 });

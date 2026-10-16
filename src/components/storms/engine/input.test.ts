@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { routeKey, zoomKeyAction } from "./input";
+import { PINCH_ZOOM_FACTOR, routeKey, wheelZoomScale, zoomKeyAction } from "./input";
 
 const k = (key: string, over: Partial<Parameters<typeof zoomKeyAction>[0]> = {}) => ({
   key,
@@ -50,7 +50,6 @@ describe("routeKey", () => {
       key("Backspace"),
       key("Enter"),
       key("ArrowLeft"),
-      key("v"),
       key("n"),
       key(" "),
       key("z", { ctrlKey: true }),
@@ -88,7 +87,10 @@ describe("routeKey", () => {
   });
 
   it("maps tools, nudges, space and zoom", () => {
-    expect(routeKey(idle, key("V"))).toBe("tool-select");
+    expect(routeKey(idle, key("V"))).toBeNull();
+    expect(routeKey({ ...idle, tool: "sticky" as const }, key("Escape"))).toBe("tool-off");
+    expect(routeKey(idle, key("Escape"))).toBeNull();
+    expect(routeKey({ ...idle, tool: "sticky" as const, editingId: "a" }, key("Escape"))).toBeNull();
     expect(routeKey(idle, key("n"))).toBe("tool-sticky");
     expect(routeKey(idle, key("n", { ctrlKey: true }))).toBeNull();
     expect(routeKey(sel, key("ArrowUp"))).toBe("nudge");
@@ -98,5 +100,43 @@ describe("routeKey", () => {
     expect(routeKey(idle, key("-", { ctrlKey: true }))).toBe("zoom-out");
     expect(routeKey(idle, key("!", { code: "Digit1", shiftKey: true }))).toBe("fit");
     expect(routeKey(idle, key("q"))).toBeNull();
+  });
+});
+
+describe("wheelZoomScale", () => {
+  const ev = (deltaY: number, o: object = {}) => ({
+    deltaY,
+    deltaMode: 0,
+    ctrlKey: true,
+    metaKey: false,
+    ...o,
+  });
+  const logZoom = (events: ReturnType<typeof ev>[]) =>
+    events.reduce((sum, e) => sum + Math.log(wheelZoomScale(e)), 0);
+
+  it("a typical pinch zooms 2.5x more (log zoom) than the old rate", () => {
+    const pinch = [-4.5, -8.25, -12.5, -9.75, -6.5, -3.25, -1.5].map((d) => ev(d));
+    const oldLog = pinch.reduce((s, e) => s + -e.deltaY * 0.0015, 0);
+    expect(logZoom(pinch) / oldLog).toBeCloseTo(2.5, 5);
+    expect(PINCH_ZOOM_FACTOR).toBeCloseTo(0.0015 * 2.5, 10);
+  });
+
+  it("a fractional Ctrl+wheel notch (display scaling) uses the plain wheel rate", () => {
+    expect(wheelZoomScale(ev(-133.33))).toBeCloseTo(Math.exp(133.33 * 0.0015), 10);
+    expect(wheelZoomScale(ev(66.67))).toBeCloseTo(Math.exp(-66.67 * 0.0015), 10);
+  });
+
+  it("a single pinch event never changes zoom by more than 1.25x", () => {
+    for (const d of [-49.9, 49.9, -30, 30]) {
+      const s = wheelZoomScale(ev(d));
+      expect(s).toBeLessThanOrEqual(1.25);
+      expect(s).toBeGreaterThanOrEqual(1 / 1.25);
+    }
+  });
+
+  it("leaves the mouse wheel and Ctrl+mouse-wheel unchanged", () => {
+    expect(wheelZoomScale(ev(-100, { ctrlKey: false }))).toBeCloseTo(Math.exp(0.15), 10);
+    expect(wheelZoomScale(ev(-100))).toBeCloseTo(Math.exp(0.15), 10);
+    expect(wheelZoomScale(ev(-3, { deltaMode: 1 }))).toBeCloseTo(Math.exp(3 * 20 * 0.0015), 10);
   });
 });

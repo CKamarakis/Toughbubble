@@ -85,7 +85,9 @@ function StickyTextEditor({ store, family, getViewport, onExit }: OverlayProps) 
   useEffect(() => {
     if (!editingId) return;
     const onPointerDown = (e: PointerEvent) => {
-      if (e.target !== ref.current) store.endEdit();
+      if (e.target === ref.current) return;
+      if (ref.current) ref.current.scrollTop = 0;
+      store.endEdit();
     };
     document.addEventListener("pointerdown", onPointerDown, true);
     return () => document.removeEventListener("pointerdown", onPointerDown, true);
@@ -106,18 +108,17 @@ function StickyTextEditor({ store, family, getViewport, onExit }: OverlayProps) 
       value={sticky.text}
       maxLength={MAX_TEXT}
       spellCheck
-      onChange={(e) => {
-        e.target.scrollTop = 0;
-        store.setText(sticky.id, e.target.value);
-      }}
-      // The canvas never scrolls: overflow stays clipped and the first lines stay put.
-      onScroll={(e) => {
+      // The editor starts at the top, so lines match the canvas. It is not pinned there:
+      // the caret scrolls it, so text beyond the sticky's edge can be reached and edited.
+      onChange={(e) => store.setText(sticky.id, e.target.value)}
+      onBlur={(e) => {
         e.currentTarget.scrollTop = 0;
+        store.endEdit();
       }}
-      onBlur={() => store.endEdit()}
       onKeyDown={(e) => {
         if (e.key !== "Escape" || e.nativeEvent.isComposing) return;
         e.preventDefault();
+        e.currentTarget.scrollTop = 0; // the canvas draws from line 0
         store.endEdit();
         onExit();
       }}
