@@ -21,8 +21,8 @@ const PALETTE_SIZE: Size = { w: 178, h: 178 };
 
 /** Board shortcuts that must not act while the palette is open (lower case). */
 const BOARD_KEYS = new Set(["delete", "backspace", "n"]);
-/** With Ctrl or ⌘: undo, redo and duplicate. */
-const MOD_BOARD_KEYS = new Set(["z", "y", "d"]);
+/** With Ctrl or ⌘: undo, redo, duplicate, and copy and paste (a prevented keydown fires no copy or paste event). */
+const MOD_BOARD_KEYS = new Set(["z", "y", "d", "c", "v"]);
 
 const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
 

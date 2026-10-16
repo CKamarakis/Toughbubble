@@ -6,11 +6,18 @@ import {
   stepZoom,
   zoomAt,
 } from "@/lib/storms/camera";
+import {
+  COPIED_STICKY_TYPE,
+  parseCopiedSticky,
+  serializeSticky,
+  stickyFromText,
+  type CopiedSticky,
+} from "@/lib/storms/clipboard";
 import { edgePanSpeed } from "@/lib/storms/edge-pan";
 import { hitTest } from "@/lib/storms/hit-test";
 import { boundsOf, type Point, type Size } from "@/lib/storms/model";
 import { createWheelClassifier } from "@/lib/storms/wheel-source";
-import { deleteSelected, duplicateSelected, moveSticky, nudge, placeSticky } from "./actions";
+import { deleteSelected, duplicateSelected, moveSticky, nudge, pasteSticky, placeSticky } from "./actions";
 import type { Snapshot, StormStore } from "./store";
 
 export type ZoomKeyAction = "zoom-in" | "zoom-out" | "zoom-reset" | "fit";
@@ -335,6 +342,47 @@ export function attachInput(
   // --- keys --------------------------------------------------------------
   const focusInside = () => el.contains(document.activeElement);
 
+  // --- clipboard (D1, D2) ---------------------------------------------------
+  /** Last pointer position (client px) over the surface; null once it leaves. */
+  let pointer: { x: number; y: number } | null = null;
+  const onSurfacePointerMove = (e: PointerEvent) => {
+    pointer = { x: e.clientX, y: e.clientY };
+  };
+  const onSurfacePointerLeave = () => {
+    pointer = null;
+  };
+  /** The board has focus and no text is being edited: copy and paste are ours. */
+  const ownsClipboard = () =>
+    focusInside() && !isEditable(document.activeElement) && store.getSnapshot().editingId === null;
+  /** Where a paste goes: the pointer when it is over the board, else the view's centre. */
+  const pastePoint = (): Point => {
+    const r = el.getBoundingClientRect();
+    const over =
+      pointer && pointer.x >= r.left && pointer.x < r.right && pointer.y >= r.top && pointer.y < r.bottom;
+    return screenToBoard(camera(), getViewport(), over && pointer ? local(pointer.x, pointer.y) : centre());
+  };
+  const onCopy = (e: ClipboardEvent) => {
+    if (!e.clipboardData || !ownsClipboard()) return;
+    const { selectedId, items } = store.getSnapshot();
+    const sticky = selectedId ? items[selectedId] : undefined;
+    if (!sticky) return;
+    e.preventDefault();
+    e.clipboardData.setData("text/plain", sticky.text);
+    e.clipboardData.setData(COPIED_STICKY_TYPE, serializeSticky(sticky));
+  };
+  const onPaste = (e: ClipboardEvent) => {
+    if (!e.clipboardData || !ownsClipboard()) return;
+    const custom = e.clipboardData.getData(COPIED_STICKY_TYPE);
+    let copied: CopiedSticky | null = custom ? parseCopiedSticky(custom) : null;
+    if (!copied) {
+      const text = e.clipboardData.getData("text/plain");
+      if (text.trim()) copied = stickyFromText(text, store.getSnapshot().creationColor);
+    }
+    if (!copied) return;
+    e.preventDefault();
+    pasteSticky(store, copied, pastePoint());
+  };
+
   const onKeyDown = (e: KeyboardEvent) => {
     // Something closer (an open palette) already took the key.
     if (e.defaultPrevented || !focusInside() || isEditable(e.target)) return;
@@ -411,6 +459,10 @@ export function attachInput(
   window.addEventListener("blur", onWindowBlur);
   el.addEventListener("contextmenu", onContextMenu);
   el.addEventListener("keydown", onKeyDown);
+  surface.addEventListener("pointermove", onSurfacePointerMove);
+  surface.addEventListener("pointerleave", onSurfacePointerLeave);
+  document.addEventListener("copy", onCopy);
+  document.addEventListener("paste", onPaste);
   el.addEventListener("dblclick", onDoubleClick);
   el.addEventListener("blur", endSpace, true);
   window.addEventListener("keyup", onKeyUp);
@@ -430,6 +482,10 @@ export function attachInput(
     window.removeEventListener("blur", onWindowBlur);
     el.removeEventListener("contextmenu", onContextMenu);
     el.removeEventListener("keydown", onKeyDown);
+    surface.removeEventListener("pointermove", onSurfacePointerMove);
+    surface.removeEventListener("pointerleave", onSurfacePointerLeave);
+    document.removeEventListener("copy", onCopy);
+    document.removeEventListener("paste", onPaste);
     el.removeEventListener("dblclick", onDoubleClick);
     el.removeEventListener("blur", endSpace, true);
     window.removeEventListener("keyup", onKeyUp);

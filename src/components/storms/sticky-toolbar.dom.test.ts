@@ -315,16 +315,18 @@ describe("StickyToolbar with the mouse", () => {
     expect(store.getSnapshot().editingId).toBeNull();
   });
 
-  it("Ctrl/Cmd+D does not duplicate (or open bookmarks) while the palette is open", () => {
+  it("Ctrl/Cmd+C, V and D are held back while the palette is open (no copy, paste, duplicate or bookmarks)", () => {
     select("a");
     mouseClick(colourButton());
-    for (const init of [{ ctrlKey: true }, { metaKey: true }]) {
-      const e = new KeyboardEvent("keydown", { key: "d", bubbles: true, cancelable: true, ...init });
-      act(() => {
-        board.dispatchEvent(e);
-      });
-      expect(e.defaultPrevented).toBe(true);
-    }
+    // A prevented Ctrl+C or V keydown stops the browser from firing copy or paste.
+    for (const key of ["c", "v", "d"])
+      for (const init of [{ ctrlKey: true }, { metaKey: true }]) {
+        const e = new KeyboardEvent("keydown", { key, bubbles: true, cancelable: true, ...init });
+        act(() => {
+          board.dispatchEvent(e);
+        });
+        expect(e.defaultPrevented).toBe(true);
+      }
     expect(Object.keys(store.getSnapshot().items)).toEqual(["a"]);
     expect(palette()).not.toBeNull();
   });

@@ -506,3 +506,133 @@ describe("edge auto-pan while dragging a sticky", () => {
     expect(spy).not.toHaveBeenCalled();
   });
 });
+
+describe("copy and paste on the board", () => {
+  const TYPE = "application/x-toughbubble-sticky+json";
+  const PINK = "#FFC6E8";
+  const plan = { id: "p", type: "sticky", x: -100, y: -50, z: "a0", w: 240, h: 180, text: "Plan", color: PINK, fontSize: 32 } as Item;
+
+  beforeEach(() => {
+    el.setPointerCapture = () => {};
+    el.releasePointerCapture = () => {};
+    el.hasPointerCapture = () => false;
+    el.getBoundingClientRect = () =>
+      ({ left: 0, top: 0, right: VP.w, bottom: VP.h, width: VP.w, height: VP.h }) as DOMRect;
+    store = createStormStore({ body: { schema: 1, items: { p: plan } }, camera: { ...HOME_CAMERA } });
+    detach = attachInput(el, store, () => VP);
+  });
+
+  /** A copy or paste event as the browser fires it at the focused element. */
+  const clip = (type: "copy" | "paste", data: Record<string, string> = {}, target: EventTarget = el) => {
+    const dt = new DataTransfer();
+    for (const [k, v] of Object.entries(data)) dt.setData(k, v);
+    const e = new ClipboardEvent(type, { clipboardData: dt, bubbles: true, cancelable: true });
+    target.dispatchEvent(e);
+    return { e, dt };
+  };
+  const added = () => Object.values(store.getSnapshot().items).filter((i) => i.id !== "p");
+  const copyPlan = () => {
+    store.select("p");
+    return clip("copy").dt;
+  };
+
+  it("copy writes the text and the custom type for the selected sticky", () => {
+    store.select("p");
+    const { e, dt } = clip("copy");
+    expect(e.defaultPrevented).toBe(true);
+    expect(dt.getData("text/plain")).toBe("Plan");
+    expect(JSON.parse(dt.getData(TYPE))).toEqual({
+      v: 1,
+      sticky: { text: "Plan", color: PINK, fontSize: 32, w: 240, h: 180 },
+    });
+  });
+
+  it("copy with nothing selected does nothing", () => {
+    const { e, dt } = clip("copy");
+    expect(e.defaultPrevented).toBe(false);
+    expect(dt.getData(TYPE)).toBe("");
+  });
+
+  it("paste of the custom type places a copy centred on the pointer, on top and selected, one undo step", () => {
+    const dt = copyPlan();
+    ptr("pointermove", at(200, 100));
+    const { e } = clip("paste", { [TYPE]: dt.getData(TYPE), "text/plain": "Plan" });
+    expect(e.defaultPrevented).toBe(true);
+    const [copy] = added();
+    expect(copy).toMatchObject({ x: 80, y: 10, w: 240, h: 180, text: "Plan", color: PINK, fontSize: 32 });
+    expect(copy.z > plan.z).toBe(true);
+    expect(store.getSnapshot().selectedId).toBe(copy.id);
+    expect(store.getHistory().undo).toHaveLength(1);
+    store.undo();
+    expect(added()).toHaveLength(0);
+    expect(store.getSnapshot().items.p).toEqual(plan);
+  });
+
+  it("paste goes to the view centre when the pointer never entered or has left the board", () => {
+    const dt = copyPlan();
+    clip("paste", { [TYPE]: dt.getData(TYPE) });
+    expect(added()[0]).toMatchObject({ x: -120, y: -90 });
+    ptr("pointermove", at(200, 100));
+    el.dispatchEvent(new PointerEvent("pointerleave", at(200, 100)));
+    clip("paste", { [TYPE]: dt.getData(TYPE) });
+    ptr("pointermove", at(500, 0)); // beside the board (client x 900 > 800)
+    clip("paste", { [TYPE]: dt.getData(TYPE) });
+    expect(added().map((i) => [i.x, i.y])).toEqual([
+      [-120, -90],
+      [-120, -90],
+      [-120, -90],
+    ]);
+  });
+
+  it("paste of plain text makes a sticky in the creation colour, cut to 500 characters", () => {
+    store.setCreationColor(PINK);
+    ptr("pointermove", at(0, 0));
+    const { e } = clip("paste", { "text/plain": "Call Anna" });
+    expect(e.defaultPrevented).toBe(true);
+    expect(added()[0]).toMatchObject({ x: -100, y: -100, w: 200, h: 200, text: "Call Anna", color: PINK });
+    clip("paste", { "text/plain": "z".repeat(700) });
+    expect(added().find((i) => i.text.startsWith("z"))?.text).toHaveLength(500);
+  });
+
+  it("a custom type that does not parse falls back to the plain text", () => {
+    clip("paste", { [TYPE]: '{"v":2,"sticky":{}}', "text/plain": "Fallback" });
+    const [s] = added();
+    expect(s.text).toBe("Fallback");
+    expect("color" in s).toBe(false);
+  });
+
+  it("an empty paste does nothing and keeps the default", () => {
+    const { e } = clip("paste", { "text/plain": "" });
+    expect(e.defaultPrevented).toBe(false);
+    expect(added()).toHaveLength(0);
+  });
+
+  it("while editing, copy and paste pass through untouched", () => {
+    store.startEdit("p");
+    const copy = clip("copy");
+    expect(copy.e.defaultPrevented).toBe(false);
+    expect(copy.dt.getData(TYPE)).toBe("");
+    const paste = clip("paste", { "text/plain": "word" });
+    expect(paste.e.defaultPrevented).toBe(false);
+    expect(added()).toHaveLength(0);
+  });
+
+  it("without board focus, copy and paste are not intercepted", () => {
+    const input = document.createElement("input");
+    document.body.appendChild(input);
+    input.focus();
+    store.select("p");
+    expect(clip("copy", {}, input).e.defaultPrevented).toBe(false);
+    expect(clip("paste", { "text/plain": "x" }, input).e.defaultPrevented).toBe(false);
+    expect(added()).toHaveLength(0);
+    input.remove();
+  });
+
+  it("detach removes the copy and paste listeners", () => {
+    detach();
+    store.select("p");
+    expect(clip("copy").e.defaultPrevented).toBe(false);
+    expect(clip("paste", { "text/plain": "x" }).e.defaultPrevented).toBe(false);
+    expect(added()).toHaveLength(0);
+  });
+});
