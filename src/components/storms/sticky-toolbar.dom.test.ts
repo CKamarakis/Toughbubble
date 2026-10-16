@@ -319,6 +319,15 @@ describe("StickyToolbar with the mouse", () => {
     expect(document.activeElement).toBe(colourButton());
   });
 
+  it("Esc in the palette closes it and leaves the active tool alone", () => {
+    select("a");
+    act(() => store.setTool("sticky"));
+    mouseClick(colourButton());
+    keydown(board, "Escape");
+    expect(palette()).toBeNull();
+    expect(store.getSnapshot().tool).toBe("sticky");
+  });
+
   it("the wheel over the toolbar still zooms the board", () => {
     select("a");
     const zoom = store.getSnapshot().camera.zoom;

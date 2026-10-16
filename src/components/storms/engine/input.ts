@@ -334,7 +334,8 @@ export function attachInput(
   const focusInside = () => el.contains(document.activeElement);
 
   const onKeyDown = (e: KeyboardEvent) => {
-    if (!focusInside() || isEditable(e.target)) return;
+    // Something closer (an open palette) already took the key.
+    if (e.defaultPrevented || !focusInside() || isEditable(e.target)) return;
     const snap = store.getSnapshot();
     const action = routeKey(snap, e);
     if (!action) return;
