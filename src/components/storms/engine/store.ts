@@ -17,6 +17,7 @@ import {
   type Step,
 } from "@/lib/storms/history";
 import type { Item, Items, StormBody } from "@/lib/storms/model";
+import { fitFontSize, type SizedMeasure } from "@/lib/storms/text-layout";
 
 export type Tool = "select" | "sticky";
 
@@ -57,8 +58,13 @@ export type StormStore = {
   /** Shows a dragged sticky at an offset without committing or saving anything. */
   setDragPreview(p: DragPreview | null): void;
   startEdit(id: string): void;
-  /** Commits the text without history; `endEdit` adds the one undo step. */
+  /**
+   * Commits the text and its fitted size (with the measure from `setMeasure`; none
+   * yet: no size, the renderer fits it) without history; `endEdit` adds the one undo step.
+   */
   setText(id: string, text: string): void;
+  /** The board font's measure, once the font has loaded; `setText` fits text with it. */
+  setMeasure(measure: SizedMeasure | null): void;
   endEdit(): void;
   /** Load latest / refresh: new items, no history, selection or edit; no `onChange`. */
   replaceBoard(body: StormBody): void;
@@ -86,13 +92,23 @@ function listeners<A extends unknown[]>() {
   };
 }
 
-/** Clamps text over MAX_TEXT (saved before the limit dropped), so later change sets validate. */
+/** `item` with `text` and `fontSize`; an undefined size leaves the key out (fitted when drawn). */
+function withText(item: Item, text: string, fontSize: number | undefined): Item {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { fontSize: _old, ...rest } = item;
+  return fontSize === undefined ? { ...rest, text } : { ...rest, text, fontSize };
+}
+
+/**
+ * Clamps text over MAX_TEXT (saved before the limit dropped), so later change sets
+ * validate; a clamped sticky's stored size no longer matches, so it is fitted again.
+ */
 function clampItems(items: Items): Items {
   let out: Items | null = null;
   for (const [id, item] of Object.entries(items)) {
     if (item.text.length <= MAX_TEXT) continue;
     out ??= { ...items };
-    out[id] = { ...item, text: item.text.slice(0, MAX_TEXT) };
+    out[id] = withText(item, item.text.slice(0, MAX_TEXT), undefined);
   }
   return out ?? items;
 }
@@ -116,6 +132,7 @@ export function createStormStore(init: {
   let snapshot = build(0);
   /** The edited sticky as it was when the edit session started. */
   let editBefore: Item | null = null;
+  let measure: SizedMeasure | null = null;
 
   const subscribers = listeners<[]>();
   const frames = listeners<[]>();
@@ -202,7 +219,7 @@ export function createStormStore(init: {
     return before && after && before.text !== after.text
       ? pushStep(history, {
           do: { upsert: [after], delete: [] },
-          undo: { upsert: [{ ...after, text: before.text }], delete: [] },
+          undo: { upsert: [withText(after, before.text, before.fontSize)], delete: [] },
         })
       : history;
   }
@@ -255,7 +272,11 @@ export function createStormStore(init: {
       const text = rawText.slice(0, MAX_TEXT); // input that bypasses the textarea's maxLength
       const item = state.items[id];
       if (id !== state.editingId || !item || item.text === text) return;
-      commit({ upsert: [{ ...item, text }], delete: [] }, "none");
+      const fontSize = measure ? fitFontSize(measure, text, item.w, item.h) : undefined;
+      commit({ upsert: [withText(item, text, fontSize)], delete: [] }, "none");
+    },
+    setMeasure(m) {
+      measure = m;
     },
     endEdit,
     replaceBoard(body) {

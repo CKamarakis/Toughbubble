@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { HOME_CAMERA } from "@/lib/storms/camera";
 import type { StormBody } from "@/lib/storms/model";
-import { resolveFontFamily, waitForFont } from "./engine/font";
+import { createBoardMeasure, resolveFontFamily, waitForFont } from "./engine/font";
 import { attachInput } from "./engine/input";
 import { createRenderer } from "./engine/renderer";
 import { createStormStore, type StormStore } from "./engine/store";
@@ -115,7 +115,10 @@ export default function StormBoard(props: StormBoardProps) {
     const renderer = createRenderer(canvas, store, family);
     let alive = true;
     void waitForFont(family).then(() => {
-      if (alive) renderer.setFontReady();
+      if (!alive) return;
+      // Typing now stores the fitted size with the text; before this, the renderer fits it.
+      store.setMeasure(createBoardMeasure(family));
+      renderer.setFontReady();
     });
 
     const fit = () => {
