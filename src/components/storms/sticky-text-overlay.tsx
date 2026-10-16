@@ -106,14 +106,9 @@ function StickyTextEditor({ store, family, getViewport, onExit }: OverlayProps) 
       value={sticky.text}
       maxLength={MAX_TEXT}
       spellCheck
-      onChange={(e) => {
-        e.target.scrollTop = 0;
-        store.setText(sticky.id, e.target.value);
-      }}
-      // The canvas never scrolls: overflow stays clipped and the first lines stay put.
-      onScroll={(e) => {
-        e.currentTarget.scrollTop = 0;
-      }}
+      // The editor starts at the top, so lines match the canvas. It is not pinned there:
+      // the caret scrolls it, so text beyond the sticky's edge can be reached and edited.
+      onChange={(e) => store.setText(sticky.id, e.target.value)}
       onBlur={() => store.endEdit()}
       onKeyDown={(e) => {
         if (e.key !== "Escape" || e.nativeEvent.isComposing) return;

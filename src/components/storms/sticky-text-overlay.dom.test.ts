@@ -98,10 +98,25 @@ describe("StickyTextOverlay", () => {
     expect(store.getSnapshot().editingId).toBeNull();
   });
 
-  it("never scrolls, so lines stay where the canvas draws them", async () => {
+  it("starts at the top, and keeps a scroll the caret caused so the rest of the text is reachable", async () => {
     const ta = textarea()!;
+    expect(ta.scrollTop).toBe(0);
+    // The browser scrolls the editor to follow the caret through text longer than the sticky.
     ta.scrollTop = 40;
     await act(async () => ta.dispatchEvent(new Event("scroll")));
-    expect(ta.scrollTop).toBe(0);
+    expect(ta.scrollTop).toBe(40);
+    await act(async () => type(ta, "x ".repeat(100)));
+    expect(ta.scrollTop).toBe(40);
+  });
+
+  it("long pasted text is all in the editor after finishing and editing again", async () => {
+    const long = Array.from({ length: 60 }, (_, i) => `word${i}`).join(" ");
+    await act(async () => type(textarea()!, long));
+    await act(async () => {
+      textarea()!.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    });
+    await act(async () => store.startEdit("a"));
+    expect(textarea()!.value).toBe(long);
+    expect(textarea()!.scrollTop).toBe(0);
   });
 });
