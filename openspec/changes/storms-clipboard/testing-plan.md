@@ -89,10 +89,12 @@ Tip: make two new Storms just for this test (New > Storm), and call them "Test" 
 - Browser check: Not yet.
 - [ ] Pass  [ ] Fail   Notes:
 
-**11. While the colour palette is open** _(extra: the palette takes the keys)_
-- **Do:** Select a sticky and click the colour button on its toolbar, so the palette is open. Press Ctrl+C, Ctrl+V and Ctrl+D. Then press Esc. Repeat with the Sticky tool's palette: click the Sticky button, then press Ctrl+V with a sticky copied earlier.
-- **You should see:** Nothing is copied, pasted or duplicated while the palette is open; no new sticky appears. After Esc the shortcuts work again.
-- Also checked automatically by: `src/components/storms/sticky-toolbar.dom.test.ts` (with the palette open, board keys are not acted on); how it feels is browser only.
+**11. While a palette is open** _(extra: only the sticky toolbar's palette takes the keys)_
+- **Do (a):** Select a sticky and click the colour button on its toolbar, so the colour palette is open. Press Ctrl+C, Ctrl+V and Ctrl+D. Then press Esc.
+- **You should see (a):** Nothing is copied, pasted or duplicated while the toolbar's colour palette is open; no new sticky appears. After Esc the shortcuts work again.
+- **Do (b):** Copy a sticky earlier (Ctrl+C). Click the Sticky button in the board toolbar so the Sticky tool's palette is open, then press Ctrl+V. Open the Sticky tool's palette again, select a sticky and press Ctrl+D.
+- **You should see (b):** The Sticky tool's palette does not block the keys: Ctrl+V pastes the copy (the tool turns off and its palette closes), and Ctrl+D duplicates the selected sticky.
+- Also checked automatically by: `src/components/storms/sticky-toolbar.dom.test.ts` (with the toolbar's palette open, board keys are not acted on); `src/components/storms/engine/input.dom.test.ts` (with the Sticky tool on, paste and Ctrl+D work and turn the tool off); how it feels is browser only.
 - Browser check: Not yet.
 - [ ] Pass  [ ] Fail   Notes:
 

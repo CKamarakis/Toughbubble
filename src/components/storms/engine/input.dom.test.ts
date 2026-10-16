@@ -617,6 +617,19 @@ describe("copy and paste on the board", () => {
     expect(added()).toHaveLength(0);
   });
 
+  it("with the Sticky tool (and its palette) on, paste and Ctrl+D still work and turn the tool off", () => {
+    const dt = copyPlan();
+    store.setTool("sticky");
+    clip("paste", { [TYPE]: dt.getData(TYPE) });
+    expect(added()).toHaveLength(1);
+    expect(store.getSnapshot().tool).toBe("select");
+    store.setTool("sticky");
+    store.select("p");
+    expect(key(el, { key: "d", ctrlKey: true }).defaultPrevented).toBe(true);
+    expect(added()).toHaveLength(2);
+    expect(store.getSnapshot().tool).toBe("select");
+  });
+
   it("without board focus, copy and paste are not intercepted", () => {
     const input = document.createElement("input");
     document.body.appendChild(input);

@@ -264,14 +264,18 @@ and is blocked from `src/` by a lint rule; it is for migrations, tests, and back
   a sticky selected, keeps the browser's bookmark dialog closed). Text copied from elsewhere pastes
   as a new sticky (first 500 characters) in the colour for new stickies. Each paste or duplicate is
   one undo step and leaves the new sticky on top and selected. While typing in a sticky these keys
-  act on the text; while the colour palette is open they do nothing to the board. Rules:
+  act on the text; while the sticky toolbar's colour palette is open they do nothing to the board (the
+  Sticky tool's palette does not block them). Rules:
   `src/lib/storms/clipboard.ts`; a copy carries `text/plain` plus
   `application/x-toughbubble-sticky+json`.
 - **Sticky toolbar** (`sticky-toolbar.tsx`). With exactly one sticky selected, a small toolbar sits
   centred above it (below when there is no room), follows it while the board pans and zooms, and hides
-  while you type, drag, or pan. Its Colour button opens the palette (4 swatches per row). Keyboard: Tab to the button (after
-  the board), Enter or Space opens it, arrow keys, Home and End move between swatches, Enter or Space
-  picks, Esc closes. With the palette open, those keys go to the palette even after a mouse click on the button, and Delete, N and undo do not act on the board. After Esc or a pick, focus returns to the button if it was inside the palette; after a mouse open it stays on the board. Clicking the toolbar does not deselect the sticky.
+  while you type, drag, or pan. Its Colour button opens the palette (4 swatches per row). Keyboard:
+  Tab to the button (after the board), Enter or Space opens it, arrow keys, Home and End move between
+  swatches, Enter or Space picks, Esc closes. With the palette open, those keys go to the palette even
+  after a mouse click on the button, and Delete, N and undo do not act on the board. After Esc or a
+  pick, focus returns to the button if it was inside the palette; after a mouse open it stays on the
+  board. Clicking the toolbar does not deselect the sticky.
 - **Saving.** Like notes, but only the items changed since the last save go out (a change set plus the
   version it is based on), about a second after the last change; the header shows Saving…, then
   Saved. Offline or server errors show "Couldn't save — retrying" and retry with growing pauses; work
