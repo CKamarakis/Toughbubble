@@ -23,5 +23,5 @@
 - [x] 4.1 Speed bench board gets random preset colours and no stored sizes (D4). Verify that `npm run bench:storms` passes (median ≥ 50 fps, p95 ≤ 33 ms) and record the numbers.
 - [x] 4.2 README Storms section: auto-fit and sticky colours. Verify it matches the code.
 - [x] 4.3 Write `openspec/changes/storms-sticky-style/testing-plan.md` in the same format as storms-canvas's: one numbered browser step per spec scenario (do / see / pass-fail / automated test). Verify every `#### Scenario:` in this change's specs appears in it.
-- [ ] 4.4 Run types, lint, unit tests, integration tests and the speed gate. Verify all pass.
+- [x] 4.4 Run types, lint, unit tests, integration tests and the speed gate. Verify all pass.
 - [ ] 4.5 Hand the testing plan to the user and record their results.
