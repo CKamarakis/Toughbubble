@@ -34,5 +34,15 @@ const keys = Object.keys(loadable).filter((k) => loadable[k].files.some((f) => h
 if (keys.length !== 1) {
   throw new Error(`Expected exactly one next/dynamic entry whose chunks contain "${MARKER}", found ${keys.length} (entries: ${Object.keys(loadable).join(", ") || "none"}). Has the board loader moved, or the marker changed?`);
 }
-console.log("board chunks (lazy):", loadable[keys[0]].files.join(", "));
-console.log("OK: no board code in any client module's eager chunks.");
+const boardFiles = loadable[keys[0]].files;
+
+// 3. None of that entry's files, marker or not, may be in any client module's eager list.
+// (If one is ever legitimately shared with other client code, refine this check, don't loosen it.)
+const eager = new Set(Object.values(manifest.clientModules).flatMap((m) => m.chunks));
+const shared = boardFiles.filter((f) => eager.has(`/_next/${f}`));
+if (shared.length) {
+  console.error("FAIL: board loader chunks are eagerly loaded on the item page:\n  " + shared.join("\n  "));
+  process.exit(1);
+}
+console.log("board chunks (lazy):", boardFiles.join(", "));
+console.log("OK: no board chunk is in any client module's eager list.");
