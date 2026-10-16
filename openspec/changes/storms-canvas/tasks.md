@@ -76,6 +76,6 @@
 - [x] 11.8 Edge auto-pan while dragging a sticky (D5). Verify with unit tests of the speed function (zero outside 40 px, rising to the cap at the edge) and in the browser: dragging to the sidebar edge pans and the sticky stays visible.
 - [x] 11.9 Selection outline: 1 px, 5 px gap (D6). Verify with a renderer test of the outline rectangle and in the browser.
 - [x] 11.10 Duplicate a note (D10): shared title and placement helper with `duplicateStorm`, body copy, attachments copied with `copyAttachments` and ids rewritten, menu entry for notes. Verify with integration tests: copy below the original, body equal, attachment ids rewritten to new rows, deleting the original forever leaves the copy's attachment rows and files, never-written note copies empty, long title; and in the browser.
-- [ ] 11.11 Step 25 (board edge): waits for the user's retest; fix only if it still fails.
+- [x] 11.11 Step 25 (board edge): waits for the user's retest; fix only if it still fails. Retest 2026-10-16: passes, no change needed.
 - [x] 11.12 Update `testing-plan.md` (steps 10, 12, 15, 28, 35 and new steps for pinch, drag to the edge, paste over the limit and note Duplicate), the README and the tests listed for each step. Verify that every `#### Scenario:` in `specs/` is in the plan.
 - [x] 11.13 Run types, lint, unit and integration tests and the speed gate. Verify that all pass, then hand the changed steps back to the user (10.4).

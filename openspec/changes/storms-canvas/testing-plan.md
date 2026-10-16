@@ -202,7 +202,8 @@ Tip: make a new Storm just for this test (New > Storm), and call it "Test". Anyt
 - **You should see:** It eventually stops and will not go further. (Optional; it takes a while.)
 - Also checked automatically by: `src/lib/storms/camera.test.ts`.
 - Browser check 2026-10-11: Not yet.
-- [ ] Pass  [x] Fail   Notes:
+- [x] Pass  [ ] Fail   Notes: Retested 2026-10-16: looks fine.
+- Earlier result (2026-10-16): Fail — no notes.
 
 **26. Reopen where you left** _(last view per storm: Reopen where you left)_
 - **Do:** Zoom to 50%, pan somewhere, open a different item, then come back to the Storm. Reload too.
