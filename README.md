@@ -19,8 +19,8 @@ A personal workspace for notes and visual boards: Notion-style notes and Miro-st
 - **Organize**: projects and folders in a sidebar tree; drag to reorder, move items anywhere,
   archive what's done, and restore from the trash.
 - **Make it yours**: light and dark themes, with your own sizes and colors for text and headings.
-- **Storms**: an infinite canvas. Today you can place, type in, move, and delete stickies, zoom and
-  pan, and undo; text, shapes, and connectors are still to come.
+- **Storms**: an infinite canvas. Today you can place, type in, colour, move, and delete stickies, zoom
+  and pan, and undo; text, shapes, and connectors are still to come.
 
 ## Stack
 
@@ -237,8 +237,23 @@ and is blocked from `src/` by a lint rule; it is for migrations, tests, and back
   1 px (Shift: 10 px), Delete or Backspace removes. Dragging a sticky to the edge of the board (including
   the sidebar edge) pans the board so it stays in view. The selection is a thin magenta outline with a
   5 px gap. Double-click or Enter edits plain centred text (max 500 characters; a longer paste keeps
-  the first 500; overflow is clipped on the board, not lost, and long text scrolls inside the editor);
-  Esc or a click outside finishes.
+  the first 500); Esc or a click outside finishes.
+- **Auto-fit text.** Text is drawn at the largest whole size from 8 to 64 px (board px) at which all of
+  it fits inside the sticky's 16 px padding, and the size follows each keystroke; the editor uses the
+  same size, so the text does not jump when editing starts or ends. Below 8 px the text is clipped on
+  the board, not lost, and long text scrolls inside the editor. The size is saved with the sticky
+  (`fontSize`); a sticky from before that is fitted when drawn and gets its size saved the next time
+  it changes. Rules: `fitFontSize` in `src/lib/storms/text-layout.ts`.
+- **Sticky colours.** 12 presets (Yellow, the default, Orange, Red, Pink, Purple, Light blue, Dark blue,
+  Light green, Dark green, Brown, Black, White), defined with their text colours in
+  `src/lib/storms/palette.ts`; text is white on Dark blue, Dark green and Black, and White has a thin
+  border. Saved as `color` (preset hex only: the server refuses any other); none means Yellow. Changing
+  a colour is one undo step.
+- **Sticky toolbar** (`sticky-toolbar.tsx`). With exactly one sticky selected, a small toolbar sits
+  centred above it (below when there is no room), follows it while the board pans and zooms, and hides
+  while you type, drag, or pan. Its Colour button opens the palette. Keyboard: Tab to the button (after
+  the board), Enter or Space opens it, arrow keys, Home and End move between swatches, Enter or Space
+  picks, Esc closes; focus returns to the button. Clicking the toolbar does not deselect the sticky.
 - **Saving.** Like notes, but only the items changed since the last save go out (a change set plus the
   version it is based on), about a second after the last change; the header shows Saving…, then
   Saved. Offline or server errors show "Couldn't save — retrying" and retry with growing pauses; work
@@ -260,7 +275,8 @@ and is blocked from `src/` by a lint rule; it is for migrations, tests, and back
   saved is copied empty.
 - **Speed gate.** `npm run bench:storms` (`scripts/storms-bench.mjs`) drives Playwright against the
   dev-only route `/dev/storm-bench` (not available in production), which loads 1,000 synthetic
-  stickies without saving. Start a dev server first with `npx next dev -p 3101` (override the address
+  stickies (random preset colours, no stored sizes, so every size is fitted on first draw) without
+  saving, and also measures panning and zooming with one sticky selected (toolbar showing). Start a dev server first with `npx next dev -p 3101` (override the address
   with `BENCH_URL`; `BENCH_ITEMS` changes the sticky count). The script's GPU flags are tuned for
   Windows; elsewhere use your installed Chrome with `BENCH_CHANNEL=chrome`.
 
