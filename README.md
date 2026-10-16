@@ -127,6 +127,7 @@ Requires [Node.js](https://nodejs.org/) 24+ and npm.
 | `npm test` | Unit tests |
 | `npm run test:integration` | Tests against the dev database. Creates and deletes throwaway users; refuses to run unless `APP_ENV=development` |
 | `npm run bench:storms` | Storm speed gate: a 1,000-sticky board with the CPU slowed 4x must hold 50 fps median and 33 ms p95. Needs a dev server on port 3101 (`npx next dev -p 3101`); see [Storms](#storms) |
+| `npm run check:note-chunks` | After `npx next build`: fails if a note page would download the board code (see [Storms](#storms)) |
 | `npm run db:generate` | Generate a migration from changes to `src/db/schema.ts` |
 | `npm run db:migrate` | Apply pending migrations to the database in `DATABASE_ADMIN_URL` |
 | `npm run brand:generate` | Regenerate `public/brand/logo-{light,dark,disc}.png`, `src/app/favicon.ico`, `icon.png`, and `apple-icon.png` from the masters in `src/toughbubble_assets/`. Commit the outputs; never edit them by hand |
@@ -218,21 +219,26 @@ and is blocked from `src/` by a lint rule; it is for migrations, tests, and back
 - **Where it lives.** `src/components/storms/` (board, toolbar, zoom control, autosave hook) and
   `src/components/storms/engine/` (store, canvas renderer, input); pure logic in `src/lib/storms/`
   (camera, change sets, history, validation, duplicate). The board's code loads only when a Storm
-  is opened; notes never download it. The board is saved in `item_content` for the `storm` item.
+  is opened; notes never download it in a production build (`npm run check:note-chunks`, run after
+  `npx next build`, checks the build; `next dev` lists the chunk on note pages by design). The board is saved in `item_content` for the `storm` item.
 - **Light board.** The board, toolbar, and zoom control stay light in the dark theme (the `light`
   class); the header and sidebar follow the app theme.
-- **Zoom** 10% to 400%. Mouse wheel, Ctrl or ⌘ + wheel, and trackpad pinch zoom toward the pointer;
+- **Zoom** 10% to 400%. Mouse wheel, Ctrl or ⌘ + wheel, and trackpad pinch zoom toward the pointer (one ordinary pinch-out takes 100% to about 200%);
   the page itself never zooms. The zoom control (bottom right) has − and +, which step through 10,
-  25, 50, 75, 100, 150, 200, 300, 400%, a readout (click to reset to 100%), and Fit. Keys, with the
+  25, 50, 75, 100, 125, 150, 175, 200, 250, 300, 350, 400%, a readout (click to reset to 100%), and Fit. Keys, with the
   board focused: Ctrl or ⌘ + `=` / `-` step, Ctrl or ⌘ + `0` resets, Shift + `1` fits all items.
 - **Pan.** Two-finger trackpad scroll, right-button drag (no browser menu), or hold Space and drag
   with the left button. Stops 1,000,000 px from the centre. Each Storm reopens at its last zoom and
   position in that browser (`localStorage`, key `storm-view:<id>`).
-- **Toolbar** (bottom centre): Select (`V`), Sticky (`N`), Undo, Redo, with tooltips. Click the board
-  with Sticky to place a 200×200 sticky, which is then selected; the tool returns to Select.
+- **Toolbar** (bottom centre): Sticky (`N`), Undo, Redo, with tooltips. There is no Select tool: clicking
+  selects whenever Sticky is off. Click the board with Sticky to place a 200×200 sticky, which is then
+  selected; the tool turns off (Esc also turns it off). The board is a plain light grey, with no dot grid.
 - **Stickies.** Click selects (topmost wins), click on empty board deselects, drag moves, arrows nudge
-  1 px (Shift: 10 px), Delete or Backspace removes. Double-click or Enter edits plain centred text
-  (max 5,000 characters; overflow is clipped, not lost); Esc or a click outside finishes.
+  1 px (Shift: 10 px), Delete or Backspace removes. Dragging a sticky to the edge of the board (including
+  the sidebar edge) pans the board so it stays in view. The selection is a thin magenta outline with a
+  5 px gap. Double-click or Enter edits plain centred text (max 500 characters; a longer paste keeps
+  the first 500; overflow is clipped on the board, not lost, and long text scrolls inside the editor);
+  Esc or a click outside finishes.
 - **Saving.** Like notes, but only the items changed since the last save go out (a change set plus the
   version it is based on), about a second after the last change; the header shows Saving…, then
   Saved. Offline or server errors show "Couldn't save — retrying" and retry with growing pauses; work
@@ -248,9 +254,10 @@ and is blocked from `src/` by a lint rule; it is for migrations, tests, and back
   zoom, pan, and selection are not. 30 steps are kept. The history is stored in IndexedDB
   (`storms-undo`) per user and Storm once a save settles, and is restored on reload only if the stored
   board has not changed since. Signing out deletes it.
-- **Duplicate** (Storm menu): creates "<title> (copy)" (shortened to fit the title limit), directly
-  below the original in the same parent, with a copy of every sticky, and opens it. A Storm that was
-  never saved is copied empty.
+- **Duplicate** (Storm and note menus): creates "<title> (copy)" (shortened to fit the title limit),
+  directly below the original in the same parent, and opens it. A Storm gets a copy of every sticky;
+  a note gets a copy of its body with each attachment copied as a file of its own. Something never
+  saved is copied empty.
 - **Speed gate.** `npm run bench:storms` (`scripts/storms-bench.mjs`) drives Playwright against the
   dev-only route `/dev/storm-bench` (not available in production), which loads 1,000 synthetic
   stickies without saving. Start a dev server first with `npx next dev -p 3101` (override the address
