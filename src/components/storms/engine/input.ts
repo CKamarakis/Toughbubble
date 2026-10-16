@@ -108,6 +108,10 @@ export function wheelZoomScale(e: ZoomWheel): number {
 }
 
 const DRAG_THRESHOLD_PX = 3;
+/** One 60 Hz frame; edge-pan speeds are per frame of this length. */
+const FRAME_MS = 1000 / 60;
+/** A stalled frame pans at most this long a step. */
+const MAX_FRAME_MS = 50;
 
 type Drag = { pointerId: number; button: number; x: number; y: number };
 type ItemDrag = {
@@ -143,6 +147,7 @@ export function attachInput(
   let itemDrag: ItemDrag | null = null;
   let gestureStartZoom = 1;
   let panFrame: number | null = null;
+  let lastPanTime: number | null = null;
 
   /** Point relative to the board element. */
   const local = (clientX: number, clientY: number): Point => {
@@ -248,12 +253,20 @@ export function attachInput(
   const stopEdgePan = () => {
     if (panFrame !== null) cancelAnimationFrame(panFrame);
     panFrame = null;
+    lastPanTime = null;
   };
-  const panTick = () => {
+  const panTick = (time: number) => {
     panFrame = null;
     const s = edgeSpeeds();
-    if (!s) return;
-    panScreen(-s.x, -s.y);
+    if (!s) {
+      lastPanTime = null;
+      return;
+    }
+    // Speeds are px per 60 Hz frame; scale by the real time since the last frame.
+    const dt = lastPanTime === null ? FRAME_MS : Math.min(MAX_FRAME_MS, Math.max(0, time - lastPanTime));
+    lastPanTime = time;
+    const k = dt / FRAME_MS;
+    panScreen(-s.x * k, -s.y * k);
     updatePreview();
     panFrame = requestAnimationFrame(panTick);
   };

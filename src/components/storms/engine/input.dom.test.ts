@@ -346,10 +346,13 @@ describe("attachInput item interactions", () => {
 describe("edge auto-pan while dragging a sticky", () => {
   const centred = { id: "c", x: -100, y: -100, w: 200, h: 200, text: "", color: "yellow" } as unknown as Item;
   let queue: FrameRequestCallback[];
-  const frame = () => {
+  let now = 1000;
+  /** Runs the queued frames, `dt` ms after the previous one (default 60 Hz). */
+  const frame = (dt = 1000 / 60) => {
+    now += dt;
     const run = queue;
     queue = [];
-    run.forEach((cb) => cb(0));
+    run.forEach((cb) => cb(now));
   };
 
   beforeEach(() => {
@@ -385,6 +388,19 @@ describe("edge auto-pan while dragging a sticky", () => {
     expect(store.getHistory().undo).toHaveLength(1);
     frame();
     expect(store.getSnapshot().camera.x).toBeCloseTo(-22.5);
+  });
+
+  it("pans the same distance per second at any refresh rate, and clamps a stalled frame", () => {
+    ptr("pointerdown", at(0, 0));
+    ptr("pointermove", { clientX: 10, clientY: 300 });
+    frame(); // first frame: a full 60 Hz step (11.25 px)
+    expect(store.getSnapshot().camera.x).toBeCloseTo(-11.25);
+    frame(1000 / 120); // 120 Hz: half a step
+    expect(store.getSnapshot().camera.x).toBeCloseTo(-11.25 - 5.625);
+    frame(1000 / 30); // 30 Hz: two steps
+    expect(store.getSnapshot().camera.x).toBeCloseTo(-11.25 - 5.625 - 22.5);
+    frame(2000); // stalled: clamped to 50 ms = three steps
+    expect(store.getSnapshot().camera.x).toBeCloseTo(-11.25 - 5.625 - 22.5 - 33.75);
   });
 
   it("stops when the pointer leaves the zone and on cancel", () => {
