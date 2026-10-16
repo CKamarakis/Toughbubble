@@ -17,13 +17,13 @@ Storms are already in the tree, but opening one shows only a placeholder. Storms
 **New: the board**
 - Zoom 10%–400%: mouse wheel toward the pointer, Ctrl + wheel and pinch, +/− buttons, a % readout (click for 100%), fit to all items; keyboard shortcuts. The page itself never zooms.
 - Pan with a two-finger trackpad scroll, right-drag (no browser menu on the board) or Space + drag; limited to ±1,000,000 px.
-- A dot grid that fades out when zoomed far out.
+- A plain light grey board surface, no grid (as in the Miro reference views).
 - Each storm reopens at the zoom and position the user left (kept in the browser).
-- Bottom toolbar with the tools that work in this slice only: Select, Sticky, Undo, Redo.
+- Bottom toolbar with the tools that work in this slice only: Sticky, Undo, Redo (no Select tool: selecting is the default).
 
 **New: plain-text sticky (minimal)**
-- Yellow 200×200 sticky placed with the Sticky tool; select, drag, nudge with arrow keys, delete with Delete/Backspace.
-- Double-click or Enter to type plain, centred text in one size; overflow is clipped for now.
+- Yellow 200×200 sticky placed with the Sticky tool; select (thin outline with a small gap), drag (the board follows when dragged to its edge), nudge with arrow keys, delete with Delete/Backspace.
+- Double-click or Enter to type plain, centred text in one size, up to 500 characters; overflow is clipped for now.
 
 **New: saving and undo**
 - Autosave about 1 s after the last change, sending only the changed stickies with the version they are based on; "Saving…" / "Saved", retries, warning on leaving with unsaved work, as notes do.
@@ -31,35 +31,36 @@ Storms are already in the tree, but opening one shows only a placeholder. Storms
 - Board size capped at about 2 MB with a clear message.
 - 30 undo/redo steps that survive a reload when the storm hasn't changed since; wiped on sign-out.
 
-**Duplicate a storm**
+**Duplicate a storm or a note**
 - From: no item can be duplicated.
-- To: storms get "Duplicate" in their ⋯ menu: the copy, "<title> (copy)", appears directly below the original with all its stickies and opens. Notes get it in a later change.
+- To: storms and notes get "Duplicate" in their ⋯ menu: the copy, "<title> (copy)", appears directly below the original with all its content and opens. A note's attachments are copied as files of their own.
+- Reason for notes: leaving them out was a requirements mistake, found in the 2026-10-16 test round.
 - Impact: non-breaking.
 
 **Shared code**
 - The notes autosave state machine moves to a shared place and learns a "too large" state; notes behave the same.
 - The dark-mode style rule gains an exception so the board stays light in dark mode.
 
-**Deferred** (each with its owning slice, listed in `design.md`): other item types, sticky colours and resize, rich text and shrink-to-fit, right-click menu, selection box and multi-select, layers, groups, locks, connectors, snapping, shortcut list, duplicate for notes, tablet and touch, screen-reader access to board content.
+**Deferred** (each with its owning slice, listed in `design.md`): other item types, sticky colours and resize, rich text and shrink-to-fit, right-click menu, selection box and multi-select, layers, groups, locks, connectors, snapping, shortcut list, tablet and touch, screen-reader access to board content.
 
 ## Capabilities
 
 ### New Capabilities
 
-- `storm-board`: opening a storm, the always-light board, zoom, pan, fit, grid, board limits, last view, the bottom toolbar, and the minimal plain-text sticky (place, select, move, nudge, type, delete).
+- `storm-board`: opening a storm, the always-light board, zoom, pan, fit, plain background, board limits, last view, the bottom toolbar, and the minimal plain-text sticky (place, select, move, nudge, type, delete).
 - `storm-saving`: autosave with change sets and a version check, "Changed elsewhere", the size cap, server-side validation and ownership, and undo/redo that survives a reload and is wiped on sign-out.
 
 ### Modified Capabilities
 
 - `workspace-tree`:
   - Open items: Storms show their board instead of a placeholder.
-  - Item menu layout: a Storm's menu gains Duplicate.
-  - New requirement: Duplicate a storm (title, placement, copied content).
+  - Item menu layout: Storm and note menus gain Duplicate.
+  - New requirements: Duplicate a storm, Duplicate a note (title, placement, copied content and attachments).
 - `note-editor`: drops "Storms SHALL keep their placeholder" from the note-opening requirement.
 
 ## Impact
 
-- **Code**: new `src/lib/storms/` (model, change sets, camera, history, hit-test, wheel classification, limits, validation, operations, actions) and `src/components/storms/` (engine store, renderer, input, view, toolbar, zoom control, text overlay, autosave, undo and view stores); `items/[id]/page.tsx` and `item-view.tsx` load and show storms; `item-menu.tsx` gains Duplicate; `account-menu.tsx` clears stored undo history on sign-out; `src/lib/notes/autosave.ts` moves to `src/lib/autosave.ts`; `globals.css` dark variant.
+- **Code**: new `src/lib/storms/` (model, change sets, camera, history, hit-test, wheel classification, limits, validation, operations, actions) and `src/components/storms/` (engine store, renderer, input, view, toolbar, zoom control, text overlay, autosave, undo and view stores); `items/[id]/page.tsx` and `item-view.tsx` load and show storms; `item-menu.tsx` gains Duplicate for storms and notes; `src/lib/notes/` gains `duplicateNote` (reusing `copyAttachments`); `account-menu.tsx` clears stored undo history on sign-out; `src/lib/notes/autosave.ts` moves to `src/lib/autosave.ts`; `globals.css` dark variant.
 - **Data**: no schema change. Storm boards use the existing `item_content` table and `storm` kind.
 - **Dependencies**: Playwright as a dev dependency for the speed benchmark; `fractional-indexing` is already installed.
 - **Browser storage**: IndexedDB (`storms-undo`) for undo history, `localStorage` for the last view per storm.

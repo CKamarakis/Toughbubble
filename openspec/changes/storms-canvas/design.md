@@ -12,16 +12,16 @@ The relevant code today:
 - `src/lib/notes/autosave.ts` is a pure, tested autosave state machine (1 s pause, retries with backoff, conflict with Load latest / Keep mine). It has no note-specific code.
 - Sign-out is a form post to `/auth/sign-out` from `account-menu.tsx`.
 - App font: Geist via `next/font` (`--font-geist-sans`).
-- No duplicate action exists anywhere yet.
+- No duplicate action exists anywhere yet. `copyAttachments` (`src/lib/attachments/operations.ts`) already copies a note's attachment files into another note (used when pasting images).
 
 ## Goals / Non-Goals
 
 **Goals:**
-- A storm opens as an always-light, effectively unlimited board with zoom, pan, fit and a dot grid.
+- A storm opens as an always-light, effectively unlimited board with zoom, pan and fit on a plain light grey surface.
 - A minimal plain-text sticky proves placing, selecting, moving, typing, deleting, saving and undo end to end.
 - Saves are small change sets with a version check; "Changed elsewhere" across tabs; 2 MB board cap.
 - 30 undo steps that survive a reload when the board is unchanged; wiped on sign-out.
-- Duplicate a storm.
+- Duplicate a storm, and a note (added after the 2026-10-16 test round).
 - 1,000 stickies pan and zoom smoothly (speed gate below).
 - An engine shape later slices extend without restructuring.
 
@@ -42,7 +42,6 @@ The relevant code today:
 | Duplicating a storm copies its image attachments | storms-items |
 | Guides, snapping, Alt to disable; keyboard shortcut list | storms-snapping |
 | Acceptance: rebuild the three real Miro boards (PRD measure) | storms-snapping (last slice) |
-| Duplicate for notes | later tree change |
 | Full-screen board mode | later, if wanted |
 | Tablet and touch | unassigned; after desktop |
 | Screen-reader access to board content | unassigned; see Open Questions |
@@ -58,11 +57,11 @@ Plain TypeScript owns board, camera, selection, tool and history. React subscrib
 Pure, unit-tested, no DOM (`src/lib/storms/`):
 - `model.ts`: `StormBody = { schema: 1, items: Record<string, Item> }`. This slice's item: `{ id, type: "sticky", x, y, z, w, h, text }`; `parentId` and `rotation` reserved (optional, unused) per the PRD. Ids are `crypto.randomUUID()` from the client. `z` is a fractional-index key (`fractional-indexing`, already a dependency) compared as a string, so later layer commands change one item, not many; new items get `generateKeyBetween(maxZ, null)`. `text: string` is plain text; storms-items moves sticky text to rich content and bumps `schema` to 2 with a load-time upgrade.
 - `changeset.ts`: `ChangeSet = { upsert: Item[]; delete: string[] }`; `apply`, `invert` (against the board before the change), `merge` (latest per id wins; upsert then delete = delete; delete then upsert = upsert). A merged set never has the same id in both lists.
-- `camera.ts`: `{ x, y, zoom }`; screen↔board conversion, `zoomAt(point, factor)` clamped to 0.1–4, step list (10, 25, 50, 75, 100, 150, 200, 300, 400%), `fit(bounds, viewport, margin)` (empty board → 100% at origin), pan clamp.
+- `camera.ts`: `{ x, y, zoom }`; screen↔board conversion, `zoomAt(point, factor)` clamped to 0.1–4, step list (10, 25, 50, 75, 100, 125, 150, 175, 200, 250, 300, 350, 400%), `fit(bounds, viewport, margin)` (empty board → 100% at origin), pan clamp.
 - `history.ts`: undo and redo stacks of `{ do, undo }` change-set pairs, max 30; a new action clears redo.
 - `hit-test.ts`: topmost item (highest `z`) containing a board point.
 - `wheel-source.ts`: classifies a wheel event as mouse or trackpad (D5).
-- `limits.ts`: `BOARD_LIMIT = 1_000_000` px; item fields must be finite and within it; `MAX_TEXT = 5_000` chars; `MAX_BODY_BYTES = 2 * 1024 * 1024`.
+- `limits.ts`: `BOARD_LIMIT = 1_000_000` px; item fields must be finite and within it; `MAX_TEXT = 500` chars (lowered from 5,000 after the test round: a sticky never needs more); `MAX_BODY_BYTES = 2 * 1024 * 1024`.
 - `validate.ts`: server-side validation of change sets and items: unknown types and fields rejected; ids are UUIDs; no duplicate ids within `upsert` or within `delete`; no id in both; `w`, `h` > 0; at most 5,000 entries per list; serialized change set ≤ 800 KB (under Next's 1 MB Server Action cap, as notes do). Loaded bodies are checked for `schema: 1`.
 - `operations.ts` / `actions.ts`: `isActiveStorm` (kind `storm`, status active, like `isActiveNote`), used by every operation; `getStormBody`, `getStormVersion`, `saveStormChanges`, `duplicateStorm`. Client-facing actions: `loadStorm`, `stormVersion`, `saveStorm`, `duplicateStorm`.
 
@@ -73,7 +72,7 @@ Shared: `src/lib/notes/autosave.ts` moves to `src/lib/autosave.ts` with its test
 
 Browser (`src/components/storms/`):
 - `engine/store.ts`: state, `subscribe`, `getSnapshot`, actions (place, move, edit text, delete, select, tool, camera); every board edit goes through one `commit(changeSet)` that applies it, pushes history and marks autosave dirty.
-- `engine/renderer.ts`: one `<canvas>` sized to the pane × `devicePixelRatio`; draws dot grid, visible stickies (culled against the viewport), text (skipped below 30% zoom), selection outline; redraws on `requestAnimationFrame` only when marked dirty.
+- `engine/renderer.ts`: one `<canvas>` sized to the pane × `devicePixelRatio`; fills the plain `#F2F2F2` background, draws visible stickies (culled against the viewport), text (skipped below 30% zoom), selection outline; redraws on `requestAnimationFrame` only when marked dirty.
 - `engine/input.ts`: pointer, wheel and key events → tool actions (see D5).
 - `storm-view.tsx` (slim header + board), `storm-board.tsx`, `storm-toolbar.tsx`, `zoom-control.tsx`, `sticky-text-overlay.tsx`, `use-storm-autosave.ts`, `undo-store.ts`, `view-store.ts`.
 
@@ -97,11 +96,12 @@ Browser (`src/components/storms/`):
 - `next/font` registers Geist under a generated family name, so the board reads the real family from `getComputedStyle(board).getPropertyValue("--font-geist-sans")` and uses it for the canvas, `document.fonts.load` and the textarea overlay. Text waits for the font; stickies draw immediately.
 
 ### D5: Input map (desktop)
-- Mouse wheel: zoom toward the pointer (PRD). Trackpad two-finger scroll: pan. Ctrl/⌘ + wheel and trackpad pinch (a wheel event with `ctrlKey`): zoom toward the pointer. Browsers send both mouse wheel and trackpad scroll as `wheel` events, so `wheel-source.ts` (pure, unit-tested) classifies them: horizontal delta, pixel `deltaMode` with small or fractional deltas → trackpad; line `deltaMode` or large whole-step deltas → mouse. The result is locked per gesture (until about 150 ms without wheel events) so it can't flip mid-scroll. The listener is attached with `addEventListener("wheel", h, { passive: false })`, not React's passive `onWheel`, so `preventDefault` stops the page itself zooming or scrolling. Safari trackpad pinch may arrive as `gesturestart`/`gesturechange` rather than ctrl + wheel: handle both (unverified until tested in Safari).
+- Mouse wheel: zoom toward the pointer (PRD). Trackpad two-finger scroll: pan. Ctrl/⌘ + wheel and trackpad pinch (a wheel event with `ctrlKey`): zoom toward the pointer. Pinch deltas are small, so pinch uses its own, stronger zoom factor than the mouse wheel (about 2.5× the first version's, so one ordinary pinch goes 100% → ~200%); the factor is a named constant with a unit test, tuned with the user's trackpad. Browsers send both mouse wheel and trackpad scroll as `wheel` events, so `wheel-source.ts` (pure, unit-tested) classifies them: horizontal delta, pixel `deltaMode` with small or fractional deltas → trackpad; line `deltaMode` or large whole-step deltas → mouse. The result is locked per gesture (until about 150 ms without wheel events) so it can't flip mid-scroll. The listener is attached with `addEventListener("wheel", h, { passive: false })`, not React's passive `onWheel`, so `preventDefault` stops the page itself zooming or scrolling. Safari trackpad pinch may arrive as `gesturestart`/`gesturechange` rather than ctrl + wheel: handle both (unverified until tested in Safari).
 - Right-button drag: pan. `contextmenu` suppressed on the board. A right-click without drag does nothing in this slice.
 - Space held + left drag: pan, hand cursor.
-- Left click on item: select (and start drag if moved beyond 3 px). On empty board: deselect.
-- Sticky tool (N) + click: place 200×200 sticky centred on the point, `z = maxZ + 1`, select it, return to Select (V).
+- Left click on item: select (and start drag if moved beyond 3 px). On empty board: deselect. There is no Select tool or V key: selecting is the default whenever the Sticky tool is off.
+- Edge auto-pan while dragging a sticky: when the pointer is within 40 px of the board element's visible edge (its left edge is where the sidebar ends), the camera pans toward that edge each frame, faster the closer to the edge (up to about 15 screen px per frame), and the dragged sticky moves with it so it stays under the pointer. Stops on pointer up or when the pointer leaves the edge zone. The speed function is pure, in `src/lib/storms/`, with unit tests.
+- Sticky tool (N) + click: place 200×200 sticky centred on the point, `z = maxZ + 1`, select it, turn the Sticky tool off. Esc also turns it off.
 - Double-click or Enter on selected sticky: edit text. Esc or click outside: finish. Each keystroke commits the text to the board (so autosave covers an unfinished edit and nothing is lost on a crash) without adding history; finishing adds one undo step from the text before editing to the text after.
 - Delete / Backspace on selection (not editing): delete.
 - Arrow keys: 1 px, Shift: 10 px; consecutive nudges within 1 s merge into one undo step.
@@ -109,7 +109,7 @@ Browser (`src/components/storms/`):
 - Pointer events throughout, so touch can be added later without rewriting.
 
 ### D6: Sticky v0 rendering
-Yellow `#F7D000` fill, no border, subtle shadow; text neutral 800 (`#333129`), Geist 20 px, centred both ways, wrapped to the sticky width with padding, clipped when overflowing. The same wrap function positions the `<textarea>` overlay so text doesn't jump between viewing and editing. Selection: 2 px magenta `#F700A8` outline drawn on canvas (HTML handles come with resize in storms-items).
+Yellow `#F7D000` fill, no border, subtle shadow; text neutral 800 (`#333129`), Geist 20 px, centred both ways, wrapped to the sticky width with padding, clipped when overflowing. The same wrap function positions the `<textarea>` overlay so text doesn't jump between viewing and editing. Selection: 1 px (screen) magenta `#F700A8` outline drawn on canvas 5 px (screen) outside the sticky's edge, so it never touches the fill (HTML handles come with resize in storms-items).
 
 ### D7: Undo across reload
 - `undo-store.ts` writes `{ version, undo, redo }` to IndexedDB (database `storms-undo`, key `<userId>:<stormId>`) after an acknowledged save, and only when nothing is pending or in flight, so the snapshot always matches the board stored at `version`. Steps made during a save are written at the next quiet save.
@@ -127,8 +127,17 @@ The board container has a `light` class that sets the light design tokens locall
 `duplicateStorm(id)` in one user transaction, after `isActiveStorm`:
 - Title "<title> (copy)", truncated so it stays within `MAX_TITLE` (200).
 - Placed directly below the original in the sidebar: the sibling group is re-keyed in its current visible order with the copy inserted after the original, the same way `reorderGroup` does. Needed because never-reordered groups all share position `a0` and sort newest first, which would put the copy above.
-- The `item_content` body is copied with version 1; a never-saved storm has no row, so the copy has none either (it opens empty at version 0). "Duplicate" appears in the item menu for storms only; after success the app navigates to the copy and the tree refreshes.
+- The `item_content` body is copied with version 1; a never-saved storm has no row, so the copy has none either (it opens empty at version 0). "Duplicate" appears in the item menu for storms and notes; after success the app navigates to the copy and the tree refreshes.
 
+`duplicateNote(id)` (added after the 2026-10-16 test round) shares the title and placement steps with `duplicateStorm` (extract one helper), after `isActiveNote`:
+- The `item_content` body is copied with version 1; a never-written note has no row, so the copy opens empty.
+- Attachments: the body's attachment nodes are collected (`attachment-nodes.ts`), copied with the existing `copyAttachments(tx, bucket, newId, ids)`, and their ids in the copied body are replaced with the new ids before it is stored. Any attachment that fails to copy is dropped from the copy's body rather than left pointing at the original's file.
+- Storage copies happen before the transaction commits; if the transaction then fails, the copied files are orphans under the never-created item's path and are removed with `removeStoredFiles`.
+
+### D12: Test-round fixes (2026-10-16)
+- **Notes don't load the board (step 4 failed):** the board chunk was downloaded on a note page. Find what imports it eagerly (likely `item-view.tsx` importing `storm-view.tsx` statically, which pulls the `next/dynamic` loader's target into the shared chunk graph, or a prefetch); fix so the chunk is requested only when a Storm renders. Verify with a production build and the Network tab.
+- **Long text lost (step 35 failed):** after pasting long text and finishing, double-clicking showed only part of it. Find whether the text is cut on commit, on the 5,000 `maxLength`, or by the overlay sizing; fix with a regression test. The new 500 limit truncates on paste on purpose (spec).
+- **Board edge (step 25 failed, no notes):** waiting for the user's retest before any change.
 ### D11: Verification
 - Unit (Vitest): camera (zoom-at keeps the point under the cursor, clamp, steps, fit, empty fit), change sets (apply/invert/merge, never an id in both lists), history (cap, redo cleared), hit-test (topmost wins by fractional `z`), wheel classification (per-gesture lock), limits and validation (bad and duplicate ids, id in both lists, unknown types, NaN, out-of-range, `w`/`h` ≤ 0, long text, too many entries, over 800 KB), autosave (existing tests after the move, plus `too-large` and the in-flight → pending merge).
 - Integration (existing `test:integration` setup): save with matching version; stale version → conflict; too large → `too-large` and nothing stored (first save too); another user's storm → not-found; a note's id → not-found and the note body unchanged; duplicate copies all stickies, lands directly below the original in a never-reordered group, truncates a long title, and copies an unsaved storm as empty.

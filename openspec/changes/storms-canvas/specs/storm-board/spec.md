@@ -18,19 +18,15 @@ The board, its toolbar and its zoom control SHALL use the light theme whatever t
 - **WHEN** the app theme is dark and a user opens a Storm
 - **THEN** the sidebar and header are dark, and the board, toolbar and zoom control are light
 
-### Requirement: Dot grid
-The board SHALL show a light dot grid that moves and scales with the board, and SHALL fade the grid out when zoomed far out so it never becomes noise.
+### Requirement: Plain board background
+The board SHALL be a plain light grey surface (#F2F2F2) with no grid, dots or lines at any zoom, as in the Miro reference views.
 
-#### Scenario: Grid follows the board
-- **WHEN** a user pans or zooms the board
-- **THEN** the dots move and scale with the board's content
-
-#### Scenario: Grid fades out
-- **WHEN** a user zooms out to 10%
-- **THEN** the dot grid is no longer drawn
+#### Scenario: Plain at every zoom
+- **WHEN** a user zooms the board anywhere from 10% to 400%
+- **THEN** the background stays plain light grey with no dots or lines
 
 ### Requirement: Zoom
-The board SHALL zoom between 10% and 400%. A mouse wheel, Ctrl or ⌘ + wheel, and a trackpad pinch SHALL zoom toward the pointer, keeping the board point under the pointer in place. A zoom control at the bottom right SHALL show − and + buttons that step through 10, 25, 50, 75, 100, 150, 200, 300 and 400%, the current percentage (clicking it resets to 100%), and a fit button. Ctrl or ⌘ + = and − SHALL step, Ctrl or ⌘ + 0 SHALL reset to 100%, and Shift + 1 SHALL fit, while the board has focus. Zooming on the board SHALL NOT zoom the web page itself.
+The board SHALL zoom between 10% and 400%. A mouse wheel, Ctrl or ⌘ + wheel, and a trackpad pinch SHALL zoom toward the pointer, keeping the board point under the pointer in place. A zoom control at the bottom right SHALL show − and + buttons that step through 10, 25, 50, 75, 100, 125, 150, 175, 200, 250, 300, 350 and 400%, the current percentage (clicking it resets to 100%), and a fit button. Ctrl or ⌘ + = and − SHALL step, Ctrl or ⌘ + 0 SHALL reset to 100%, and Shift + 1 SHALL fit, while the board has focus. Zooming on the board SHALL NOT zoom the web page itself. A trackpad pinch SHALL be sensitive enough that one ordinary pinch takes the board from 100% to about 200%.
 
 #### Scenario: Wheel zoom toward the pointer
 - **WHEN** a user turns the mouse wheel with the pointer over a sticky
@@ -42,7 +38,12 @@ The board SHALL zoom between 10% and 400%. A mouse wheel, Ctrl or ⌘ + wheel, a
 
 #### Scenario: Step buttons and readout
 - **WHEN** a user at 100% clicks +
-- **THEN** the board zooms to 150% and the readout shows "150%"
+- **THEN** the board zooms to 125% and the readout shows "125%"
+
+#### Scenario: Pinch zoom
+- **GIVEN** the board is at 100%
+- **WHEN** a user makes one ordinary pinch-out on a trackpad
+- **THEN** the board zooms to roughly 200%, without needing several pinches
 
 #### Scenario: Reset to 100%
 - **WHEN** a user clicks the percentage readout
@@ -94,29 +95,29 @@ Each Storm SHALL reopen at the zoom and position the user last left it at in tha
 - **THEN** the board shows its centre at 100%
 
 ### Requirement: Bottom toolbar
-A toolbar at the bottom centre of the board SHALL offer Select (V), Sticky (N), Undo and Redo, each with a tooltip naming it and its shortcut. It SHALL NOT show tools that don't work yet. Undo and Redo SHALL be unavailable when there is nothing to undo or redo. Every toolbar and zoom-control button SHALL have an accessible label.
+A toolbar at the bottom centre of the board SHALL offer Sticky (N), Undo and Redo, each with a tooltip naming it and its shortcut. It SHALL NOT show a Select tool (selecting is what the board does when no other tool is on) or tools that don't work yet. Undo and Redo SHALL be unavailable when there is nothing to undo or redo. Every toolbar and zoom-control button SHALL have an accessible label.
 
 #### Scenario: Toolbar contents
 - **WHEN** a user opens a Storm
-- **THEN** the toolbar shows Select, Sticky, Undo and Redo, and no shape, text, image or connector tools
+- **THEN** the toolbar shows Sticky, Undo and Redo, and no Select, shape, text, image or connector tools
 
 #### Scenario: Nothing to undo
 - **WHEN** a user opens a Storm and has made no changes
 - **THEN** Undo and Redo are unavailable
 
 ### Requirement: Place a sticky
-With the Sticky tool, a click on the board SHALL place a yellow (#F7D000) 200×200 sticky centred on the click point, on top of all other items, select it, and switch back to the Select tool. A sticky SHALL NOT be placed beyond 1,000,000 px from the centre.
+With the Sticky tool, a click on the board SHALL place a yellow (#F7D000) 200×200 sticky centred on the click point, on top of all other items, select it, and turn the Sticky tool off. Esc SHALL also turn it off. A sticky SHALL NOT be placed beyond 1,000,000 px from the centre.
 
 #### Scenario: Place a sticky
 - **WHEN** a user picks Sticky and clicks an empty spot
-- **THEN** a yellow 200×200 sticky appears centred there, selected and on top, and the Select tool is active again
+- **THEN** a yellow 200×200 sticky appears centred there, selected and on top, and the Sticky tool is off again
 
 #### Scenario: Shortcut
 - **WHEN** the board has focus and the user presses N and then clicks the board
 - **THEN** a sticky is placed at the click point
 
 ### Requirement: Select and move stickies
-Clicking a sticky SHALL select it and show a magenta (#F700A8) outline; where stickies overlap, the topmost one SHALL be selected. Clicking empty board SHALL clear the selection. Left-dragging on empty board SHALL do nothing else in this release. Dragging a sticky SHALL move it. With a sticky selected, the arrow keys SHALL move it 1 px and Shift + arrow 10 px.
+Clicking a sticky SHALL select it and show a thin magenta (#F700A8) outline with a 5 px gap around the sticky; where stickies overlap, the topmost one SHALL be selected. Clicking empty board SHALL clear the selection. Left-dragging on empty board SHALL do nothing else in this release. Dragging a sticky SHALL move it. While a sticky is dragged near the edge of the visible board (including the edge next to the sidebar), the board SHALL pan in that direction so the sticky stays in view. With a sticky selected, the arrow keys SHALL move it 1 px and Shift + arrow 10 px.
 
 #### Scenario: Topmost wins
 - **WHEN** two stickies overlap and the user clicks the overlapping area
@@ -130,20 +131,28 @@ Clicking a sticky SHALL select it and show a magenta (#F700A8) outline; where st
 - **WHEN** a user drags a sticky 300 px to the right
 - **THEN** the sticky ends 300 px to the right of where it started
 
+#### Scenario: Drag to the edge
+- **WHEN** a user drags a sticky to the left edge of the board, next to the sidebar, and holds it there
+- **THEN** the board pans so the sticky stays visible under the pointer, and it never ends up hidden under the sidebar
+
 #### Scenario: Nudge
 - **WHEN** a sticky is selected and the user presses Shift + →
 - **THEN** the sticky moves 10 px to the right
 
 ### Requirement: Type in a sticky
-Double-clicking a sticky, or pressing Enter with one selected, SHALL start editing its text. Text SHALL be plain, centred, in one fixed size, in the app's font, and text that doesn't fit SHALL be clipped. Esc or clicking outside SHALL finish editing. The text SHALL stay in the same place when editing starts and ends. Sticky text SHALL be at most 5,000 characters. Text SHALL NOT be drawn before its font has loaded.
+Double-clicking a sticky, or pressing Enter with one selected, SHALL start editing its text. Text SHALL be plain, centred, in one fixed size, in the app's font, and text that doesn't fit SHALL be clipped. Esc or clicking outside SHALL finish editing. The text SHALL stay in the same place when editing starts and ends. Sticky text SHALL be at most 500 characters; pasting longer text SHALL keep the first 500. Text SHALL NOT be drawn before its font has loaded.
 
 #### Scenario: Type
 - **WHEN** a user double-clicks a sticky, types "Ideas", and presses Esc
 - **THEN** the sticky shows "Ideas" centred
 
 #### Scenario: Overflow is clipped
-- **WHEN** a user types more text than fits in a sticky
-- **THEN** the text beyond the sticky's edge is not shown, and the full text is kept
+- **WHEN** a user types or pastes more text than fits in a sticky (up to 500 characters) and finishes editing
+- **THEN** the text beyond the sticky's edge is not shown, and double-clicking the sticky again shows all of it in the editor
+
+#### Scenario: Paste over the limit
+- **WHEN** a user pastes 800 characters into a sticky
+- **THEN** the sticky keeps the first 500 characters
 
 #### Scenario: No jump
 - **WHEN** a user starts or finishes editing a sticky's text

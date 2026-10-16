@@ -20,7 +20,7 @@ Selecting an item SHALL open it in the main pane at a URL that identifies the it
 - **THEN** the main pane shows a "not found" message instead of the item
 
 ### Requirement: Item menu layout
-An item's actions menu SHALL show at its top level: "New inside" (for projects and folders), Rename, Duplicate (for Storms), Move to…, "Reorder", Archive, and Move to Trash. "New inside" SHALL open a submenu with Note, Storm, Folder, and Project. "Reorder" SHALL open a submenu with Move to top, Move up, Move down and Move to bottom. The menu SHALL NOT offer Convert. The menu and its submenus SHALL be usable with the keyboard.
+An item's actions menu SHALL show at its top level: "New inside" (for projects and folders), Rename, Duplicate (for notes and Storms), Move to…, "Reorder", Archive, and Move to Trash. "New inside" SHALL open a submenu with Note, Storm, Folder, and Project. "Reorder" SHALL open a submenu with Move to top, Move up, Move down and Move to bottom. The menu SHALL NOT offer Convert. The menu and its submenus SHALL be usable with the keyboard.
 
 #### Scenario: Container menu
 - **WHEN** a user opens a folder's actions menu
@@ -28,7 +28,7 @@ An item's actions menu SHALL show at its top level: "New inside" (for projects a
 
 #### Scenario: Note menu
 - **WHEN** a user opens a note's actions menu
-- **THEN** it shows Rename, Move to…, Reorder, Archive, and Move to Trash, and no "New inside" or Duplicate
+- **THEN** it shows Rename, Duplicate, Move to…, Reorder, Archive, and Move to Trash, and no "New inside"
 
 #### Scenario: Storm menu
 - **WHEN** a user opens a Storm's actions menu
@@ -58,3 +58,19 @@ Duplicate SHALL create a new Storm titled "<title> (copy)", shortened if needed 
 #### Scenario: Long title
 - **WHEN** a user duplicates a Storm whose title is at the title limit
 - **THEN** the copy's title is shortened so that it still ends in " (copy)" and fits the limit
+
+### Requirement: Duplicate a note
+Duplicate SHALL create a new note titled "<title> (copy)", shortened if needed to fit the title limit, in the same parent, listed directly below the original, with a copy of the original's body. Each attachment in the body SHALL be copied as a file of its own, so deleting either note never breaks the other. The copy SHALL then open. A note that has never been written SHALL be copied as an empty note. Changes to the copy SHALL NOT affect the original.
+
+#### Scenario: Duplicate a note
+- **WHEN** a user duplicates a note "Ideas" with a bold line
+- **THEN** "Ideas (copy)" appears directly below "Ideas" in the sidebar with the same text, and it opens
+
+#### Scenario: Attachments are copied
+- **GIVEN** a note with an image attachment
+- **WHEN** a user duplicates it and then deletes the original forever
+- **THEN** the copy still shows the image
+
+#### Scenario: Independent note copy
+- **WHEN** a user edits the copy's text
+- **THEN** the original's text is unchanged

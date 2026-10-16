@@ -53,7 +53,7 @@ A Storm's stored board SHALL be at most about 2 MB. A save that would exceed it 
 - **THEN** nothing is stored, the message is shown, and the board on screen keeps the user's work
 
 ### Requirement: Server checks
-The server SHALL accept board saves only for the signed-in user's own active Storms, and SHALL reject malformed changes: unknown item types or fields, ids that aren't UUIDs, the same id twice or in both the changed and deleted lists, non-finite or out-of-range positions and sizes, widths or heights of zero or less, text over 5,000 characters, more than 5,000 entries in a list, or a change set over 800 KB. A pending change set larger than 800 KB SHALL be sent as several saves in order.
+The server SHALL accept board saves only for the signed-in user's own active Storms, and SHALL reject malformed changes: unknown item types or fields, ids that aren't UUIDs, the same id twice or in both the changed and deleted lists, non-finite or out-of-range positions and sizes, widths or heights of zero or less, text over 500 characters, more than 5,000 entries in a list, or a change set over 800 KB. A pending change set larger than 800 KB SHALL be sent as several saves in order.
 
 #### Scenario: Someone else's storm
 - **WHEN** a request tries to save changes to another user's Storm

@@ -12,10 +12,12 @@
 
 ## Global Constraints
 
-- Zoom 0.1–4; steps `[0.1, 0.25, 0.5, 0.75, 1, 1.5, 2, 3, 4]`.
+- Values marked (Task 11) changed after the 2026-10-16 test round; Tasks 1–10 below describe the first build and keep the old values.
+- Zoom 0.1–4; steps `[0.1, 0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.5, 3, 3.5, 4]` (Task 11).
 - `BOARD_LIMIT = 1_000_000` px (camera centre and item positions).
-- Sticky: 200×200, fill `#F7D000`, text `#333129`, 20 px, resolved Geist family; selection outline 2 px `#F700A8`.
-- `MAX_TEXT = 5_000` chars; `MAX_ENTRIES = 5_000` per change-set list; `MAX_CHANGESET_BYTES = 800_000`; `MAX_BODY_BYTES = 2 * 1024 * 1024`.
+- Board background plain `#F2F2F2`, no grid (Task 11).
+- Sticky: 200×200, fill `#F7D000`, text `#333129`, 20 px, resolved Geist family; selection outline 1 px `#F700A8`, 5 px outside the sticky (Task 11).
+- `MAX_TEXT = 500` chars (Task 11); `MAX_ENTRIES = 5_000` per change-set list; `MAX_CHANGESET_BYTES = 800_000`; `MAX_BODY_BYTES = 2 * 1024 * 1024`.
 - `SAVE_DELAY_MS = 1000` (existing). History max 30 steps. Nudges within 1,000 ms merge. Wheel gesture lock 150 ms. Text skipped below 30% zoom. Drag starts beyond 3 px.
 - Status words: "Saving…", "Saved", "Couldn't save — retrying", "Changed elsewhere", "Too big to save". Too-large message: "This storm is too big to save. Remove some items." Duplicate title: `<title> (copy)` within 200 chars.
 - Next 16: read `node_modules/next/dist/docs/` for any Next API before using it (AGENTS.md). `ssr: false` only inside a Client Component.
@@ -450,3 +452,38 @@
 - [ ] **Step 3:** Write `testing-plan.md` (task 10.3). It has one numbered browser step per spec scenario (do / expect / pass-fail), grouped by feature, each naming the automated test that covers it, plus the commands for all the automated checks. Check that every `#### Scenario:` in `specs/` is listed.
 - [ ] **Step 4:** Commit `storms-canvas: docs and testing plan`; push.
 - [ ] **Step 5:** Hand the testing plan to the user (task 10.4) and record their pass/fail results.
+
+---
+
+### Task 11.1–11.13: Test-round fixes (2026-10-16)
+
+Decisions in `design.md` D5, D6, D10 and D12; requirements in `specs/storm-board` and `specs/workspace-tree`. One commit per sub-task, then push.
+
+**Files (expected; confirm while reading the code):**
+- 11.1: `src/components/workspace/item-view.tsx`, `src/components/storms/storm-view.tsx` (dynamic import boundary)
+- 11.2–11.3: `src/lib/storms/limits.ts`, `validate.ts` and test, `src/components/storms/sticky-text-overlay.tsx` and its DOM test
+- 11.4: `storm-toolbar.tsx`, `engine/input.ts`, `engine/store.ts` (tool state) and tests
+- 11.5: `engine/renderer.ts`, delete `engine/dots.ts` and `dots.test.ts`
+- 11.6: `src/lib/storms/camera.ts` and test
+- 11.7: `engine/input.ts` (pinch factor constant) and `input.test.ts`
+- 11.8: new `src/lib/storms/edge-pan.ts` and test; `engine/input.ts` drag loop
+- 11.9: `engine/renderer.ts` and `renderer.test.ts`
+- 11.10: `src/lib/notes/operations.ts`, `actions.ts`; shared title/placement helper extracted from `src/lib/storms/operations.ts`; `item-menu.tsx`; `tests/integration/` new note-duplicate tests
+
+**Interfaces:**
+- `edgePanSpeed(pointer: number, edgeStart: number, edgeEnd: number): number` → screen px per frame, 0 outside the 40 px zone, up to 15 at the edge; applied per axis.
+- `PINCH_ZOOM_FACTOR` exported from `input.ts`.
+- `duplicateNote(tx, bucket, id): Promise<string | null>`; client action `duplicateNote(id)`.
+
+- [ ] **Step 1:** 11.1 — production build (`npx next build && npx next start -p 3002`), open a note, confirm the board chunk in the Network tab; find the eager import, fix, rebuild, confirm it is gone. Commit `storms: notes don't load the board`.
+- [ ] **Step 2:** 11.2 — failing DOM test reproducing step 35 (paste long text, finish, re-open: textarea value equals the full text); fix; pass. Commit `storms: keep long sticky text`.
+- [ ] **Step 3:** 11.3 — failing tests (501 rejected, 500 accepted, paste of 800 keeps 500); set `MAX_TEXT = 500`; pass. Commit `storms: 500-character sticky text`.
+- [ ] **Step 4:** 11.4 — failing toolbar test (three buttons); remove Select and V; Sticky turns off after placing and on Esc. Commit `storms: drop the Select tool`.
+- [ ] **Step 5:** 11.5 — plain background, remove dots code and tests. Commit `storms: plain board background`.
+- [ ] **Step 6:** 11.6 — failing camera tests for the new steps; update the list. Commit `storms: finer zoom steps`.
+- [ ] **Step 7:** 11.7 — failing test for the stronger pinch factor; implement; ask the user to try it and tune. Commit `storms: more sensitive pinch`.
+- [ ] **Step 8:** 11.8 — failing `edge-pan` tests; implement and wire into the drag loop. Commit `storms: board follows a sticky dragged to the edge`.
+- [ ] **Step 9:** 11.9 — failing renderer test (outline rect = sticky + 5 px each side, 1 px line); implement. Commit `storms: slimmer selection outline`.
+- [ ] **Step 10:** 11.10 — failing integration tests per tasks.md; extract the helper, implement `duplicateNote`, add the menu entry. Commit `notes: duplicate a note`.
+- [ ] **Step 11:** 11.11 — only after the user's step 25 retest.
+- [ ] **Step 12:** 11.12–11.13 — update testing-plan.md and README, run all checks (Automated checks table), hand the changed steps to the user. Commit `storms-canvas: test-round docs`.
