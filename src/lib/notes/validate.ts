@@ -55,6 +55,25 @@ export function attachmentIdsIn(doc: JSONContent): string[] {
 }
 
 /**
+ * A copy of `doc` with each attachment id replaced by `copies[id]` (design
+ * D10: a duplicated note points at its own files). Nodes whose attachment has
+ * no copy are dropped; a container left empty gets an empty paragraph so the
+ * body stays valid. Copies in flight (no `attachmentId`) are kept as they are.
+ */
+export function withAttachmentIds(doc: JSONContent, copies: Record<string, string>): JSONContent {
+  const rewrite = (node: JSONContent): JSONContent | null => {
+    const id = node.attrs?.attachmentId;
+    if ((node.type === "image" || node.type === "fileAttachment") && typeof id === "string") {
+      return copies[id] ? { ...node, attrs: { ...node.attrs, attachmentId: copies[id] } } : null;
+    }
+    if (!node.content) return node;
+    const content = node.content.map(rewrite).filter((n): n is JSONContent => n !== null);
+    return { ...node, content: content.length === 0 && node.content.length > 0 ? [{ type: "paragraph" }] : content };
+  };
+  return rewrite(doc) ?? EMPTY_DOC;
+}
+
+/**
  * Checks a note body before it is stored: it must parse with the editor's
  * schema (known nodes and marks, valid nesting), links must use allowed
  * schemes, font sizes must be 8–96 px, and it must fit the size limit.

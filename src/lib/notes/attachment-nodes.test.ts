@@ -3,7 +3,7 @@ import { getSchema, type JSONContent } from "@tiptap/core";
 import { DOMParser as PMDOMParser, DOMSerializer, type Node as PMNode } from "@tiptap/pm/model";
 import { describe, expect, it } from "vitest";
 import { noteExtensions } from "./extensions";
-import { attachmentIdsIn, validateNoteBody } from "./validate";
+import { attachmentIdsIn, validateNoteBody, withAttachmentIds } from "./validate";
 
 const schema = getSchema(noteExtensions());
 const A = "11111111-1111-4111-8111-111111111111";
@@ -94,5 +94,41 @@ describe("attachment validation", () => {
   it("lists the attachment ids a body refers to, once each, without copies in flight", () => {
     const doc = { type: "doc", content: [...DOC.content!, DOC.content![0], { type: "image", attrs: { copyOf: A } }] };
     expect(attachmentIdsIn(doc).sort()).toEqual([A, B]);
+  });
+});
+
+describe("rewriting attachment ids for a copied note", () => {
+  const C = "33333333-3333-4333-8333-333333333333";
+  const D = "44444444-4444-4444-8444-444444444444";
+
+  it("replaces each id with its copy and leaves the original body untouched", () => {
+    const before = JSON.stringify(DOC);
+    const out = withAttachmentIds(DOC, { [A]: C, [B]: D });
+    expect(out.content![0].attrs).toMatchObject({ attachmentId: C, alt: "Sales chart", width: 300 });
+    expect(out.content![1].attrs).toMatchObject({ attachmentId: D, name: "report.pdf" });
+    expect(out.content![2]).toEqual(DOC.content![2]);
+    expect(JSON.stringify(DOC)).toBe(before);
+    expect(validateNoteBody(out).ok).toBe(true);
+  });
+
+  it("drops nodes whose attachment was not copied", () => {
+    const out = withAttachmentIds(DOC, { [B]: D });
+    expect(out.content!.map((n) => n.type)).toEqual(["fileAttachment", "paragraph"]);
+  });
+
+  it("keeps a container valid when its only node is dropped", () => {
+    const doc: JSONContent = {
+      type: "doc",
+      content: [{ type: "blockquote", content: [{ type: "image", attrs: { attachmentId: A } }] }],
+    };
+    const out = withAttachmentIds(doc, {});
+    expect(out.content).toEqual([{ type: "blockquote", content: [{ type: "paragraph" }] }]);
+    expect(validateNoteBody(out).ok).toBe(true);
+    expect(withAttachmentIds({ type: "doc", content: [DOC.content![0]] }, {}).content).toEqual([{ type: "paragraph" }]);
+  });
+
+  it("leaves copies in flight as they are", () => {
+    const inFlight = { type: "image", attrs: { attachmentId: null, copyOf: A } };
+    expect(withAttachmentIds({ type: "doc", content: [inFlight] }, {}).content).toEqual([inFlight]);
   });
 });

@@ -2,7 +2,14 @@ import type { JSONContent } from "@tiptap/core";
 import { and, eq, inArray, sql } from "drizzle-orm";
 import type { UserTx } from "@/db/client";
 import { attachments, itemContent, items } from "@/db/schema";
-import { attachmentIdsIn, EMPTY_DOC } from "./validate";
+import {
+  type Bucket,
+  copyAttachments,
+  recordingCopies,
+  removeStoredFiles,
+} from "@/lib/attachments/operations";
+import { insertCopyBelow } from "@/lib/tree/duplicate";
+import { attachmentIdsIn, EMPTY_DOC, withAttachmentIds } from "./validate";
 
 // Note body storage (design D3), run inside a user transaction (RLS applies).
 // Every save names the version it was based on; the version check sits in the
@@ -91,4 +98,49 @@ export async function getNoteVersion(tx: UserTx, itemId: string): Promise<number
     .from(itemContent)
     .where(eq(itemContent.itemId, itemId));
   return row?.version ?? 0;
+}
+
+/**
+ * Copies an active note: "<title> (copy)" with the same body, placed right
+ * below the original (design D10). Each attachment in the body is copied as a
+ * file of its own and the copied body points at the copies; one that fails to
+ * copy is dropped from the copy's body. A never-written note copies empty.
+ * Returns the new id, or null if `id` is not an active note.
+ *
+ * Order: item row (so copyAttachments sees an active target) → Storage copies
+ * and their rows → rewritten body. Storage isn't transactional; callers use
+ * `duplicateNoteCleanly` to remove the copied files if the transaction fails.
+ */
+export async function duplicateNote(tx: UserTx, bucket: Bucket, id: string): Promise<string | null> {
+  const copyId = await insertCopyBelow(tx, id, "note");
+  if (!copyId) return null;
+
+  const [row] = await tx.select({ body: itemContent.body }).from(itemContent).where(eq(itemContent.itemId, id));
+  if (!row) return copyId;
+
+  const body = row.body as JSONContent;
+  const ids = attachmentIdsIn(body);
+  const copies = ids.length > 0 ? ((await copyAttachments(tx, bucket, copyId, ids)) ?? {}) : {};
+  await tx.insert(itemContent).values({ itemId: copyId, body: withAttachmentIds(body, copies), version: 1 });
+  return copyId;
+}
+
+/**
+ * Runs `duplicateNote` in `run`'s transaction. If the transaction fails after
+ * files were copied, the copies are orphans under a note that was never
+ * created, so they are removed (never throws for that; the purge job is the
+ * fallback) and the error is rethrown.
+ */
+export async function duplicateNoteCleanly(
+  run: <T>(fn: (tx: UserTx) => Promise<T>) => Promise<T>,
+  bucket: Bucket,
+  id: string,
+): Promise<string | null> {
+  const { bucket: recording, copied } = recordingCopies(bucket);
+  try {
+    return await run((tx) => duplicateNote(tx, recording, id));
+  } catch (error) {
+    if (copied.length > 0) await removeStoredFiles(bucket, copied);
+    throw error;
+  }
 }

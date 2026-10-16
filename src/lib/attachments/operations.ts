@@ -159,6 +159,22 @@ export async function copyAttachments(
   return copied;
 }
 
+/**
+ * The same bucket, but every copy's target path is recorded in `copied`
+ * (before the call, so a copy that may have landed is never missed). Storage
+ * calls aren't part of the transaction: if it fails, these files are orphans
+ * for `removeStoredFiles` (design D10).
+ */
+export function recordingCopies(bucket: Bucket): { bucket: Bucket; copied: string[] } {
+  const copied: string[] = [];
+  const recording: Bucket = Object.create(bucket);
+  recording.copy = (from, to, options) => {
+    copied.push(to);
+    return bucket.copy(from, to, options);
+  };
+  return { bucket: recording, copied };
+}
+
 /** Storage paths of the attachments on an item and everything inside it (design D8). */
 export async function attachmentPathsUnder(tx: UserTx, itemId: string): Promise<string[]> {
   const rows = await tx.execute<{ owner_id: string; item_id: string; id: string }>(sql`
