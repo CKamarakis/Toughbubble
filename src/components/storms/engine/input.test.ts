@@ -50,7 +50,6 @@ describe("routeKey", () => {
       key("Backspace"),
       key("Enter"),
       key("ArrowLeft"),
-      key("v"),
       key("n"),
       key(" "),
       key("z", { ctrlKey: true }),
@@ -88,7 +87,10 @@ describe("routeKey", () => {
   });
 
   it("maps tools, nudges, space and zoom", () => {
-    expect(routeKey(idle, key("V"))).toBe("tool-select");
+    expect(routeKey(idle, key("V"))).toBeNull();
+    expect(routeKey({ ...idle, tool: "sticky" as const }, key("Escape"))).toBe("tool-off");
+    expect(routeKey(idle, key("Escape"))).toBeNull();
+    expect(routeKey({ ...idle, tool: "sticky" as const, editingId: "a" }, key("Escape"))).toBeNull();
     expect(routeKey(idle, key("n"))).toBe("tool-sticky");
     expect(routeKey(idle, key("n", { ctrlKey: true }))).toBeNull();
     expect(routeKey(sel, key("ArrowUp"))).toBe("nudge");

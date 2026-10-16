@@ -54,11 +54,16 @@ const press = (k: string) =>
 const button = (label: string) => host.querySelector<HTMLElement>(`[aria-label="${label}"]`)!;
 
 describe("board controls keep keyboard focus on the board", () => {
-  it("clicking a toolbar button leaves focus on the board and V/N still work", () => {
+  it("the toolbar has Sticky, Undo and Redo only", () => {
+    const labels = [...host.querySelectorAll('[role="toolbar"] button')].map((b) => b.getAttribute("aria-label"));
+    expect(labels).toEqual(["Sticky note (N)", "Undo (Ctrl+Z)", "Redo (Ctrl+Shift+Z)"]);
+  });
+
+  it("clicking a toolbar button leaves focus on the board and N and Esc still work", () => {
     mouseClick(button("Sticky note (N)"));
     expect(store.getSnapshot().tool).toBe("sticky");
     expect(document.activeElement).toBe(board);
-    press("v");
+    press("Escape");
     expect(store.getSnapshot().tool).toBe("select");
     press("n");
     expect(store.getSnapshot().tool).toBe("sticky");

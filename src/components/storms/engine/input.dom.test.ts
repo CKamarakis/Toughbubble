@@ -137,11 +137,13 @@ describe("attachInput DOM handlers", () => {
     expect(key(el, { key: "=", ctrlKey: true }).defaultPrevented).toBe(true);
   });
 
-  it("N picks the sticky tool and V the select tool", () => {
+  it("N picks the sticky tool, Esc turns it off and V does nothing", () => {
     setup();
     expect(key(el, { key: "n", code: "KeyN" }).defaultPrevented).toBe(true);
     expect(store.getSnapshot().tool).toBe("sticky");
     key(el, { key: "V", code: "KeyV" });
+    expect(store.getSnapshot().tool).toBe("sticky");
+    key(el, { key: "Escape", code: "Escape" });
     expect(store.getSnapshot().tool).toBe("select");
   });
 

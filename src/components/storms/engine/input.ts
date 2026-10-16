@@ -50,7 +50,7 @@ export type KeyAction =
   | "edit"
   | "undo"
   | "redo"
-  | "tool-select"
+  | "tool-off"
   | "tool-sticky";
 
 /**
@@ -73,7 +73,7 @@ export function routeKey(
   if (e.key === "Enter") return snap.selectedId && plain ? "edit" : null;
   if (mod && !e.altKey && k === "z") return e.shiftKey ? "redo" : "undo";
   if (e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey && k === "y") return "redo";
-  if (plain && k === "v") return "tool-select";
+  if (e.key === "Escape") return plain && snap.tool === "sticky" ? "tool-off" : null;
   if (plain && k === "n") return "tool-sticky";
   return zoomKeyAction(e);
 }
@@ -257,7 +257,7 @@ export function attachInput(
         return store.undo();
       case "redo":
         return store.redo();
-      case "tool-select":
+      case "tool-off":
         return store.setTool("select");
       case "tool-sticky":
         return store.setTool("sticky");

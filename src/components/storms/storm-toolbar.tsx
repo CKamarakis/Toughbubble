@@ -1,6 +1,6 @@
 "use client";
 
-import { MousePointer2, Redo2, StickyNote, Undo2, type LucideIcon } from "lucide-react";
+import { Redo2, StickyNote, Undo2, type LucideIcon } from "lucide-react";
 import { useSyncExternalStore } from "react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -44,7 +44,7 @@ function ToolbarButton({ label, Icon, pressed, disabled, onClick }: ToolButton) 
   );
 }
 
-/** Bottom-centre toolbar: Select, Sticky, Undo, Redo. */
+/** Bottom-centre toolbar: Sticky, Undo, Redo. */
 export function StormToolbar({ store }: { store: StormStore }) {
   // Primitives only, so panning and zooming do not re-render the toolbar.
   const tool = useSyncExternalStore(store.subscribe, () => store.getSnapshot().tool, () => store.getSnapshot().tool);
@@ -59,16 +59,10 @@ export function StormToolbar({ store }: { store: StormStore }) {
       className="absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-1 rounded-xl border border-border bg-card p-1 shadow-md"
     >
       <ToolbarButton
-        label="Select (V)"
-        Icon={MousePointer2}
-        pressed={snap.tool === "select"}
-        onClick={() => store.setTool("select")}
-      />
-      <ToolbarButton
         label="Sticky note (N)"
         Icon={StickyNote}
         pressed={snap.tool === "sticky"}
-        onClick={() => store.setTool("sticky")}
+        onClick={() => store.setTool(snap.tool === "sticky" ? "select" : "sticky")}
       />
       <span className="mx-0.5 h-5 w-px bg-border" aria-hidden />
       <ToolbarButton
