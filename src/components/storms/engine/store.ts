@@ -1,4 +1,5 @@
 import type { Camera } from "@/lib/storms/camera";
+import { MAX_TEXT } from "@/lib/storms/limits";
 import {
   applyChanges,
   invertChanges,
@@ -239,7 +240,8 @@ export function createStormStore(init: {
       editBefore = item;
       update({ editingId: id, selectedId: id });
     },
-    setText(id, text) {
+    setText(id, rawText) {
+      const text = rawText.slice(0, MAX_TEXT); // input that bypasses the textarea's maxLength
       const item = state.items[id];
       if (id !== state.editingId || !item || item.text === text) return;
       commit({ upsert: [{ ...item, text }], delete: [] }, "none");

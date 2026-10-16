@@ -123,12 +123,32 @@ describe("StickyTextOverlay", () => {
 });
 
 describe("text limit", () => {
-  it("the editor caps input at 500 characters, so a paste of 800 keeps the first 500", () => {
-    expect(MAX_TEXT).toBe(500);
-    expect(textarea()!.maxLength).toBe(500);
-    // Browsers truncate a paste to maxLength; this is that rule applied to 800 characters.
+  it("a paste of 800 characters that bypasses maxLength keeps the first 500", async () => {
     const pasted = "abcde".repeat(160);
-    expect(pasted.slice(0, textarea()!.maxLength)).toBe(pasted.slice(0, 500));
-    expect(pasted.slice(0, textarea()!.maxLength)).toHaveLength(500);
+    await act(async () => type(textarea()!, pasted));
+    expect(store.getSnapshot().items.a.text).toBe(pasted.slice(0, 500));
+    expect(store.getSnapshot().items.a.text).toHaveLength(MAX_TEXT);
+  });
+});
+
+describe("finishing", () => {
+  it("returns the editor to scrollTop 0 on Esc", async () => {
+    const ta = textarea()!;
+    ta.scrollTop = 40;
+    await act(async () => {
+      ta.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    });
+    expect(ta.scrollTop).toBe(0);
+  });
+  it("returns the editor to scrollTop 0 on a press outside", async () => {
+    const ta = textarea()!;
+    ta.scrollTop = 40;
+    await act(async () => {
+      document.body.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
+    });
+    expect(ta.scrollTop).toBe(0);
+  });
+  it("starting an edit on text that fits leaves scrollTop at 0", async () => {
+    expect(textarea()!.scrollTop).toBe(0);
   });
 });
