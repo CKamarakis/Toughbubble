@@ -562,3 +562,48 @@ describe("getHistoryForPersist", () => {
     }
   });
 });
+
+describe("setColor", () => {
+  const PINK = "#FFD5EE";
+
+  it("a colour change is one history step, emitted once", () => {
+    const { store, emitted } = setup(board(sticky("a", { fontSize: 30 })));
+    store.setColor("a", PINK);
+    expect(store.getSnapshot().items.a.color).toBe(PINK);
+    expect(store.getHistory().undo).toHaveLength(1);
+    expect(emitted).toEqual([{ upsert: [sticky("a", { fontSize: 30, color: PINK })], delete: [] }]);
+  });
+
+  it("undo restores yellow (no stored colour); redo reapplies pink", () => {
+    const { store } = setup(board(sticky("a", { fontSize: 30 })));
+    store.setColor("a", PINK);
+    store.undo();
+    expect(store.getSnapshot().items.a).toEqual(sticky("a", { fontSize: 30 }));
+    store.redo();
+    expect(store.getSnapshot().items.a.color).toBe(PINK);
+    expect(store.getHistory().undo).toHaveLength(1);
+  });
+
+  it("is a no-op when the colour is unchanged, including Yellow on a sticky with none", () => {
+    const { store, emitted, notified } = setup(board(sticky("a"), sticky("b", { color: PINK })));
+    store.setColor("a", "#F7D000");
+    store.setColor("b", PINK);
+    expect(emitted).toEqual([]);
+    expect(notified()).toBe(0);
+    expect(store.getHistory().undo).toHaveLength(0);
+  });
+
+  it("ignores an unknown sticky and a colour that is not a preset", () => {
+    const { store, emitted } = setup(board(sticky("a")));
+    store.setColor("missing", PINK);
+    store.setColor("a", "#123456");
+    expect(emitted).toEqual([]);
+  });
+
+  it("the change set validates", () => {
+    const ID = "11111111-1111-4111-8111-111111111111";
+    const { store, emitted } = setup(board(sticky(ID, { fontSize: 64 })));
+    store.setColor(ID, "#141310");
+    expect(validateChangeSet(emitted[0]).ok).toBe(true);
+  });
+});

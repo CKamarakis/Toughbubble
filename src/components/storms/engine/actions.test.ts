@@ -34,6 +34,13 @@ describe("placeSticky", () => {
     expect(store.getHistory().undo).toHaveLength(1);
   });
 
+  it("a new sticky is yellow after another was turned pink", () => {
+    const store = make(sticky("a"));
+    store.setColor("a", "#FFD5EE");
+    const id = placeSticky(store, { x: 500, y: 300 });
+    expect(store.getSnapshot().items[id].color).toBeUndefined();
+  });
+
   it("near the limit stays inside it", () => {
     const store = make();
     const a = placeSticky(store, { x: BOARD_LIMIT * 2, y: -BOARD_LIMIT * 2 });

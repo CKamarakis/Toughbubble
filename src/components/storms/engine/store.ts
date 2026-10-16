@@ -17,6 +17,7 @@ import {
   type Step,
 } from "@/lib/storms/history";
 import type { Item, Items, StormBody } from "@/lib/storms/model";
+import { colorOf, PRESET_HEXES } from "@/lib/storms/palette";
 import { fitFontSize, type SizedMeasure } from "@/lib/storms/text-layout";
 
 export type Tool = "select" | "sticky";
@@ -68,6 +69,8 @@ export type StormStore = {
   /** The measure `setText` fits with; the text overlay lays out with it, so the two agree. */
   getMeasure(): SizedMeasure | null;
   endEdit(): void;
+  /** Sets a sticky's preset colour: one commit, one undo step; nothing when unchanged or not a preset. */
+  setColor(id: string, hex: string): void;
   /** Load latest / refresh: new items, no history, selection or edit; no `onChange`. */
   replaceBoard(body: StormBody): void;
   /** Called after `replaceBoard`, so input can drop gestures on the old board (an item drag). */
@@ -302,6 +305,11 @@ export function createStormStore(init: {
     },
     getMeasure: () => measure,
     endEdit,
+    setColor(id, hex) {
+      const item = state.items[id];
+      if (!item || !PRESET_HEXES.has(hex) || colorOf(item).hex === hex) return;
+      commit({ upsert: [{ ...item, color: hex }], delete: [] });
+    },
     replaceBoard(body) {
       editBefore = null;
       update({ items: clampItems(body.items), selectedId: null, editingId: null, dragPreview: null }, EMPTY_HISTORY);
