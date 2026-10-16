@@ -127,3 +127,30 @@ describe("StormBoard sticky toolbar", () => {
     await act(async () => root.unmount());
   });
 });
+
+describe("StormBoard creation colour", () => {
+  afterEach(() => localStorage.clear());
+
+  it("starts from this user's remembered colour and remembers a new pick", async () => {
+    localStorage.setItem("storm-sticky-color:bench", "#D3A1FF");
+    const root = await mount(false);
+    const store = window.__stormStore!;
+    expect(store.getSnapshot().creationColor).toBe("#D3A1FF");
+    await act(async () => store.setCreationColor("#D4F3C4"));
+    expect(localStorage.getItem("storm-sticky-color:bench")).toBe("#D4F3C4");
+    await act(async () => root.unmount());
+    // Unmounted: no more writes.
+    store.setCreationColor("#141310");
+    expect(localStorage.getItem("storm-sticky-color:bench")).toBe("#D4F3C4");
+  });
+
+  it("a read-only board neither reads nor writes it", async () => {
+    localStorage.setItem("storm-sticky-color:bench", "#D3A1FF");
+    const root = await mount(true);
+    const store = window.__stormBench!.store;
+    expect(store.getSnapshot().creationColor).toBe("#F7D000");
+    await act(async () => store.setCreationColor("#D4F3C4"));
+    expect(localStorage.getItem("storm-sticky-color:bench")).toBe("#D3A1FF");
+    await act(async () => root.unmount());
+  });
+});

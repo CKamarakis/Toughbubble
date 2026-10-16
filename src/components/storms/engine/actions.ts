@@ -1,4 +1,5 @@
 import { BOARD_LIMIT } from "@/lib/storms/limits";
+import { DEFAULT_STICKY_COLOR } from "@/lib/storms/palette";
 import { STICKY, topZ, type Point, type Sticky } from "@/lib/storms/model";
 import type { CommitMode, StormStore } from "./store";
 
@@ -6,9 +7,13 @@ const NUDGE_MERGE_MS = 1_000;
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
-/** Places a sticky centred on `at` (clamped inside the board), selects it and returns its id. */
+/**
+ * Places a sticky in the creation colour, centred on `at` (clamped inside the board),
+ * selects it and returns its id. Yellow is stored as no colour, like older stickies.
+ */
 export function placeSticky(store: StormStore, at: Point): string {
   const size = STICKY.size;
+  const { creationColor } = store.getSnapshot();
   const sticky: Sticky = {
     id: crypto.randomUUID(),
     type: "sticky",
@@ -18,6 +23,7 @@ export function placeSticky(store: StormStore, at: Point): string {
     w: size,
     h: size,
     text: "",
+    ...(creationColor !== DEFAULT_STICKY_COLOR && { color: creationColor }),
   };
   store.commit({ upsert: [sticky], delete: [] }, "push");
   store.select(sticky.id);

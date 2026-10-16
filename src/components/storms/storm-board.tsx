@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { HOME_CAMERA } from "@/lib/storms/camera";
 import type { StormBody } from "@/lib/storms/model";
+import { bindCreationColor, loadCreationColor } from "./creation-color";
 import { createBoardMeasure, resolveFontFamily, waitForFont } from "./engine/font";
 import { attachInput } from "./engine/input";
 import { createRenderer } from "./engine/renderer";
@@ -84,7 +85,10 @@ export default function StormBoard(props: StormBoardProps) {
       body: initial.body,
       camera: (readOnly ? null : loadView(props.itemId)) ?? HOME_CAMERA,
       history,
+      // New stickies get the last colour this user picked in this browser (D8).
+      creationColor: readOnly ? undefined : loadCreationColor(userId),
     });
+    const unbindCreationColor = readOnly ? () => {} : bindCreationColor(store, userId);
     setStore(store);
     if (process.env.NODE_ENV !== "production") window.__stormStore = store;
     if (readOnly && process.env.NODE_ENV !== "production") {
@@ -139,6 +143,7 @@ export default function StormBoard(props: StormBoardProps) {
       alive = false;
       detachInput();
       unsubscribeView();
+      unbindCreationColor();
       clearTimeout(saveTimer);
       if (pendingSave) saveView(props.itemId, lastCamera);
       observer.disconnect();

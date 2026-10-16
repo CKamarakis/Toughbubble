@@ -34,11 +34,25 @@ describe("placeSticky", () => {
     expect(store.getHistory().undo).toHaveLength(1);
   });
 
-  it("a new sticky is yellow after another was turned pink", () => {
+  it("a new sticky is pink after another was turned pink (the creation colour, D8)", () => {
     const store = make(sticky("a"));
     store.setColor("a", "#FFC6E8");
     const id = placeSticky(store, { x: 500, y: 300 });
-    expect(store.getSnapshot().items[id].color).toBeUndefined();
+    expect(store.getSnapshot().items[id].color).toBe("#FFC6E8");
+    expect(store.getHistory().undo).toHaveLength(2);
+  });
+
+  it("a new sticky in the default Yellow stores no colour", () => {
+    const store = make();
+    const id = placeSticky(store, { x: 0, y: 0 });
+    expect("color" in store.getSnapshot().items[id]).toBe(false);
+  });
+
+  it("uses a creation colour picked without recolouring anything", () => {
+    const store = make();
+    store.setCreationColor("#D4F3C4");
+    const id = placeSticky(store, { x: 0, y: 0 });
+    expect(store.getSnapshot().items[id].color).toBe("#D4F3C4");
   });
 
   it("near the limit stays inside it", () => {

@@ -17,7 +17,7 @@ import {
   type Step,
 } from "@/lib/storms/history";
 import type { Item, Items, StormBody } from "@/lib/storms/model";
-import { colorOf, currentHex, PRESET_HEXES } from "@/lib/storms/palette";
+import { colorOf, currentHex, DEFAULT_STICKY_COLOR, PRESET_HEXES } from "@/lib/storms/palette";
 import { fitFontSize, type SizedMeasure } from "@/lib/storms/text-layout";
 
 export type Tool = "select" | "sticky";
@@ -34,6 +34,8 @@ export type Snapshot = {
   dragPreview: DragPreview | null;
   /** A pan drag (right button, or Space + left) is in progress; the sticky toolbar hides meanwhile. */
   panning: boolean;
+  /** The preset new stickies get: the last colour the user picked in either palette (D8). */
+  creationColor: string;
   canUndo: boolean;
   canRedo: boolean;
   revision: number;
@@ -72,8 +74,13 @@ export type StormStore = {
   /** The measure `setText` fits with; the text overlay lays out with it, so the two agree. */
   getMeasure(): SizedMeasure | null;
   endEdit(): void;
-  /** Sets a sticky's preset colour: one commit, one undo step; nothing when unchanged or not a preset. */
+  /**
+   * Sets a sticky's preset colour: one commit, one undo step; nothing when unchanged or not
+   * a preset. A preset picked for an existing sticky also becomes the creation colour.
+   */
   setColor(id: string, hex: string): void;
+  /** Sets the colour for new stickies (a preset; anything else is ignored). Not an undo step. */
+  setCreationColor(hex: string): void;
   /** Load latest / refresh: new items, no history, selection or edit; no `onChange`. */
   replaceBoard(body: StormBody): void;
   /** Called after `replaceBoard`, so input can drop gestures on the old board (an item drag). */
@@ -133,6 +140,8 @@ export function createStormStore(init: {
   body: StormBody;
   camera: Camera;
   history?: History;
+  /** The remembered colour for new stickies; missing or not a preset: Yellow. */
+  creationColor?: string;
 }): StormStore {
   let state: State = {
     items: clampItems(init.body.items),
@@ -142,6 +151,8 @@ export function createStormStore(init: {
     editingId: null,
     dragPreview: null,
     panning: false,
+    creationColor:
+      init.creationColor && PRESET_HEXES.has(init.creationColor) ? init.creationColor : DEFAULT_STICKY_COLOR,
   };
   let history = init.history ?? EMPTY_HISTORY;
   let snapshot = build(0);
@@ -320,8 +331,15 @@ export function createStormStore(init: {
     endEdit,
     setColor(id, hex) {
       const item = state.items[id];
-      if (!item || !PRESET_HEXES.has(hex) || colorOf(item).hex === hex) return;
-      commit({ upsert: [{ ...item, color: hex }], delete: [] });
+      if (!item || !PRESET_HEXES.has(hex)) return;
+      const creationChanged = hex !== state.creationColor;
+      // The commit below notifies; without one, notify only if the creation colour changed.
+      if (creationChanged) setState({ creationColor: hex });
+      if (colorOf(item).hex !== hex) commit({ upsert: [{ ...item, color: hex }], delete: [] });
+      else if (creationChanged) notify();
+    },
+    setCreationColor(hex) {
+      if (PRESET_HEXES.has(hex) && hex !== state.creationColor) update({ creationColor: hex });
     },
     replaceBoard(body) {
       editBefore = null;

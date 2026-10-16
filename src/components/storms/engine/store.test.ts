@@ -637,10 +637,21 @@ describe("setColor", () => {
   it("is a no-op when the colour is unchanged, including Yellow on a sticky with none", () => {
     const { store, emitted, notified } = setup(board(sticky("a"), sticky("b", { color: PINK })));
     store.setColor("a", "#F7D000");
+    expect(notified()).toBe(0);
     store.setColor("b", PINK);
     expect(emitted).toEqual([]);
-    expect(notified()).toBe(0);
     expect(store.getHistory().undo).toHaveLength(0);
+    // Picking the colour the sticky already has still makes it the colour for new stickies.
+    expect(store.getSnapshot().creationColor).toBe(PINK);
+  });
+
+  it("sets the creation colour too (D8); undo leaves the creation colour alone", () => {
+    const { store } = setup(board(sticky("a")));
+    expect(store.getSnapshot().creationColor).toBe("#F7D000");
+    store.setColor("a", PINK);
+    expect(store.getSnapshot().creationColor).toBe(PINK);
+    store.undo();
+    expect(store.getSnapshot().creationColor).toBe(PINK);
   });
 
   it("ignores an unknown sticky and a colour that is not a preset", () => {
@@ -655,6 +666,33 @@ describe("setColor", () => {
     const { store, emitted } = setup(board(sticky(ID, { fontSize: 64 })));
     store.setColor(ID, "#141310");
     expect(validateChangeSet(emitted[0]).ok).toBe(true);
+  });
+});
+
+describe("creation colour", () => {
+  it("starts Yellow, or as given when it is a preset", () => {
+    expect(createStormStore({ body: board(), camera }).getSnapshot().creationColor).toBe("#F7D000");
+    expect(createStormStore({ body: board(), camera, creationColor: "#D3A1FF" }).getSnapshot().creationColor).toBe("#D3A1FF");
+    expect(createStormStore({ body: board(), camera, creationColor: "#123456" }).getSnapshot().creationColor).toBe("#F7D000");
+  });
+
+  it("setCreationColor: no history, no change set; notifies only on a change; presets only", () => {
+    const { store, emitted, notified } = setup(board(sticky("a")));
+    store.setCreationColor("#D4F3C4");
+    expect(store.getSnapshot().creationColor).toBe("#D4F3C4");
+    expect(notified()).toBe(1);
+    store.setCreationColor("#D4F3C4");
+    store.setCreationColor("#123456");
+    expect(notified()).toBe(1);
+    expect(store.getSnapshot().creationColor).toBe("#D4F3C4");
+    expect(emitted).toEqual([]);
+    expect(store.getHistory().undo).toHaveLength(0);
+  });
+
+  it("replaceBoard keeps it", () => {
+    const store = createStormStore({ body: board(), camera, creationColor: "#D3A1FF" });
+    store.replaceBoard(board(sticky("a")));
+    expect(store.getSnapshot().creationColor).toBe("#D3A1FF");
   });
 });
 
