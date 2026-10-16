@@ -40,10 +40,12 @@ describe("camera", () => {
     expect(zoomAt(HOME_CAMERA, vp, { x: 0, y: 0 }, 0.001).zoom).toBe(MIN_ZOOM);
   });
 
-  it("stepZoom from 1 -> 1.5; from 4 stays 4; from 0.3 down -> 0.25", () => {
-    expect(stepZoom(HOME_CAMERA, vp, 1).zoom).toBe(1.5);
-    expect(stepZoom({ x: 0, y: 0, zoom: 1.5 }, vp, 1).zoom).toBe(2);
+  it("stepZoom from 1 -> 1.25; 4 stays 4; 4 down -> 3.5; 0.3 down -> 0.25", () => {
+    expect(stepZoom(HOME_CAMERA, vp, 1).zoom).toBe(1.25);
+    expect(stepZoom({ x: 0, y: 0, zoom: 1.5 }, vp, 1).zoom).toBe(1.75);
+    expect(stepZoom({ x: 0, y: 0, zoom: 2 }, vp, 1).zoom).toBe(2.5);
     expect(stepZoom({ x: 0, y: 0, zoom: 4 }, vp, 1).zoom).toBe(4);
+    expect(stepZoom({ x: 0, y: 0, zoom: 4 }, vp, -1).zoom).toBe(3.5);
     expect(stepZoom({ x: 0, y: 0, zoom: 0.3 }, vp, -1).zoom).toBe(0.25);
     expect(stepZoom({ x: 0, y: 0, zoom: 0.1 }, vp, -1).zoom).toBe(0.1);
   });

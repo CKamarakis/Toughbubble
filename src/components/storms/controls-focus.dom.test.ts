@@ -71,7 +71,7 @@ describe("board controls keep keyboard focus on the board", () => {
 
   it("clicking a zoom button leaves focus on the board and zoom keys still work", () => {
     mouseClick(button("Zoom in"));
-    expect(store.getSnapshot().camera.zoom).toBe(1.5);
+    expect(store.getSnapshot().camera.zoom).toBe(1.25);
     expect(document.activeElement).toBe(board);
     board.dispatchEvent(new KeyboardEvent("keydown", { key: "0", ctrlKey: true, bubbles: true }));
     expect(store.getSnapshot().camera.zoom).toBe(1);
