@@ -142,6 +142,17 @@ describe("StickyToolbar show and hide", () => {
     expect(toolbar()).not.toBeNull();
   });
 
+  it("repositions when the board is resized", () => {
+    let vp = { w: 800, h: 600 };
+    act(() => root.render(createElement(StickyToolbar, { store, getViewport: () => vp, size: vp })));
+    select("a");
+    expect(toolbar()?.style.left).toBe("379px");
+    vp = { w: 400, h: 600 };
+    act(() => root.render(createElement(StickyToolbar, { store, getViewport: () => vp, size: vp })));
+    // The camera is centred on the board, so the sticky (and the toolbar) moved with the new centre.
+    expect(toolbar()?.style.left).toBe("179px");
+  });
+
   it("sits in the board's light scope (stays light in the dark app theme)", () => {
     select("a");
     expect(toolbar()?.closest(".light")).toBe(surface);

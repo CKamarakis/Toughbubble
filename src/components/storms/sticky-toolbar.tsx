@@ -62,7 +62,15 @@ export function placePalette(at: ToolbarPlace, tb: Size, p: Size, vp: Size): { l
  * is not being edited or dragged and the board is not being panned. It follows the
  * sticky as the board pans and zooms.
  */
-export function StickyToolbar({ store, getViewport }: { store: StormStore; getViewport: () => Size }) {
+export function StickyToolbar({
+  store,
+  getViewport,
+}: {
+  store: StormStore;
+  getViewport: () => Size;
+  /** The board's size; a change re-renders the toolbar so it follows a resize. */
+  size?: Size;
+}) {
   const snap = useSyncExternalStore(store.subscribe, store.getSnapshot, store.getSnapshot);
   const item = snap.selectedId ? snap.items[snap.selectedId] : undefined;
   if (!item || item.type !== "sticky" || snap.editingId !== null || snap.dragPreview || snap.panning) return null;
@@ -139,6 +147,8 @@ function Bar({ store, sticky, rect, vp }: { store: StormStore; sticky: Sticky; r
       document.removeEventListener("keydown", onKey, true);
       document.removeEventListener("pointerdown", onPointerDown, true);
     };
+    // Handlers read the current sticky through the closure; the Bar is keyed per sticky.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   const place = placeToolbar(rect, tb, vp);

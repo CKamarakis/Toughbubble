@@ -47,6 +47,8 @@ export default function StormBoard(props: StormBoardProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [store, setStore] = useState<StormStore | null>(null);
   const [family, setFamily] = useState("");
+  /** The board's size, kept so the sticky toolbar re-renders (and repositions) on a resize. */
+  const [size, setSize] = useState({ w: 0, h: 0 });
   const { itemId, userId, readOnly = false, onStatus } = props;
   const getViewport = useCallback(() => {
     const r = boxRef.current?.getBoundingClientRect();
@@ -125,6 +127,7 @@ export default function StormBoard(props: StormBoardProps) {
     const fit = () => {
       const r = box.getBoundingClientRect();
       renderer.resize({ w: r.width, h: r.height }, window.devicePixelRatio || 1);
+      setSize((s) => (s.w === r.width && s.h === r.height ? s : { w: r.width, h: r.height }));
     };
     const observer = new ResizeObserver(fit);
     observer.observe(box);
@@ -170,7 +173,7 @@ export default function StormBoard(props: StormBoardProps) {
             getViewport={getViewport}
             onExit={() => boxRef.current?.focus({ preventScroll: true })}
           />
-          <StickyToolbar store={store} getViewport={getViewport} />
+          <StickyToolbar store={store} getViewport={getViewport} size={size} />
           <StormToolbar store={store} />
           <ZoomControl store={store} getViewport={getViewport} />
         </>
