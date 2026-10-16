@@ -280,7 +280,7 @@ describe("sticky colour and font size", () => {
     expect((await load(id))?.body.items[s.id]).toEqual(s);
   });
 
-  it("an unknown colour is refused and the stored board is unchanged", async () => {
+  it("the validator refuses an unknown colour or font size, so nothing reaches the stored board", async () => {
     const id = await newStorm();
     const a = sticky();
     await save(id, validated(upsert(a)), 0);
