@@ -253,7 +253,7 @@ and is blocked from `src/` by a lint rule; it is for migrations, tests, and back
   centred above it (below when there is no room), follows it while the board pans and zooms, and hides
   while you type, drag, or pan. Its Colour button opens the palette. Keyboard: Tab to the button (after
   the board), Enter or Space opens it, arrow keys, Home and End move between swatches, Enter or Space
-  picks, Esc closes; focus returns to the button. Clicking the toolbar does not deselect the sticky.
+  picks, Esc closes. With the palette open, those keys go to the palette even after a mouse click on the button, and Delete, N and undo do not act on the board. After Esc or a pick, focus returns to the button if it was inside the palette; after a mouse open it stays on the board. Clicking the toolbar does not deselect the sticky.
 - **Saving.** Like notes, but only the items changed since the last save go out (a change set plus the
   version it is based on), about a second after the last change; the header shows Saving…, then
   Saved. Offline or server errors show "Couldn't save — retrying" and retry with growing pauses; work
