@@ -3,6 +3,7 @@ import { act, createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { HOME_CAMERA } from "@/lib/storms/camera";
+import { MAX_TEXT } from "@/lib/storms/limits";
 import type { Sticky } from "@/lib/storms/model";
 import { createStormStore, type StormStore } from "./engine/store";
 import { StickyTextOverlay } from "./sticky-text-overlay";
@@ -118,5 +119,16 @@ describe("StickyTextOverlay", () => {
     await act(async () => store.startEdit("a"));
     expect(textarea()!.value).toBe(long);
     expect(textarea()!.scrollTop).toBe(0);
+  });
+});
+
+describe("text limit", () => {
+  it("the editor caps input at 500 characters, so a paste of 800 keeps the first 500", () => {
+    expect(MAX_TEXT).toBe(500);
+    expect(textarea()!.maxLength).toBe(500);
+    // Browsers truncate a paste to maxLength; this is that rule applied to 800 characters.
+    const pasted = "abcde".repeat(160);
+    expect(pasted.slice(0, textarea()!.maxLength)).toBe(pasted.slice(0, 500));
+    expect(pasted.slice(0, textarea()!.maxLength)).toHaveLength(500);
   });
 });

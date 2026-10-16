@@ -70,7 +70,7 @@ describe("validateChangeSet", () => {
     bad(cs([sticky(A, { z: 1 })]));
   });
   it("rejects bad text", () => {
-    bad(cs([sticky(A, { text: "a".repeat(5_001) })]));
+    bad(cs([sticky(A, { text: "a".repeat(501) })]));
     bad(cs([sticky(A, { text: 1 })]));
   });
   it("rejects a bad parentId", () => bad(cs([sticky(A, { parentId: "nope" })])));
@@ -83,12 +83,12 @@ describe("validateChangeSet", () => {
   it("accepts values exactly at the limits", () => {
     const items = [
       sticky(uuid(1), { x: 1_000_000, y: -1_000_000, w: 1_000_000, h: 1_000_000 }),
-      sticky(uuid(2), { x: -1_000_000, z: "z".repeat(64), text: "t".repeat(5_000) }),
+      sticky(uuid(2), { x: -1_000_000, z: "z".repeat(64), text: "t".repeat(500) }),
     ];
     expect(validateChangeSet(cs(items))).toEqual({ ok: true, changes: cs(items) });
   });
   it("rejects a set over the byte cap", () => {
-    const upsert = Array.from({ length: 200 }, (_, i) => sticky(uuid(i), { text: "a".repeat(5_000) }));
+    const upsert = Array.from({ length: 2_000 }, (_, i) => sticky(uuid(i), { text: "a".repeat(500) }));
     bad(cs(upsert));
   });
 });

@@ -106,7 +106,7 @@ describe("storm board saves", () => {
   it("too large → too-large, stored body and version unchanged", async () => {
     const id = await newStorm();
     let version = 0;
-    for (const n of [120, 120, 120]) {
+    for (const n of [950, 950, 950]) {
       const r = await save(id, upsert(...big(n)), version);
       expect(r.status).toBe("saved");
       version = r.status === "saved" ? r.version : -1;
@@ -115,15 +115,15 @@ describe("storm board saves", () => {
     expect(seeded).toBeGreaterThan(MAX_BODY_BYTES * 0.8);
     expect(seeded).toBeLessThanOrEqual(MAX_BODY_BYTES);
     const before = await load(id);
-    expect(await save(id, upsert(...big(100)), version)).toEqual({ status: "too-large" });
+    expect(await save(id, upsert(...big(1000)), version)).toEqual({ status: "too-large" });
     expect(await load(id)).toEqual(before);
     expect(await bodyBytes(id)).toBe(seeded);
   }, 120_000);
 
   it("first save too large → too-large, no row", async () => {
     const id = await newStorm();
-    // 450 max-text stickies exceed the cap in one go (the change-set cap is the action's job).
-    expect(await save(id, upsert(...big(450)), 0)).toEqual({ status: "too-large" });
+    // 3,600 max-text stickies exceed the cap in one go (the change-set cap is the action's job).
+    expect(await save(id, upsert(...big(3600)), 0)).toEqual({ status: "too-large" });
     expect(await rowCount(id)).toBe(0);
     expect(await load(id)).toEqual({ body: EMPTY_BOARD, version: 0 });
   }, 60_000);

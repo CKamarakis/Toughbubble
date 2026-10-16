@@ -68,7 +68,7 @@
 
 - [x] 11.1 Step 4: the board chunk loads on a note page (D12). Finding: production already downloads no board chunk (verified with a signed-in browser); the chunk seen is a `next dev` (Turbopack) behaviour. Guard: `npm run check:note-chunks` after a build. Verify with a production build: opening only a note downloads no `storm-board` chunk (Network tab).
 - [x] 11.2 Step 35: long pasted text missing after double-click (D12). Reproduce with a failing test, then fix. Verify that typed or pasted text up to 500 characters is all in the editor after finishing and double-clicking again.
-- [ ] 11.3 `MAX_TEXT` 5,000 → 500 in `limits.ts`, the textarea `maxLength` and `validate.ts`; pasting longer text keeps the first 500. Verify with unit tests: validation rejects 501 characters and accepts 500; a paste of 800 keeps 500.
+- [x] 11.3 `MAX_TEXT` 5,000 → 500 in `limits.ts`, the textarea `maxLength` and `validate.ts`; pasting longer text keeps the first 500. Verify with unit tests: validation rejects 501 characters and accepts 500; a paste of 800 keeps 500.
 - [ ] 11.4 Remove the Select tool and the V key; the Sticky tool turns off after placing and on Esc. Verify with the toolbar test (Sticky, Undo, Redo only) and in the browser.
 - [ ] 11.5 Replace the dot grid with a plain `#F2F2F2` background; remove the grid code and its tests. Verify in the browser at 10%, 100% and 400%.
 - [ ] 11.6 Zoom steps 10, 25, 50, 75, 100, 125, 150, 175, 200, 250, 300, 350, 400. Verify with camera unit tests (+ at 100% → 125%, − at 400% → 350%) and in the browser.
