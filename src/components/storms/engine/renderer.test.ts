@@ -71,3 +71,30 @@ describe("createRenderer background", () => {
     }
   });
 });
+
+describe("createRenderer selection outline", () => {
+  it("strokes a 1 px outline 5 screen px outside the sticky, at any zoom", () => {
+    for (const zoom of [0.5, 1, 2]) {
+      const frames: (() => void)[] = [];
+      vi.stubGlobal("requestAnimationFrame", (cb: () => void) => frames.push(cb));
+      vi.stubGlobal("cancelAnimationFrame", () => {});
+      const body: StormBody = {
+        schema: 1,
+        items: { a: { id: "a", type: "sticky", x: 0, y: 0, z: "a0", w: 200, h: 200, text: "" } },
+      };
+      const store = createStormStore({ body, camera: { x: 0, y: 0, zoom } });
+      store.select("a");
+      const { canvas, strokeRects } = fakeCanvas();
+      const renderer = createRenderer(canvas, store, "Test");
+      renderer.resize({ w: 400, h: 300 }, 1);
+      frames.splice(0).forEach((f) => f());
+      const left = 200; // board origin sits at the viewport centre
+      const top = 150;
+      expect(strokeRects.at(-1)).toEqual({
+        style: "#F700A8",
+        width: 1,
+        args: [left - 5, top - 5, 200 * zoom + 10, 200 * zoom + 10],
+      });
+    }
+  });
+});

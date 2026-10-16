@@ -7,7 +7,7 @@ const BACKGROUND = "#F2F2F2";
 const TEXT_MIN_ZOOM = 0.3;
 const SHADOW_MIN_ZOOM = 0.5;
 const SHADOW_COLOUR = "rgba(0,0,0,0.12)";
-const SELECTION = { colour: "#F700A8", width: 2 };
+const SELECTION = { colour: "#F700A8", width: 1, gap: 5 };
 
 export type Renderer = {
   resize(size: Size, dpr: number): void;
@@ -140,10 +140,10 @@ export function createRenderer(
     const selected = found && shift(found);
     if (selected) {
       const p = boardToScreen(camera, size, selected);
-      const w = SELECTION.width;
+      const g = SELECTION.gap;
       ctx.strokeStyle = SELECTION.colour;
-      ctx.lineWidth = w;
-      ctx.strokeRect(p.x - w / 2, p.y - w / 2, selected.w * z + w, selected.h * z + w);
+      ctx.lineWidth = SELECTION.width;
+      ctx.strokeRect(p.x - g, p.y - g, selected.w * z + 2 * g, selected.h * z + 2 * g);
     }
   }
 
