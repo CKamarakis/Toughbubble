@@ -1,6 +1,7 @@
 import { BOARD_LIMIT, MAX_FONT_PX, MAX_TEXT, MIN_FONT_PX } from "./limits";
 import { STICKY, topZ, type Items, type Point, type Sticky } from "./model";
 import { DEFAULT_STICKY_COLOR, PRESET_HEXES } from "./palette";
+import { cutText, isWellFormedText } from "./cut-text";
 
 /** The clipboard type a copied sticky travels under, next to its plain text (D1). */
 export const COPIED_STICKY_TYPE = "application/x-toughbubble-sticky+json";
@@ -40,7 +41,7 @@ export function parseCopiedSticky(json: string): CopiedSticky | null {
   const { v, sticky } = raw as Record<string, unknown>;
   if (v !== VERSION || typeof sticky !== "object" || sticky === null || Array.isArray(sticky)) return null;
   const { text, color, fontSize, w, h } = sticky as Record<string, unknown>;
-  if (typeof text !== "string" || text.length > MAX_TEXT) return null;
+  if (typeof text !== "string" || text.length > MAX_TEXT || !isWellFormedText(text)) return null;
   if (!isSide(w) || !isSide(h)) return null;
   const out: CopiedSticky = { text, w, h };
   if (color !== undefined) {
@@ -60,7 +61,7 @@ export function parseCopiedSticky(json: string): CopiedSticky | null {
  */
 export function stickyFromText(text: string, color: string): CopiedSticky {
   return {
-    text: text.slice(0, MAX_TEXT),
+    text: cutText(text, MAX_TEXT),
     ...(color !== DEFAULT_STICKY_COLOR && { color }),
     w: STICKY.size,
     h: STICKY.size,

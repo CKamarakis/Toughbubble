@@ -2,6 +2,7 @@ import { changesBytes, type ChangeSet } from "./changeset";
 import { BOARD_LIMIT, MAX_CHANGESET_BYTES, MAX_ENTRIES, MAX_FONT_PX, MAX_TEXT, MIN_FONT_PX } from "./limits";
 import type { Item, StormBody } from "./model";
 import { PRESET_HEXES } from "./palette";
+import { isWellFormedText } from "./cut-text";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const ERROR = "That change was not valid.";
@@ -30,7 +31,7 @@ function parseItem(raw: unknown): Item | null {
   if (Math.abs(x) > BOARD_LIMIT || Math.abs(y) > BOARD_LIMIT) return null;
   if (w <= 0 || h <= 0 || w > BOARD_LIMIT || h > BOARD_LIMIT) return null;
   if (typeof z !== "string" || z.length === 0 || z.length > MAX_Z) return null;
-  if (typeof text !== "string" || text.length > MAX_TEXT) return null;
+  if (typeof text !== "string" || text.length > MAX_TEXT || !isWellFormedText(text)) return null;
   const item: Item = { id, type, x, y, z, w, h, text };
   if (keys.includes("parentId")) {
     if (!isId(parentId)) return null;

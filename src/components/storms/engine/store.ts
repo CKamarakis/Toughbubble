@@ -1,5 +1,6 @@
 import type { Camera } from "@/lib/storms/camera";
 import { MAX_TEXT } from "@/lib/storms/limits";
+import { cutText } from "@/lib/storms/cut-text";
 import {
   applyChanges,
   invertChanges,
@@ -122,7 +123,7 @@ function withText(item: Item, text: string, fontSize: number | undefined): Item 
  */
 function normalizeItem(item: Item): Item {
   let next = item;
-  if (next.text.length > MAX_TEXT) next = withText(next, next.text.slice(0, MAX_TEXT), undefined);
+  if (next.text.length > MAX_TEXT) next = withText(next, cutText(next.text, MAX_TEXT), undefined);
   if (next.color !== undefined && currentHex(next.color) !== next.color) next = { ...next, color: currentHex(next.color) };
   return next;
 }
@@ -346,7 +347,7 @@ export function createStormStore(init: {
       update({ editingId: id, selectedId: id });
     },
     setText(id, rawText) {
-      const text = rawText.slice(0, MAX_TEXT); // input that bypasses the textarea's maxLength
+      const text = cutText(rawText, MAX_TEXT); // input that bypasses the textarea's maxLength
       const item = state.items[id];
       if (id !== state.editingId || !item || item.text === text) return;
       const fontSize = measure ? fitFontSize(measure, text, item.w, item.h) : undefined;

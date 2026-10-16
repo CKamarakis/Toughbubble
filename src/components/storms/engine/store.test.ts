@@ -666,6 +666,23 @@ describe("getHistoryForPersist", () => {
   });
 });
 
+describe("text cut inside a character", () => {
+  const ID = "11111111-1111-4111-8111-111111111111";
+  const tricky = "a".repeat(499) + "😀😀";
+
+  it("setText drops half an emoji at the cut", () => {
+    const { store } = setup(board(sticky(ID, { text: "hi" })));
+    store.startEdit(ID);
+    store.setText(ID, tricky);
+    expect(store.getSnapshot().items[ID]).toMatchObject({ text: "a".repeat(499) });
+  });
+
+  it("normalising a board on load drops half an emoji at the cut", () => {
+    const store = createStormStore({ body: board(sticky(ID, { text: tricky })), camera });
+    expect((store.getSnapshot().items[ID] as Sticky).text).toBe("a".repeat(499));
+  });
+});
+
 describe("setColor", () => {
   const PINK = "#FFC6E8";
 

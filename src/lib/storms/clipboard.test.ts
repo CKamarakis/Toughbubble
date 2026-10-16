@@ -107,3 +107,13 @@ describe("placeCopy", () => {
     expect(far.y).toBe(-BOARD_LIMIT);
   });
 });
+
+describe("text cut inside a character", () => {
+  it("stickyFromText never leaves half an emoji", () => {
+    const t = stickyFromText("a".repeat(499) + "😀😀", PINK).text;
+    expect(t).toBe("a".repeat(499));
+  });
+  it("parseCopiedSticky rejects text that is not well-formed", () => {
+    expect(parseCopiedSticky(payload({ ...good, text: "a\ud83d" }))).toBeNull();
+  });
+});

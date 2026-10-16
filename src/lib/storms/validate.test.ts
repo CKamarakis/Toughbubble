@@ -142,3 +142,10 @@ describe("validateChangeSet sticky style", () => {
     no({ fontSize: NaN });
   });
 });
+
+describe("validateChangeSet text well-formedness", () => {
+  it("rejects text with a lone surrogate and accepts a whole emoji", () => {
+    bad(cs([sticky(A, { text: "a\ud83d" })]));
+    expect(validateChangeSet(cs([sticky(A, { text: "a😀" })])).ok).toBe(true);
+  });
+});
