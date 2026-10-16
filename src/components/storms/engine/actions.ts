@@ -1,3 +1,4 @@
+import { placeCopy, type CopiedSticky } from "@/lib/storms/clipboard";
 import { BOARD_LIMIT } from "@/lib/storms/limits";
 import { DEFAULT_STICKY_COLOR } from "@/lib/storms/palette";
 import { STICKY, topZ, type Point, type Sticky } from "@/lib/storms/model";
@@ -25,10 +26,43 @@ export function placeSticky(store: StormStore, at: Point): string {
     text: "",
     ...(creationColor !== DEFAULT_STICKY_COLOR && { color: creationColor }),
   };
+  return addSelected(store, sticky);
+}
+
+/** Gap between a sticky and its duplicate, in board px (D2). */
+const DUPLICATE_GAP = 20;
+
+/** Adds `sticky` as one undo step, selects it and returns to the Select tool. */
+function addSelected(store: StormStore, sticky: Sticky): string {
   store.commit({ upsert: [sticky], delete: [] }, "push");
   store.select(sticky.id);
   store.setTool("select");
   return sticky.id;
+}
+
+/** Pastes `copied` as a new sticky centred on `at` (clamped), on top and selected; one undo step. */
+export function pasteSticky(store: StormStore, copied: CopiedSticky, at: Point): string {
+  return addSelected(store, placeCopy(copied, at, store.getSnapshot().items));
+}
+
+/**
+ * Duplicates the selected sticky 20 px to its right at the same y (clamped), on top and
+ * selected; one undo step. Returns the new id, or null with nothing selected.
+ */
+export function duplicateSelected(store: StormStore): string | null {
+  const { selectedId, items } = store.getSnapshot();
+  const item = selectedId ? items[selectedId] : undefined;
+  if (!item) return null;
+  const { text, color, fontSize, w, h } = item;
+  const copied: CopiedSticky = {
+    text,
+    ...(color !== undefined && { color }),
+    ...(fontSize !== undefined && { fontSize }),
+    w,
+    h,
+  };
+  const centre = { x: item.x + w + DUPLICATE_GAP + w / 2, y: item.y + h / 2 };
+  return addSelected(store, placeCopy(copied, centre, items));
 }
 
 /** Moves a sticky by (dx, dy) board px, keeping it inside the board. */

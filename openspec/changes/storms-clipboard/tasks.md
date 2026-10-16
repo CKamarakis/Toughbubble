@@ -3,7 +3,7 @@
 ## 1. Clipboard core
 
 - [x] 1.1 `src/lib/storms/clipboard.ts`: `serializeSticky`, `parseCopiedSticky`, `stickyFromText`, `placeCopy` (D1, D2, D4). Verify with unit tests: round trip; parse rejects bad colour, size 7, 501 chars, NaN and an unknown version; text clamped to 500; copy centred on the point and clamped to ±1,000,000 px.
-- [ ] 1.2 `engine/actions.ts`: `pasteSticky(store, copied, at)` and `duplicateSelected(store)` — new id, top z, selected, one commit. Verify with store/actions unit tests: one undo step each; undo removes the copy and leaves the original; duplicate lands at `x + w + 20`, same `y`; nothing selected → no change.
+- [x] 1.2 `engine/actions.ts`: `pasteSticky(store, copied, at)` and `duplicateSelected(store)` — new id, top z, selected, one commit. Verify with store/actions unit tests: one undo step each; undo removes the copy and leaves the original; duplicate lands at `x + w + 20`, same `y`; nothing selected → no change.
 
 ## 2. Keys and events
 

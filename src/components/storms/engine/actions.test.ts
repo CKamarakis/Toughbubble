@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { BOARD_LIMIT } from "@/lib/storms/limits";
 import type { Sticky, StormBody } from "@/lib/storms/model";
-import { deleteSelected, moveSticky, nudge, placeSticky } from "./actions";
+import { deleteSelected, duplicateSelected, moveSticky, nudge, pasteSticky, placeSticky } from "./actions";
 import { createStormStore } from "./store";
 
 const sticky = (id: string, over: Partial<Sticky> = {}): Sticky => ({
@@ -133,6 +133,69 @@ describe("deleteSelected", () => {
     const store = make(sticky("a"));
     deleteSelected(store);
     expect(store.getSnapshot().items.a).toBeDefined();
+    expect(store.getHistory().undo).toHaveLength(0);
+  });
+});
+
+describe("pasteSticky", () => {
+  const copied = { text: "Plan", color: "#FFC6E8", fontSize: 32, w: 240, h: 180 };
+
+  it("places the copy centred on the point, on top and selected, as one undo step", () => {
+    const store = make(sticky("a", { text: "Plan", color: "#FFC6E8" }));
+    store.setTool("sticky");
+    const id = pasteSticky(store, copied, { x: 500, y: 400 });
+    const s = store.getSnapshot();
+    expect(s.items[id]).toMatchObject({ x: 380, y: 310, w: 240, h: 180, text: "Plan", color: "#FFC6E8", fontSize: 32 });
+    expect(s.items[id].z > s.items.a.z).toBe(true);
+    expect(s.selectedId).toBe(id);
+    expect(s.tool).toBe("select");
+    expect(store.getHistory().undo).toHaveLength(1);
+  });
+
+  it("undo removes the copy and leaves the original", () => {
+    const original = sticky("a", { text: "Plan" });
+    const store = make(original);
+    const id = pasteSticky(store, copied, { x: 0, y: 0 });
+    store.undo();
+    const s = store.getSnapshot();
+    expect(s.items[id]).toBeUndefined();
+    expect(s.items.a).toEqual(original);
+  });
+
+  it("clamps the copy inside the board", () => {
+    const store = make();
+    const id = pasteSticky(store, copied, { x: BOARD_LIMIT * 3, y: 0 });
+    expect(store.getSnapshot().items[id].x).toBe(BOARD_LIMIT - 240);
+  });
+});
+
+describe("duplicateSelected", () => {
+  it("places a copy 20 px to the right at the same y, on top and selected, as one undo step", () => {
+    const store = make(sticky("a", { x: 100, y: 50, w: 240, h: 180, text: "Plan", color: "#FFC6E8", fontSize: 32 }));
+    store.select("a");
+    const id = duplicateSelected(store);
+    const s = store.getSnapshot();
+    expect(id).not.toBeNull();
+    expect(s.items[id!]).toMatchObject({ x: 360, y: 50, w: 240, h: 180, text: "Plan", color: "#FFC6E8", fontSize: 32 });
+    expect(s.items[id!].z > s.items.a.z).toBe(true);
+    expect(s.selectedId).toBe(id);
+    expect(store.getHistory().undo).toHaveLength(1);
+    store.undo();
+    expect(store.getSnapshot().items[id!]).toBeUndefined();
+    expect(store.getSnapshot().items.a).toBeDefined();
+  });
+
+  it("clamps at the board edge", () => {
+    const store = make(sticky("a", { x: BOARD_LIMIT - 200, y: 0 }));
+    store.select("a");
+    const id = duplicateSelected(store);
+    expect(store.getSnapshot().items[id!].x).toBe(BOARD_LIMIT - 200);
+  });
+
+  it("does nothing with nothing selected", () => {
+    const store = make(sticky("a"));
+    expect(duplicateSelected(store)).toBeNull();
+    expect(Object.keys(store.getSnapshot().items)).toEqual(["a"]);
     expect(store.getHistory().undo).toHaveLength(0);
   });
 });
