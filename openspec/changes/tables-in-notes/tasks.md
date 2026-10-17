@@ -29,5 +29,5 @@
 
 ## 6. Integration checks
 
-- [ ] 6.1 Write `testing-plan.md` for the manual steps: real clipboard pastes from a web page (the PRD example), Google Sheets and Excel; Excel paste attaches no picture; format a header cell; drag a column border and reload; copy a table and a block of cells from one note to another in the browser; light and dark themes. Verify the file covers every note-tables scenario that the automated tests can't.
-- [ ] 6.2 Run `npm run lint`, `npm test` and `npm run build`; verify all pass.
+- [x] 6.1 Write `testing-plan.md` for the manual steps: real clipboard pastes from a web page (the PRD example), Google Sheets and Excel; Excel paste attaches no picture; format a header cell; drag a column border and reload; copy a table and a block of cells from one note to another in the browser; light and dark themes. Verify the file covers every note-tables scenario that the automated tests can't.
+- [x] 6.2 Run `npm run lint`, `npm test` and `npm run build`; verify all pass. (Lint run as `npx eslint src tests`: `npm run lint` also scans the old `.claude/worktrees/storms-canvas` copy and reports its problems. Build passed; 786 unit tests and the note-body integration tests pass.)
