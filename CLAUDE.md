@@ -1,7 +1,7 @@
 @AGENTS.md
 
 <!-- kit:routing:start -->
-## Workflow routing (kit 0.5.3)
+## Workflow routing (kit 0.11.0)
 
 Managed by the kit. Edit `toolkit.yaml` in the kit repo, not this block.
 Use one owner per phase. Only switch to an alternative when the change is big or risky, and say so.
@@ -13,12 +13,15 @@ Use one owner per phase. Only switch to an alternative when the change is big or
 | brainstorm | `/opsx:explore` | openspec | `/opsx:new <name> --schema superspec` (superspec, trial) |
 | artifacts | `/opsx:propose` | openspec | `/opsx:continue (brainstorm -> proposal -> specs -> tasks)` (superspec, trial) |
 | plan | `/opsx:continue` | openspec | `/opsx:continue (plan artifact)` (superspec, trial) |
+| ready | `/kit:ready` | kit | - |
 | build | `/opsx:apply` | openspec | `/opsx:apply (worktree + subagent TDD)` (superspec, trial) |
 | verify | `/kit:verify` | kit | `openspec validate --strict + the change's tests` (openspec, adopted); `/opsx:verify` (superspec, trial) |
 | review | `/code-review` | claude-code-builtins | - |
 | ui-polish | `/impeccable critique, /impeccable audit, /impeccable polish` | impeccable | `/review-animations, /improve-animations (motion only)` (emil-skills, trial) |
 | close | `/opsx:archive` | openspec | `/opsx:archive` (superspec, trial) |
-| kit-issues | `/kit:feedback` | kit | - |
+| docs | `/kit:docs` | kit | - |
+| assess | `/kit:harness-review` | kit | - |
+| kit-issues | `github.com/CKamarakis/ac-workbench/issues` | kit | - |
 
 **Skip:**
 - Don't use openspec validate as the whole verify step (openspec)
@@ -43,6 +46,8 @@ Use one owner per phase. Only switch to an alternative when the change is big or
 ### Quality gates
 
 - At `/opsx:propose`, run `/kit:judge` on the PRD or description and show its OpenSpec / SuperSpec recommendation with the reasons. The user decides; never switch flows on your own.
+- Spec scenarios: when the PRD has Given/When/Then stories, write the scenarios from them; add a `- **GIVEN**` line whenever a behavior depends on a starting state.
+- After planning is complete and before `/opsx:apply`, offer `/kit:ready`: it lists gaps, differences, points to confirm and new tools, and asks the decisions in one batch. It warns and never blocks.
 - Before `/opsx:archive`, run `/kit:verify`. A kit hook blocks the archive until the change has a passing verify report. Failing tests and high-severity security findings block; everything else is advice for the user.
 - Override a blocking item only when the user explicitly asks, with their reason (`/kit:verify` records it).
 <!-- kit:routing:end -->
