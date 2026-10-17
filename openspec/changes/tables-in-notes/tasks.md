@@ -8,8 +8,8 @@
 
 ## 2. Saving
 
-- [ ] 2.1 Add table attribute checks to `validateNoteBody` (design D5: colspan/rowspan 1–100, colwidth null or `colspan` entries of 25–5000 or null), with the error "The note contains a table setting that isn't allowed."; verify with unit tests: a valid table passes, colspan 0 and colwidth 100000 are refused, and a table round-trips through `validateNoteBody` unchanged.
-- [ ] 2.2 Verify with an integration test in `tests/integration/` that a note body with a table saves and loads back with the same rows, header row and column widths.
+- [x] 2.1 Add table attribute checks to `validateNoteBody` (design D5: colspan/rowspan 1–100, colwidth null or `colspan` entries of 25–5000 or null), with the error "The note contains a table setting that isn't allowed."; verify with unit tests: a valid table passes, colspan 0 and colwidth 100000 are refused, and a table round-trips through `validateNoteBody` unchanged.
+- [x] 2.2 Verify with an integration test in `tests/integration/` that a note body with a table saves and loads back with the same rows, header row and column widths.
 
 ## 3. Files go below a table
 

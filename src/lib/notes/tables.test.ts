@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { Editor, getSchema, type JSONContent } from "@tiptap/core";
 import { afterEach, describe, expect, it } from "vitest";
 import { noteExtensions } from "./extensions";
+import { validateNoteBody } from "./validate";
 
 // ProseMirror reads `styleSheet.rules` for pasted <style> blocks (Sheets and
 // Excel send one); browsers have it, happy-dom only has `cssRules`.
@@ -44,6 +45,47 @@ describe("note schema: tables", () => {
     ["a table", docWith([p("x")]).content![0]],
   ])("rejects %s inside a cell", (_label, node) => {
     expect(() => schema.nodeFromJSON(docWith([node as JSONContent])).check()).toThrow();
+  });
+});
+
+describe("validateNoteBody: tables", () => {
+  const table = (attrs: Record<string, unknown>): JSONContent => ({
+    type: "doc",
+    content: [
+      {
+        type: "table",
+        content: [
+          {
+            type: "tableRow",
+            content: [
+              { type: "tableHeader", attrs: { colspan: 2, rowspan: 1, colwidth: [120, 80], align: null }, content: [p("Head")] },
+            ],
+          },
+          { type: "tableRow", content: [cell("tableCell", [p("a")]), { type: "tableCell", attrs, content: [p("b")] }] },
+        ],
+      },
+    ],
+  });
+
+  it("accepts a valid table and returns it unchanged", () => {
+    const body = table({ colspan: 1, rowspan: 1, colwidth: [200], align: "center" });
+    const result = validateNoteBody(body);
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.doc).toEqual(getSchema(noteExtensions()).nodeFromJSON(body).toJSON());
+  });
+
+  it.each([
+    ["a span of 0", { colspan: 0 }],
+    ["a span over 100", { rowspan: 101 }],
+    ["a width of 100,000 px", { colwidth: [100000] }],
+    ["a width below 25 px", { colwidth: [3] }],
+    ["widths that don't match the span", { colwidth: [100, 100] }],
+    ["an unknown alignment", { align: "left; background: red" }],
+  ])("refuses %s", (_label, attrs) => {
+    expect(validateNoteBody(table({ colspan: 1, rowspan: 1, colwidth: null, align: null, ...attrs }))).toMatchObject({
+      ok: false,
+      error: "The note contains a table setting that isn't allowed.",
+    });
   });
 });
 

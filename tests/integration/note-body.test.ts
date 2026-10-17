@@ -4,6 +4,7 @@ import { items } from "@/db/schema";
 import type { UserTx } from "@/db/rls";
 import * as notes from "@/lib/notes/operations";
 import * as tree from "@/lib/tree/operations";
+import { validateNoteBody } from "@/lib/notes/validate";
 import { createTestUser, deleteTestUser, type TestUser } from "./harness";
 
 let user: TestUser;
@@ -106,5 +107,34 @@ describe("saves only for the owner's active notes", () => {
     expect(await other.run((tx) => notes.getNoteBody(tx, id))).toBeNull();
     expect(await other.run((tx) => notes.saveNoteBody(tx, id, doc("hijack"), 1))).toEqual({ status: "not-found" });
     expect((await user.run((tx) => notes.getNoteBody(tx, id)))?.body).toEqual(doc("private"));
+  });
+});
+
+describe("tables in a note body", () => {
+  it("a validated table saves and reads back with its rows, header row and column widths", async () => {
+    const cell = (type: string, t: string, colwidth: number[] | null = null) => ({
+      type,
+      attrs: { colspan: 1, rowspan: 1, colwidth, align: null },
+      content: [{ type: "paragraph", content: [{ type: "text", text: t }] }],
+    });
+    const body = {
+      type: "doc",
+      attrs: { bodySize: null },
+      content: [
+        {
+          type: "table",
+          content: [
+            { type: "tableRow", content: [cell("tableHeader", "Feature", [160]), cell("tableHeader", "FTL", [90])] },
+            { type: "tableRow", content: [cell("tableCell", "Load", [160]), cell("tableCell", "Whole truck", [90])] },
+          ],
+        },
+      ],
+    };
+    const valid = validateNoteBody(body);
+    expect(valid.ok).toBe(true);
+    if (!valid.ok) return;
+    const id = await user.run((tx) => tree.createItem(tx, "note", null));
+    expect(await user.run((tx) => notes.saveNoteBody(tx, id, valid.doc, 0))).toMatchObject({ status: "saved" });
+    expect((await user.run((tx) => notes.getNoteBody(tx, id)))?.body).toEqual(valid.doc);
   });
 });

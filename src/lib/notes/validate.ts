@@ -1,7 +1,7 @@
 import { getSchema, type JSONContent } from "@tiptap/core";
 import type { Node as PMNode, Schema } from "@tiptap/pm/model";
 import { IMAGE_ALIGNMENTS, MAX_IMAGE_WIDTH, MIN_IMAGE_WIDTH } from "./attachment-nodes";
-import { noteExtensions } from "./extensions";
+import { CELL_ALIGNMENTS, MAX_CELL_SPAN, MAX_COLUMN_WIDTH, MIN_COLUMN_WIDTH, noteExtensions } from "./extensions";
 import { parseFontSize } from "./font-size";
 import { isAllowedHref } from "./links";
 
@@ -39,6 +39,21 @@ function attachmentProblem(node: PMNode): string | null {
     if (!ok) return "The note contains a file card that isn't valid.";
   }
   return null;
+}
+
+const isWholeIn = (v: unknown, min: number, max: number) => Number.isInteger(v) && (v as number) >= min && (v as number) <= max;
+
+/** Table cells keep their spans, column widths and alignment in range (tables-in-notes D5). */
+function tableCellProblem(node: PMNode): string | null {
+  const { colspan, rowspan, colwidth, align } = node.attrs;
+  const spansOk = isWholeIn(colspan, 1, MAX_CELL_SPAN) && isWholeIn(rowspan, 1, MAX_CELL_SPAN);
+  const widthsOk =
+    colwidth === null ||
+    (Array.isArray(colwidth) &&
+      colwidth.length === colspan &&
+      colwidth.every((w) => w === null || w === 0 || isWholeIn(w, MIN_COLUMN_WIDTH, MAX_COLUMN_WIDTH)));
+  const alignOk = align === null || (CELL_ALIGNMENTS as readonly string[]).includes(align);
+  return spansOk && widthsOk && alignOk ? null : "The note contains a table setting that isn't allowed.";
 }
 
 /** Attachment ids a stored body refers to (copies in flight are not included). */
@@ -111,6 +126,10 @@ export function validateNoteBody(body: unknown): ValidationResult {
     if (node.type.name === "image" || node.type.name === "fileAttachment") {
       problem = attachmentProblem(node);
       return !problem;
+    }
+    if (node.type.name === "tableCell" || node.type.name === "tableHeader") {
+      problem = tableCellProblem(node);
+      if (problem) return false;
     }
     for (const mark of node.marks) {
       if (mark.type.name === "link" && !isAllowedHref(mark.attrs.href)) {
