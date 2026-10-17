@@ -17,11 +17,11 @@
 
 ## 4. Table control in the toolbar
 
-- [ ] 4.1 Add the Table dropdown after Divider in `note-toolbar.tsx` (design D6): Insert table outside a table; add row above/below, add column left/right, delete row, delete column, clear cell, header row and header column (check items), delete table inside one; each item disabled when `editor.can()` says no; verify with DOM tests for insert (3×3, header row, cursor in first cell), add/delete row, delete column, clear cell keeps the cell, header row off, header column on, delete table, and that the menu opens and picks with the keyboard.
-- [ ] 4.2 Verify with a DOM test that Tab in the last cell adds a row and Shift+Tab moves back a cell, and that Tab on a link still goes to its link card.
-- [ ] 4.3 Verify with a DOM test that one table command followed by undo and redo restores and reapplies it.
-- [ ] 4.4 Verify with a DOM test that the existing toolbar works in cells: in a header cell, set 20 px and italic; in a body cell, choose Heading 3 and a bulleted list; the state is right and survives `validateNoteBody`.
-- [ ] 4.5 Copying tables between notes: verify with a DOM test across two editors (design D8): copying a whole table (header row, merged cell, widened column, bold text) and pasting it into the other editor gives an identical table node; copying a 2×2 cell selection from a 4×4 table pastes as a 2×2 table; pasting a 2×2 table with the cursor in the last row of a 3×3 table fills from that cell and adds one row. Fix any attribute the copy loses.
+- [x] 4.1 Add the Table dropdown after Divider in `note-toolbar.tsx` (design D6): Insert table outside a table; add row above/below, add column left/right, delete row, delete column, clear cell, header row and header column (check items), delete table inside one; each item disabled when `editor.can()` says no; verify with DOM tests for insert (3×3, header row, cursor in first cell), add/delete row, delete column, clear cell keeps the cell, header row off, header column on, delete table, and that the menu opens and picks with the keyboard. (Menu test opens it with ArrowDown; Enter on the trigger is the browser's native button click, which happy-dom doesn't simulate, so Enter is in the manual plan.)
+- [x] 4.2 Verify with a DOM test that Tab in the last cell adds a row and Shift+Tab moves back a cell, and that Tab on a link still goes to its link card. (The link-card case is covered by a test that the note's own `handleKeyDown` runs before the table keymap.)
+- [x] 4.3 Verify with a DOM test that one table command followed by undo and redo restores and reapplies it.
+- [x] 4.4 Verify with a DOM test that the existing toolbar works in cells: in a header cell, set 20 px and italic; in a body cell, choose Heading 3 and a bulleted list; the state is right and survives `validateNoteBody`.
+- [x] 4.5 Copying tables between notes: verify with a DOM test across two editors (design D8): copying a whole table (header row, merged cell, widened column, bold text) and pasting it into the other editor gives an identical table node; copying a 2×2 cell selection from a 4×4 table pastes as a 2×2 table; pasting a 2×2 table with the cursor in the last row of a 3×3 table fills from that cell and adds one row. Fix any attribute the copy loses.
 
 ## 5. Styling
 

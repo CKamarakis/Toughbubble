@@ -47,6 +47,7 @@ import {
 import { effectiveSize, type StyleElement } from "@/lib/settings/editor-styles";
 import { useSettings } from "@/components/workspace/settings-context";
 import { LinkPopover } from "./link-popover";
+import { TableMenu } from "./table-menu";
 
 const ALIGN_ICONS: Record<(typeof ALIGNMENTS)[number], LucideIcon> = {
   left: AlignLeft,
@@ -229,6 +230,7 @@ export function NoteToolbar({
       {toggle("Quote", Quote, s.quote, () => run().toggleBlockquote().run())}
       {toggle("Code block", FileCode, s.codeBlock, () => run().toggleCodeBlock().run())}
       {toggle("Divider", Minus, false, () => run().setHorizontalRule().run())}
+      <TableMenu editor={editor} triggerClass={triggerClass} />
       <button
         type="button"
         data-toolbar-item
