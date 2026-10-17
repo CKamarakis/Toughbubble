@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { copyAttachments, finishAttachment, startAttachment } from "@/lib/attachments/actions";
 import { prepareFile } from "@/lib/attachments/prepare-image";
 import { isInlineImage, MAX_ATTACHMENT_BYTES, tooLargeMessage } from "@/lib/attachments/rules";
+import { outsideTable } from "@/lib/notes/table-position";
 import { createClient } from "@/lib/supabase/client";
 import type { AttachmentStore } from "./store";
 
@@ -93,11 +94,11 @@ export function useAttachFiles(editor: Editor | null, store: AttachmentStore) {
         const preview = image ? URL.createObjectURL(file) : undefined;
         store.setUpload(started.id, { phase: "uploading", preview });
         // After the selection: an inserted file stays selected, and inserting
-        // over it would replace it with the next one.
+        // over it would replace it with the next one. In a table, below it.
         editor
           .chain()
           .focus()
-          .insertContentAt(editor.state.selection.to,
+          .insertContentAt(outsideTable(editor.state.doc, editor.state.selection.to),
             image
               ? { type: "image", attrs: { attachmentId: started.id, align: "left" } }
               : {

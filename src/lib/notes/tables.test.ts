@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { Editor, getSchema, type JSONContent } from "@tiptap/core";
 import { afterEach, describe, expect, it } from "vitest";
 import { noteExtensions } from "./extensions";
+import { outsideTable } from "./table-position";
 import { validateNoteBody } from "./validate";
 
 // ProseMirror reads `styleSheet.rules` for pasted <style> blocks (Sheets and
@@ -86,6 +87,23 @@ describe("validateNoteBody: tables", () => {
       ok: false,
       error: "The note contains a table setting that isn't allowed.",
     });
+  });
+});
+
+describe("files added in a table", () => {
+  it("go directly below the table, not into the cell", () => {
+    const editor = new Editor({
+      extensions: noteExtensions(),
+      content: { type: "doc", content: [docWith([p("cell")]).content![0], p("after")] },
+    });
+    editor.commands.setTextSelection(4); // inside "cell"
+    expect(editor.state.selection.$from.parent.textContent).toBe("cell");
+    const image = { type: "image", attrs: { attachmentId: "00000000-0000-4000-8000-000000000000" } };
+    editor.commands.insertContentAt(outsideTable(editor.state.doc, editor.state.selection.to), image);
+    expect(editor.getJSON().content!.map((n) => n.type)).toEqual(["table", "image", "paragraph"]);
+    // Outside a table the position is unchanged.
+    expect(outsideTable(editor.state.doc, editor.state.doc.content.size)).toBe(editor.state.doc.content.size);
+    editor.destroy();
   });
 });
 

@@ -13,7 +13,7 @@
 
 ## 3. Files go below a table
 
-- [ ] 3.1 In `use-attach.ts`, insert a file after the enclosing table when the insert position is inside a table, for attach, paste and drop (design D3); verify with a DOM test that pasting an image file with the cursor in a cell puts the image node directly after the table.
+- [x] 3.1 In `use-attach.ts`, insert a file after the enclosing table when the insert position is inside a table, for attach, paste and drop (design D3); verify with a DOM test that pasting an image file with the cursor in a cell puts the image node directly after the table. (Tested in `src/lib/notes/tables.test.ts` on the shared `outsideTable` position with a real editor; the hook itself calls server actions, so the full paste path is in the manual testing plan.)
 
 ## 4. Table control in the toolbar
 
