@@ -77,10 +77,11 @@
   - separator;
   - Delete row / Delete column;
   - Clear cell;
-  - Header row (a check item, `toggleHeaderRow`);
+  - Header row and Header column (check items, `toggleHeaderRow` / `toggleHeaderColumn`; kit:ready D4: web tables often use the first column as headers);
   - separator;
   - Delete table.
 - **"Clear cell":** with a cell selection, it uses the library's delete-cell-selection. With a plain cursor, it replaces the cell's content with an empty paragraph, in one transaction.
+- **Delete table** stays although the PRD doesn't list it (kit:ready D1): without it a table is hard to remove.
 - **Shared behaviour:** it follows the existing pattern of `data-toolbar-item`, `finalFocus={false}` and commands via `editor.chain().focus()`, so focus returns to the note.
 - **Icon:** `Table` from lucide-react.
 - Alternatives:
@@ -97,6 +98,7 @@
 **D8. Copying tables between notes is required; copying to other apps is not.**
 - Inside the app, ProseMirror copies a selection as its own slice (with an HTML fallback that carries the node data), so a pasted table keeps every attribute: header row, spans, `colwidth`, marks and font sizes.
 - A cell selection copies as a table of those cells (`prosemirror-tables` handles the paste).
+- Pasting a table while the cursor is in a table keeps the library's behaviour: the cells fill from the cursor's cell and the table grows to fit (kit:ready D3, spreadsheet-like).
 - The existing `transformPasted` (attachments from another note) runs on the slice; cells hold no attachments, so it has nothing to change there.
 - Tests cover both a whole table and a block of cells, between two editors.
 - Pasting into Google Sheets or other apps is not promised; whatever the default HTML gives is accepted as it is.

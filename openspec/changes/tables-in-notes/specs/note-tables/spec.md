@@ -7,7 +7,7 @@ Lets a user keep tables in a note: paste them from common sources or other notes
 ## ADDED Requirements
 
 ### Requirement: Pasting tables
-A table pasted into a note SHALL be kept as a table with the same rows and columns, from web pages, Google Sheets and Excel. A header row in the source SHALL stay a header row, and merged cells SHALL stay merged. Cell content SHALL keep the formatting the editor supports (see "What a cell holds"); other source styling (fonts, colours, borders) SHALL be dropped. Images and files in a pasted table SHALL be dropped, keeping the text.
+A table pasted into a note SHALL be kept as a table with the same rows and columns, from web pages, Google Sheets and Excel. A header row or header column in the source SHALL stay a header row or column, and merged cells SHALL stay merged. A table pasted while the cursor is in a table SHALL fill cells starting at the cursor's cell, adding rows and columns as needed. Cell content SHALL keep the formatting the editor supports (see "What a cell holds"); other source styling (fonts, colours, borders) SHALL be dropped. Images and files in a pasted table SHALL be dropped, keeping the text.
 
 #### Scenario: Paste a table from a web page
 - **GIVEN** a 4-column table with a header row copied from a web page
@@ -39,6 +39,16 @@ A table pasted into a note SHALL be kept as a table with the same rows and colum
 - **WHEN** the user pastes it into a note
 - **THEN** that cell still spans two columns
 
+#### Scenario: Header column
+- **GIVEN** a copied web table whose first column holds header cells
+- **WHEN** the user pastes it into a note
+- **THEN** the first column is shown as a header column
+
+#### Scenario: Paste into a table
+- **GIVEN** the cursor in the last row of a 3 by 3 table, and a copied table of 2 rows by 2 columns
+- **WHEN** the user pastes
+- **THEN** the copied cells replace the cells from the cursor's cell onwards, and the table grows by one row so all of them fit
+
 ### Requirement: Inserting a table
 The note toolbar SHALL offer a Table control. With the cursor outside a table, it SHALL insert a table of 3 rows by 3 columns whose first row is a header row, and place the cursor in its first cell.
 
@@ -53,7 +63,7 @@ The note toolbar SHALL offer a Table control. With the cursor outside a table, i
 - **THEN** its choices can be picked with the keyboard and focus returns to the note
 
 ### Requirement: Editing a table
-With the cursor in a table, the Table control SHALL offer: add a row above or below, add a column to the left or right, delete the row, delete the column, clear the cell, turn the header row on or off, and delete the table. Clearing a cell SHALL remove its contents and keep the cell. Tab SHALL move to the next cell and Shift+Tab to the previous one; Tab in the last cell SHALL add a row. There SHALL be no command to sort, filter, merge or split cells.
+With the cursor in a table, the Table control SHALL offer: add a row above or below, add a column to the left or right, delete the row, delete the column, clear the cell, turn the header row on or off, turn the header column on or off, and delete the table. Clearing a cell SHALL remove its contents and keep the cell. Tab SHALL move to the next cell and Shift+Tab to the previous one; Tab in the last cell SHALL add a row. There SHALL be no command to sort, filter, merge or split cells.
 
 #### Scenario: Add and delete a row
 - **GIVEN** the cursor in the second row of a 3-row table
@@ -74,6 +84,11 @@ With the cursor in a table, the Table control SHALL offer: add a row above or be
 - **GIVEN** a table with a header row
 - **WHEN** the user turns the header row off
 - **THEN** the first row is shown and saved as a normal row
+
+#### Scenario: Header column on
+- **GIVEN** a table without a header column
+- **WHEN** the user turns the header column on
+- **THEN** the first column is shown and saved as header cells
 
 #### Scenario: Delete the table
 - **GIVEN** the cursor in a table
