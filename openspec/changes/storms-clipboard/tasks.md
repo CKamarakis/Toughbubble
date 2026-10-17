@@ -15,4 +15,4 @@
 - [x] 3.1 README Storms section: copy, paste, duplicate. Verify it matches the code.
 - [x] 3.2 `openspec/changes/storms-clipboard/testing-plan.md` in the storms-canvas format, one step per scenario plus browser-only steps (another tab, Safari fallback, bookmark dialog). Verify every `#### Scenario:` is in it.
 - [x] 3.3 Run types, lint, unit and integration tests and the speed gate. Verify all pass.
-- [ ] 3.4 Hand the testing plan to the user and record their results.
+- [x] 3.4 Hand the testing plan to the user and record their results. (2026-10-17: all pass; 9 Safari not tested, no device.)

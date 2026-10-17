@@ -321,6 +321,23 @@ describe("attachInput item interactions", () => {
     expect(store.getSnapshot().editingId).toBe("a");
   });
 
+  it("Enter, Space and arrows on a control inside the board are left to the control", () => {
+    setup(true);
+    store.select("a");
+    const swatch = document.createElement("button");
+    el.appendChild(swatch);
+    swatch.focus();
+    for (const k of ["Enter", " ", "ArrowRight", "ArrowDown", "Home", "End"]) {
+      expect(key(swatch, { key: k }).defaultPrevented).toBe(false);
+    }
+    expect(store.getSnapshot().editingId).toBeNull();
+    expect(store.getSnapshot().items.a).toMatchObject({ x: 1000, y: 1000 });
+    expect(cursor()).not.toBe("grab");
+    // Board shortcuts that a control has no use for still work from it.
+    expect(key(swatch, { key: "Delete" }).defaultPrevented).toBe(true);
+    expect(store.getSnapshot().items.a).toBeUndefined();
+  });
+
   it("double-click on a sticky with the Select tool starts editing", () => {
     setup(true);
     el.dispatchEvent(new MouseEvent("dblclick", { bubbles: true, ...at(0, 0) }));

@@ -22,49 +22,49 @@ Tip: make two new Storms just for this test (New > Storm), and call them "Test" 
 - **You should see:** A pink sticky "Plan" of the same size appears centred on the mouse pointer, on top and selected (with its toolbar above it). The second paste goes to the new pointer position. Move the pointer off the board (over the sidebar) and press Ctrl+V: the copy appears at the centre of the view.
 - Also checked automatically by: `src/components/storms/engine/input.dom.test.ts` (copy writes both types; paste of the custom type places a copy at the pointer); `src/components/storms/engine/actions.test.ts` (pasted sticky is on top, selected, one undo step).
 - Browser check: Not yet.
-- [ ] Pass  [ ] Fail   Notes:
+- [ x] Pass  [ ] Fail   Notes:
 
 **2. Paste in another Storm** _(storm-board, Copy, paste and duplicate: Paste in another Storm)_
 - **Do:** Copy a sticky in "Test" (select it, Ctrl+C). Open "Test 2" from the sidebar, click an empty spot on its board to give it focus, and press Ctrl+V.
 - **You should see:** A copy of the sticky appears in "Test 2" with the same text, colour and size. Wait for "Saved", reload, and it is still there.
 - Also checked automatically by: `src/components/storms/engine/input.dom.test.ts` (paste of the copied format); `src/lib/storms/clipboard.test.ts` (copy round trip). The two-Storm flow itself is browser only.
 - Browser check: Not yet.
-- [ ] Pass  [ ] Fail   Notes:
+- [ x] Pass  [ ] Fail   Notes: It works but I can do it 1 item at a time 
 
 **3. Duplicate** _(storm-board, Copy, paste and duplicate: Duplicate)_
 - **Do:** Select a sticky and press Ctrl+D (Chrome or Firefox: watch for a "bookmark" box at the top of the window).
 - **You should see:** A copy appears directly to the right with a gap of 20 px (about a thumb's width at 100% zoom), on top and selected. The browser's bookmark box does **not** open.
 - Also checked automatically by: `src/components/storms/engine/input.dom.test.ts` (Ctrl+D duplicates and its default is prevented); `src/components/storms/engine/actions.test.ts` (lands at x + width + 20, same y); `src/components/storms/engine/input.test.ts` (route).
 - Browser check: Not yet.
-- [ ] Pass  [ ] Fail   Notes:
+- [x] Pass  [ ] Fail   Notes:
 
 **4. Undo a paste** _(storm-board, Copy, paste and duplicate: Undo a paste)_
 - **Do:** Paste a sticky (Ctrl+V). Press Ctrl+Z (⌘+Z on Mac). Do the same with Ctrl+D.
 - **You should see:** One press removes the pasted sticky (or the duplicate), not more. The original is unchanged. Ctrl+Shift+Z brings the copy back.
 - Also checked automatically by: `src/components/storms/engine/actions.test.ts` (one undo step each; undo removes the copy and leaves the original).
 - Browser check: Not yet.
-- [ ] Pass  [ ] Fail   Notes:
+- [z] Pass  [ ] Fail   Notes:
 
 **5. Paste text from elsewhere** _(storm-board, Copy, paste and duplicate: Paste text from elsewhere)_
 - **Do:** In another app or tab, select the words "Call Anna" and copy them. Turn the new-sticky colour to something recognisable first (for example Light green: click Sticky, pick Light green, press Esc). Back in the Storm, click the board, move the mouse to an empty spot and press Ctrl+V.
 - **You should see:** A new light green sticky with "Call Anna" appears at the pointer (the colour for new stickies, not yellow). Also try copying a very long text (over 500 characters): the sticky keeps the first 500.
 - Also checked automatically by: `src/components/storms/engine/input.dom.test.ts` (plain text creates a sticky in the creation colour); `src/lib/storms/clipboard.test.ts` (text cut to 500).
 - Browser check: Not yet.
-- [ ] Pass  [ ] Fail   Notes:
+- [x ] Pass  [ ] Fail   Notes:
 
 **6. Copy text while typing** _(storm-board, Copy, paste and duplicate: Copy text while typing)_
 - **Do:** Double-click a sticky to edit it. Select a word in the text, press Ctrl+C, move the cursor to the end and press Ctrl+V.
 - **You should see:** The word is pasted into the text inside the sticky. No new sticky is made on the board. Also press Ctrl+D while typing: nothing is duplicated.
 - Also checked automatically by: `src/components/storms/engine/input.dom.test.ts` (while editing, the copy and paste events are not intercepted).
 - Browser check: Not yet.
-- [ ] Pass  [ ] Fail   Notes:
+- [ x] Pass  [ ] Fail   Notes:
 
 **7. Nothing selected** _(storm-board, Copy, paste and duplicate: Nothing selected)_
 - **Do:** Click empty board so nothing is selected. Press Ctrl+C. Press Ctrl+D.
 - **You should see:** Nothing happens on the board. (Ctrl+D with nothing selected may still open the browser's bookmark box: that is accepted.)
 - Also checked automatically by: `src/components/storms/engine/input.dom.test.ts` (with nothing selected, copy does nothing); `src/components/storms/engine/input.test.ts` (Ctrl+D routes only with a sticky selected); `src/components/storms/engine/actions.test.ts` (nothing selected, no change).
 - Browser check: Not yet.
-- [ ] Pass  [ ] Fail   Notes:
+- [ x] Pass  [ ] Fail   Notes:
 
 ## 2. Extra checks only a browser can do
 
@@ -73,21 +73,21 @@ Tip: make two new Storms just for this test (New > Storm), and call them "Test" 
 - **You should see:** The sticky is pasted in tab 2 with the same text, colour and size, as a new sticky (not the same one).
 - Also checked automatically by: browser only (the format is tested in `src/lib/storms/clipboard.test.ts`).
 - Browser check: Not yet.
-- [ ] Pass  [ ] Fail   Notes:
+- [ x] Pass  [ ] Fail   Notes:
 
 **9. Safari: the fallback** _(extra: Safari may drop the custom copy type; optional)_
 - **Do:** In Safari, select a pink sticky with text "Plan", press ⌘C, move the mouse to an empty spot and press ⌘V. Also try copying in Chrome and pasting in Safari if both are open.
 - **You should see:** Either a pink "Plan" sticky (the full copy), or, if Safari drops the custom type, a sticky with the text "Plan" in the colour for new stickies. Either is acceptable; write which one happened in Notes. Nothing should break.
 - Also checked automatically by: `src/components/storms/engine/input.dom.test.ts` (plain text creates a sticky); Safari itself is browser only.
 - Browser check: Not yet.
-- [ ] Pass  [ ] Fail   Notes:
+- [ ] Pass  [ ] Fail   Notes: I ahve no way to test safari. 
 
 **10. The bookmark box stays closed** _(extra: Ctrl+D in Chrome and Firefox)_
 - **Do:** In Chrome, then Firefox: click a sticky and press Ctrl+D several times. Then click empty board and press Ctrl+D once.
 - **You should see:** With a sticky selected, no bookmark box ever opens, and every press adds a copy. With nothing selected the browser may open its bookmark box (accepted); close it with Esc.
 - Also checked automatically by: `src/components/storms/engine/input.dom.test.ts` (the keydown default is prevented); the browser's own shortcut is browser only.
 - Browser check: Not yet.
-- [ ] Pass  [ ] Fail   Notes:
+- [ x] Pass  [ ] Fail   Notes:
 
 **11. While a palette is open** _(extra: only the sticky toolbar's palette takes the keys)_
 - **Do (a):** Select a sticky and click the colour button on its toolbar, so the colour palette is open. Press Ctrl+C, Ctrl+V and Ctrl+D. Then press Esc.
@@ -96,21 +96,21 @@ Tip: make two new Storms just for this test (New > Storm), and call them "Test" 
 - **You should see (b):** The Sticky tool's palette does not block the keys: Ctrl+V pastes the copy (the tool turns off and its palette closes), and Ctrl+D duplicates the selected sticky.
 - Also checked automatically by: `src/components/storms/sticky-toolbar.dom.test.ts` (with the toolbar's palette open, board keys are not acted on); `src/components/storms/engine/input.dom.test.ts` (with the Sticky tool on, paste and Ctrl+D work and turn the tool off); how it feels is browser only.
 - Browser check: Not yet.
-- [ ] Pass  [ ] Fail   Notes:
+- [x ] Pass  [ ] Fail   Notes:
 
 **12. Duplicate while dragging** _(extra: known limit)_
 - **Do:** Press the mouse on a sticky and start dragging it. While still holding, press Ctrl+D.
 - **You should see:** The copy lands next to where the sticky was **before** the drag started (not next to its current position). This is known and accepted; write down if anything else odd happens (the original jumping, two copies).
 - Also checked automatically by: browser only.
 - Browser check: Not yet.
-- [ ] Pass  [ ] Fail   Notes:
+- [ x] Pass  [ ] Fail   Notes:
 
 **13. Paste at different zooms** _(extra: paste lands under the pointer)_
 - **Do:** Copy a sticky. Set the zoom to 50%, move the pointer to an empty spot and press Ctrl+V. Repeat at 200%. Then pan far away and paste.
 - **You should see:** At every zoom the pasted sticky is centred on the pointer, keeping its size on the board (it looks half as big at 50%).
 - Also checked automatically by: `src/lib/storms/clipboard.test.ts` (copy centred on the point and clamped); the pointer position at a zoom is browser only.
 - Browser check: Not yet.
-- [ ] Pass  [ ] Fail   Notes:
+- [x ] Pass  [ ] Fail   Notes:
 
 ---
 

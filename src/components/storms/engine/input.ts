@@ -93,6 +93,12 @@ function isEditable(t: EventTarget | null): boolean {
   return t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable;
 }
 
+/** A button or an ARIA widget (radio, menu item...) that acts on its own keys. */
+function isControl(t: EventTarget | null): boolean {
+  return t instanceof HTMLElement && (t.tagName === "BUTTON" || t.hasAttribute("role"));
+}
+const CONTROL_KEYS = new Set(["Enter", " ", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End"]);
+
 const WHEEL_ZOOM_RATE = 0.0015;
 const LINE_MODE_FACTOR = 20;
 
@@ -386,6 +392,9 @@ export function attachInput(
   const onKeyDown = (e: KeyboardEvent) => {
     // Something closer (an open palette) already took the key.
     if (e.defaultPrevented || !focusInside() || isEditable(e.target)) return;
+    // A focused control (a swatch, a toolbar button) uses these keys itself. This native
+    // listener runs before React's handlers, so the control can't stop them in time.
+    if (e.target !== el && isControl(e.target) && CONTROL_KEYS.has(e.key)) return;
     const snap = store.getSnapshot();
     const action = routeKey(snap, e);
     if (!action) return;

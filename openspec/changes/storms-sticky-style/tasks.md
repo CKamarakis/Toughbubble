@@ -24,7 +24,7 @@
 - [x] 4.2 README Storms section: auto-fit and sticky colours. Verify it matches the code.
 - [x] 4.3 Write `openspec/changes/storms-sticky-style/testing-plan.md` in the same format as storms-canvas's: one numbered browser step per spec scenario (do / see / pass-fail / automated test). Verify every `#### Scenario:` in this change's specs appears in it.
 - [x] 4.4 Run types, lint, unit tests, integration tests and the speed gate. Verify all pass.
-- [ ] 4.5 Hand the testing plan to the user and record their results.
+- [x] 4.5 Hand the testing plan to the user and record their results. (2026-10-17: all pass except 14, fixed and awaiting a retest; 22 Firefox skipped, 23a not seen.)
 
 ## 5. Test-round changes (2026-10-16)
 
