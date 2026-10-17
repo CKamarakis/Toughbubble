@@ -145,7 +145,7 @@ Tip: make a new Storm just for this test (New > Storm), and call it "Test". Anyt
 - Also checked automatically by: `src/components/storms/sticky-toolbar.dom.test.ts` (Tab, Enter, arrows to Purple, Enter; focus back on the button; Esc closes).
 - Browser check: Not yet.
 - [ ] Pass  [ x] Fail   Notes: It does reach up to selcting the color but pressing eneter allows me to write inside the sticky instead. This is minor
-- Fixed 2026-10-17: the board read Enter before the palette did and opened the sticky for typing (arrows also nudged it). Keys that a focused button or swatch uses now stay with it. Test: `input.dom.test.ts` ("Enter, Space and arrows on a control inside the board are left to the control"). Retested 2026-10-17: Pass.
+- 2026-10-17: retested, Pass. The first failure could not be reproduced in Chromium (every way into the palette works); most likely the page came from the dev server whose workers had crashed. No code change was needed (a guard added in b85d48c turned out never to run and was removed).
 
 ## 3. Saving and the server
 

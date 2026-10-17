@@ -113,6 +113,7 @@ Yellow `#F7D000` fill, no border, subtle shadow; text neutral 800 (`#333129`), G
 
 ### D7: Undo across reload
 - `undo-store.ts` writes `{ version, undo, redo }` to IndexedDB (database `storms-undo`, key `<userId>:<stormId>`) after an acknowledged save, and only when nothing is pending or in flight, so the snapshot always matches the board stored at `version`. Steps made during a save are written at the next quiet save.
+- Tests use `fake-indexeddb` (a dev dependency, added during the build) so the undo store runs under Vitest in Node, where there is no IndexedDB.
 - On load: restore only if the stored `version` equals the server version; otherwise delete it.
 - Sign-out: the account menu clears the object store (`store.clear()`, not `deleteDatabase`, which other open tabs would block) before submitting the sign-out form. Open connections close on `versionchange`. Keying by user id means another user on the same browser never sees it even if clearing fails.
 - Zoom, pan and selection are not undo steps.
