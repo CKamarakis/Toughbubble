@@ -144,8 +144,8 @@ Tip: make a new Storm just for this test (New > Storm), and call it "Test". Anyt
 - **You should see:** The sticky turns purple, the palette closes, and the focus ring is back on the colour button. Esc instead of the last Enter closes the palette with no change.
 - Also checked automatically by: `src/components/storms/sticky-toolbar.dom.test.ts` (Tab, Enter, arrows to Purple, Enter; focus back on the button; Esc closes).
 - Browser check: Not yet.
-- [ ] Pass  [ x] Fail   Notes: It does reach up to selcting the color but pressing eneter allows me toright inside the sticky instead. This is minor
-- Fixed 2026-10-17: the board read Enter before the palette did and opened the sticky for typing (arrows also nudged it). Keys that a focused button or swatch uses now stay with it. Test: `input.dom.test.ts` ("Enter, Space and arrows on a control inside the board are left to the control"). Retest: Not yet.
+- [ ] Pass  [ x] Fail   Notes: It does reach up to selcting the color but pressing eneter allows me to write inside the sticky instead. This is minor
+- Fixed 2026-10-17: the board read Enter before the palette did and opened the sticky for typing (arrows also nudged it). Keys that a focused button or swatch uses now stay with it. Test: `input.dom.test.ts` ("Enter, Space and arrows on a control inside the board are left to the control"). Retested 2026-10-17: Pass.
 
 ## 3. Saving and the server
 
