@@ -2,10 +2,6 @@
 title: Storms v1
 status: Building
 change: storms-clipboard
-archived:
-  - storms-canvas
-  - storms-sticky-style
-  - storms-clipboard
 sources:
   - notes/storms/2026-10-08-storms-a-simple-miro-like-board-overview.md
   - notes/storms/2026-10-08-storms-canvas.md
