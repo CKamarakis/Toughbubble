@@ -31,24 +31,26 @@ The owner of the workspace, keeping research and reference material in notes. As
 - Adding and deleting rows and columns; clearing a cell's contents.
 - Header row on or off; merged cells kept when pasted.
 - Changing column widths by dragging.
-- The editor's existing text formatting inside cells (bold, italic, links).
+- Cells are edited like the rest of the note: headings, lists, checklists, quotes, code, all text formatting and font sizes. Header cells are bold on a muted background by default.
 - Wide tables scroll sideways inside the note.
-- Copying a table out of a note, if it already works without extra build.
+- Copying tables, or a block of cells, between notes, keeping their structure and formatting.
+- Header column kept on paste, with an on/off toggle. Delete table.
 
 **Out (and why):**
 - Sorting, filtering, formulas: keep tables simple.
-- Images inside cells: not needed for now.
+- Images or files inside cells: not needed for now.
 - Cell colours and borders; source styling (Excel fonts and colours) is dropped, as with any paste today.
 - Merging or splitting cells: pasted merges are kept, but there is no command to make them.
 - Removing a single cell: a table is a grid, so the options are clearing a cell or deleting its row or column.
 - Word as a tested source: not a common source for this use.
 - A slash menu: notes have none today; adding one is its own feature.
-- Copying out, if it turns out to need work beyond the editor's default.
+- Copying tables into other apps (Google Sheets): not promised.
+- A Settings default for header-cell style: later.
 
 ## Requirements
 
 **Paste**
-- Given a table copied from a web page, when I paste it into a note, then it shows as a table with the same rows, columns and header row, and cell text keeps bold, italic and links.
+- Given a table copied from a web page, when I paste it into a note, then it shows as a table with the same rows, columns and header row, and cell content keeps its formatting.
 - Given a range copied from Google Sheets or Excel, when I paste it into a note, then it shows as a table with the same rows and columns.
 - Given a copied table that contains images, when I paste it, then the table arrives without the images.
 - Given a copied table with merged cells, when I paste it, then those cells stay merged.
@@ -65,8 +67,8 @@ The owner of the workspace, keeping research and reference material in notes. As
 - Given I edited a table, when I reload the note, then the table is unchanged.
 - Given I made a table edit, when I undo and then redo, then the edit is undone and redone.
 
-**Copying out**
-- Given a table in a note, when I copy it and paste it into Google Sheets, then it arrives as rows and columns. If this does not already work, it moves to Out.
+**Copying between notes**
+- Given a table in note A, when I copy it and paste it into note B, then it arrives with the same rows, columns, header row, merged cells, widths and formatting.
 
 ## UX notes and assets
 
