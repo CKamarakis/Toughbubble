@@ -65,7 +65,11 @@
 - `colspan` and `rowspan` must be whole numbers from 1 to 100.
 - `colwidth` must be null, or an array of `colspan` entries, each a whole number from 25 to 5000, or null.
 - A failure returns "The note contains a table setting that isn't allowed."
-- `doc.check()` already enforces the structure: rows hold cells, and cells hold paragraphs.
+- `doc.check()` already enforces the structure: rows hold cells, and cells hold their allowed blocks.
+- Cell alignment must be left, center, right or empty. It is written into the cell's style, so other values are refused, the same way the table library already drops them on paste.
+- Width entries of 0 or null mean "not set", as the table library uses them.
+- Paste brings spans and widths into range instead of refusing them, so a paste can never produce a note that won't save.
+- Dragging a column is kept in range the same way: after any change, a plugin rounds widths and limits them to 25–5000 px, in the same undo step, so a note always saves (found in code review: a drag can leave a fractional width).
 
 **D6. The Table control is one toolbar dropdown, placed after the Divider button.**
 - **Outside a table:**

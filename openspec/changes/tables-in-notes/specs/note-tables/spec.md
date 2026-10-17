@@ -39,6 +39,11 @@ A table pasted into a note SHALL be kept as a table with the same rows and colum
 - **WHEN** the user pastes it into a note
 - **THEN** that cell still spans two columns
 
+#### Scenario: Out-of-range widths and spans
+- **GIVEN** a copied table with a column 3 px wide and a cell spanning 0 columns
+- **WHEN** the user pastes it into a note
+- **THEN** the width becomes 25 px and the span 1, and the note saves normally
+
 #### Scenario: Header column
 - **GIVEN** a copied web table whose first column holds header cells
 - **WHEN** the user pastes it into a note
@@ -56,6 +61,11 @@ The note toolbar SHALL offer a Table control. With the cursor outside a table, i
 - **GIVEN** the cursor on a line in a note, outside any table
 - **WHEN** the user chooses Insert table from the toolbar's Table control
 - **THEN** a 3 by 3 table with a header row appears and the cursor is in its first cell
+
+#### Scenario: New table fills the note
+- **GIVEN** a note wider than three 25 px columns
+- **WHEN** the user inserts a table
+- **THEN** it fills the note's width with three equal columns, until a column is dragged
 
 #### Scenario: Keyboard access
 - **GIVEN** focus on the note toolbar
