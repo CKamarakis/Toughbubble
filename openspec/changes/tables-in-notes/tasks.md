@@ -25,7 +25,7 @@
 
 ## 5. Styling
 
-- [ ] 5.1 Style tables in the `.tb-editor` styles (design D7): theme borders, header cells muted and bold, 6×8 px padding, selected-cell overlay and resize handle in `ring`, `.tableWrapper` with `overflow-x: auto`; verify in the browser in light and dark themes that a 12-column table scrolls sideways and the page does not.
+- [x] 5.1 Style tables in the `.tb-editor` styles (design D7): theme borders, header cells muted and bold, 6×8 px padding, selected-cell overlay and resize handle in `ring`, `.tableWrapper` with `overflow-x: auto`; verify in the browser in light and dark themes that a 12-column table scrolls sideways and the page does not. (Checked in Chromium: a pasted 12-column table scrolls inside the note, 848 px wrapper vs 1441 px table, page width unchanged; a new table fills the note with equal columns; light and dark both readable.)
 
 ## 6. Integration checks
 

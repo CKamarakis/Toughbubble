@@ -430,6 +430,56 @@ summary {
   .tb-editor u {
     text-underline-offset: 2px;
   }
+  /* Tables (tables-in-notes D4, D7): a wide table scrolls inside the note. */
+  .tb-editor .tableWrapper {
+    margin: 1em 0;
+    overflow-x: auto;
+  }
+  /* Full width with equal columns until widths are dragged or pasted; the
+     table view then sets its own width or min-width inline. */
+  .tb-editor table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    margin: 0;
+  }
+  .tb-editor :where(td, th) {
+    position: relative;
+    min-width: 25px;
+    border: 1px solid var(--input);
+    padding: 6px 8px;
+    vertical-align: top;
+    text-align: left;
+  }
+  .tb-editor th {
+    background: var(--muted);
+    font-weight: 600;
+  }
+  .tb-editor :where(td, th) > :first-child {
+    margin-top: 0;
+  }
+  .tb-editor :where(td, th) > :last-child {
+    margin-bottom: 0;
+  }
+  .tb-editor .selectedCell::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: color-mix(in oklab, var(--ring) 15%, transparent);
+    pointer-events: none;
+  }
+  .tb-editor .column-resize-handle {
+    position: absolute;
+    top: 0;
+    right: -2px;
+    bottom: -2px;
+    width: 4px;
+    background: var(--ring);
+    pointer-events: none;
+  }
+  .tb-editor .ProseMirror.resize-cursor {
+    cursor: col-resize;
+  }
   .tb-editor .is-editor-empty:first-child::before {
     content: attr(data-placeholder);
     color: var(--muted-foreground);
