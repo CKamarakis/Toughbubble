@@ -3,8 +3,9 @@ import { Editor, type JSONContent } from "@tiptap/core";
 import { act, createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { CellSelection } from "@tiptap/pm/tables";
 import { noteExtensions } from "@/lib/notes/extensions";
-import { clearCells, headerState } from "@/lib/notes/table-commands";
+import { clearCells, headerState, tableAt } from "@/lib/notes/table-commands";
 import { validateNoteBody } from "@/lib/notes/validate";
 import { TableMenu } from "./table-menu";
 
@@ -51,7 +52,7 @@ describe("table commands", () => {
     editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
     expect(table()!.content).toHaveLength(3);
     expect(table()!.content![0].content!.map((c) => c.type)).toEqual(["tableHeader", "tableHeader", "tableHeader"]);
-    expect(headerState(editor.state)).toEqual({ row: true, column: false });
+    expect(headerState(tableAt(editor.state))).toEqual({ row: true, column: false });
     const $from = editor.state.selection.$from;
     expect($from.node($from.depth - 1).type.name).toBe("tableHeader");
     expect($from.index($from.depth - 2)).toBe(0); // first cell of the row
@@ -85,10 +86,10 @@ describe("table commands", () => {
     makeEditor([grid(2, 2)]);
     cursorIn("1,1");
     editor.commands.toggleHeaderRow();
-    expect(headerState(editor.state)).toEqual({ row: false, column: false });
+    expect(headerState(tableAt(editor.state))).toEqual({ row: false, column: false });
     expect(table()!.content![0].content![0].type).toBe("tableCell");
     editor.commands.toggleHeaderColumn();
-    expect(headerState(editor.state)).toEqual({ row: false, column: true });
+    expect(headerState(tableAt(editor.state))).toEqual({ row: false, column: true });
     expect(validateNoteBody(editor.getJSON()).ok).toBe(true);
   });
 
@@ -158,6 +159,59 @@ describe("table commands", () => {
   });
 });
 
+describe("review fixes", () => {
+  const cellAt = (r: number, c: number) => (table()!.content![r].content as JSONContent[])[c];
+
+  it("a dragged width that is fractional or too large is stored rounded and in range", () => {
+    makeEditor([grid(2, 2)]);
+    let pos = -1;
+    editor.state.doc.descendants((n, p) => {
+      if (pos < 0 && n.type.name === "tableCell") pos = p;
+    });
+    editor.view.dispatch(editor.state.tr.setNodeAttribute(pos, "colwidth", [75.5]));
+    expect(cellAt(1, 0).attrs?.colwidth).toEqual([76]);
+    editor.view.dispatch(editor.state.tr.setNodeAttribute(pos, "colwidth", [9000]));
+    expect(cellAt(1, 0).attrs?.colwidth).toEqual([5000]);
+    expect(validateNoteBody(editor.getJSON()).ok).toBe(true);
+  });
+
+  it("the header column follows the grid when a header spans two rows", () => {
+    const th = (t: string, attrs = {}) => ({ type: "tableHeader", attrs, content: [p(t)] });
+    const td = (t: string) => ({ type: "tableCell", content: [p(t)] });
+    makeEditor([
+      {
+        type: "table",
+        content: [
+          { type: "tableRow", content: [th("A", { rowspan: 2 }), td("b")] },
+          { type: "tableRow", content: [td("c")] },
+          { type: "tableRow", content: [th("D"), td("e")] },
+        ],
+      },
+    ]);
+    cursorIn("e");
+    expect(headerState(tableAt(editor.state)).column).toBe(true);
+  });
+
+  it("clears a block of selected cells", () => {
+    makeEditor([grid(2, 2)]);
+    const cells: number[] = [];
+    editor.state.doc.descendants((n, p) => {
+      if (n.type.spec.tableRole === "cell") cells.push(p);
+    });
+    editor.view.dispatch(editor.state.tr.setSelection(CellSelection.create(editor.state.doc, cells[0], cells[1])));
+    expect(clearCells(editor)).toBe(true);
+    expect(texts()).toEqual([["0,0", "0,1"], ["", ""]]);
+  });
+
+  it("does nothing in a read-only note", () => {
+    makeEditor([grid(2, 2)]);
+    cursorIn("1,1");
+    editor.setEditable(false);
+    expect(clearCells(editor)).toBe(false);
+    expect(texts()![1][1]).toBe("1,1");
+  });
+});
+
 describe("TableMenu", () => {
   let container: HTMLDivElement;
   let root: Root;
@@ -211,5 +265,18 @@ describe("TableMenu", () => {
       "Header column",
       "Delete table",
     ]);
+    // Every item can run here, including "above" and "left".
+    const disabled = [...document.querySelectorAll("[role^=menuitem][data-disabled]")].map((el) => el.textContent?.trim());
+    expect(disabled).toEqual([]);
+  });
+
+  it("in a read-only note every item is greyed out", async () => {
+    makeEditor([grid(2, 2)]);
+    cursorIn("1,1");
+    editor.setEditable(false);
+    await act(async () => root.render(createElement(TableMenu, { editor, triggerClass: "" })));
+    await open();
+    const disabled = [...document.querySelectorAll("[role^=menuitem][data-disabled]")].map((el) => el.textContent?.trim());
+    expect(disabled).toHaveLength(10);
   });
 });

@@ -6,6 +6,7 @@ import { Table, TableCell, TableHeader, TableRow } from "@tiptap/extension-table
 import TextAlign from "@tiptap/extension-text-align";
 import { FontSize, TextStyle } from "@tiptap/extension-text-style";
 import { Placeholder } from "@tiptap/extensions";
+import { Plugin, type Transaction } from "@tiptap/pm/state";
 import StarterKit from "@tiptap/starter-kit";
 import { type AttachmentViews, fileAttachment, noteImage } from "./attachment-nodes";
 import { parseFontSize, toCssSize } from "./font-size";
@@ -96,16 +97,50 @@ function safeCellAttributes<T extends Record<string, unknown>>(attributes: T) {
   };
 }
 
-const NoteTableCell = TableCell.extend({
-  content: CELL_CONTENT,
-  addAttributes() {
-    return safeCellAttributes(this.parent?.() ?? {});
+/** A cell or header cell that holds note text blocks and keeps pasted attributes in range. */
+const noteCell = (base: typeof TableCell | typeof TableHeader) =>
+  base.extend({
+    content: CELL_CONTENT,
+    addAttributes() {
+      return safeCellAttributes(this.parent?.() ?? {});
+    },
+  });
+
+/** A column width as stored: a whole number of pixels in range, or 0 for "not set". */
+export const cleanColumnWidth = (w: unknown) => (typeof w === "number" && Number.isFinite(w) && w > 0 ? clampWidth(w) : 0);
+
+/**
+ * Dragging a column can leave a fractional width (a merged cell's share, a
+ * zoomed page) or one past the limit. After any change, widths are rounded
+ * and kept in range in the same step, so the note always saves
+ * (tables-in-notes D5).
+ */
+const columnWidthGuard = new Plugin({
+  appendTransaction(transactions, _old, state) {
+    if (!transactions.some((tr) => tr.docChanged)) return null;
+    let tr: Transaction | null = null;
+    state.doc.forEach((block, offset) => {
+      if (block.type.name !== "table") return;
+      block.descendants((node, pos) => {
+        if (node.type.spec.tableRole !== "cell" && node.type.spec.tableRole !== "header_cell") return true;
+        const widths = node.attrs.colwidth as unknown[] | null;
+        if (Array.isArray(widths)) {
+          const clean = widths.map(cleanColumnWidth);
+          if (clean.some((w, i) => w !== widths[i])) {
+            tr ??= state.tr;
+            tr.setNodeAttribute(offset + 1 + pos, "colwidth", clean.every((w) => w === 0) ? null : clean);
+          }
+        }
+        return false;
+      });
+    });
+    return tr;
   },
 });
-const NoteTableHeader = TableHeader.extend({
-  content: CELL_CONTENT,
-  addAttributes() {
-    return safeCellAttributes(this.parent?.() ?? {});
+
+const NoteTable = Table.extend({
+  addProseMirrorPlugins() {
+    return [...(this.parent?.() ?? []), columnWidthGuard];
   },
 });
 
@@ -143,9 +178,9 @@ export function noteExtensions({
     noteImage(views.image),
     fileAttachment(views.fileAttachment),
     // Column widths are dragged and saved in each cell's `colwidth` (tables-in-notes D4).
-    Table.configure({ resizable: true, cellMinWidth: MIN_COLUMN_WIDTH }),
+    NoteTable.configure({ resizable: true, cellMinWidth: MIN_COLUMN_WIDTH }),
     TableRow,
-    NoteTableHeader,
-    NoteTableCell,
+    noteCell(TableHeader),
+    noteCell(TableCell),
   ];
 }
