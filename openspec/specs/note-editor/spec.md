@@ -4,8 +4,9 @@
 Lets a user write and format the body of a note, with changes saved automatically and never silently lost, including when the same note is open in more than one tab or device.
 
 ## Requirements
+
 ### Requirement: Note body editor
-Opening a note SHALL show its body below the title in an editor the user can type in immediately. A note with no body SHALL show an empty editor with the placeholder "Start writing…". Storms SHALL keep their placeholder.
+Opening a note SHALL show its body below the title in an editor the user can type in immediately. A note with no body SHALL show an empty editor with the placeholder "Start writing…".
 
 #### Scenario: Open a new note
 - **WHEN** a user opens a note that has never been written in
