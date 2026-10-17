@@ -2,12 +2,12 @@
 
 ## Purpose
 
-Lets a user keep tables in a note: paste them from common sources with their rows and columns intact, create new ones, and make simple edits to rows, columns and cells.
+Lets a user keep tables in a note: paste them from common sources or other notes with their rows and columns intact, create new ones, format cell content like the rest of the note, and make simple edits to rows, columns and cells.
 
 ## ADDED Requirements
 
 ### Requirement: Pasting tables
-A table pasted into a note SHALL be kept as a table with the same rows and columns, from web pages, Google Sheets and Excel. A header row in the source SHALL stay a header row, and merged cells SHALL stay merged. Cell text SHALL keep the inline formatting the editor supports (bold, italic, underline, strikethrough, inline code, links); other source styling (fonts, colours, borders) SHALL be dropped. Images and other content a cell cannot hold SHALL be dropped, keeping the text.
+A table pasted into a note SHALL be kept as a table with the same rows and columns, from web pages, Google Sheets and Excel. A header row in the source SHALL stay a header row, and merged cells SHALL stay merged. Cell content SHALL keep the formatting the editor supports (see "What a cell holds"); other source styling (fonts, colours, borders) SHALL be dropped. Images and files in a pasted table SHALL be dropped, keeping the text.
 
 #### Scenario: Paste a table from a web page
 - **GIVEN** a 4-column table with a header row copied from a web page
@@ -25,9 +25,9 @@ A table pasted into a note SHALL be kept as a table with the same rows and colum
 - **THEN** it shows as a table with the same rows, columns and cell text, and no picture of the cells is attached to the note
 
 #### Scenario: Formatting in cells
-- **GIVEN** a copied table whose cells contain bold text and a link
+- **GIVEN** a copied table whose cells contain bold text, a link and a bulleted list
 - **WHEN** the user pastes it into a note
-- **THEN** the bold text and the link are kept in their cells
+- **THEN** the bold text, the link and the list are kept in their cells
 
 #### Scenario: Images in a pasted table
 - **GIVEN** a copied web table with an image in one cell
@@ -86,7 +86,17 @@ With the cursor in a table, the Table control SHALL offer: add a row above or be
 - **THEN** a new row is added and the cursor is in its first cell
 
 ### Requirement: What a cell holds
-A table cell SHALL hold text in paragraphs with the editor's inline formatting and font sizes. Files attached, pasted or dropped while the cursor is in a table SHALL be added to the note directly below the table.
+A table cell, including a header cell, SHALL be edited like the rest of the note: it SHALL hold paragraphs, headings, bulleted and numbered lists, checklists, quotes and code blocks, with all inline formatting, font sizes, text alignment and links, using the same toolbar and shortcuts. A cell SHALL NOT hold images, file cards or another table. Header cells SHALL be shown bold on a muted background by default, and the user's own formatting SHALL apply on top. Files attached, pasted or dropped while the cursor is in a table SHALL be added to the note directly below the table.
+
+#### Scenario: Format a header cell
+- **GIVEN** the cursor in a header cell
+- **WHEN** the user sets its text to 20 px and italic from the toolbar
+- **THEN** the header text shows at 20 px, italic and bold, and keeps that after a reload
+
+#### Scenario: Heading and list in a cell
+- **GIVEN** the cursor in a cell
+- **WHEN** the user chooses Heading 3, types a line, then turns the next line into a bulleted list
+- **THEN** the cell holds a level-3 heading followed by a list
 
 #### Scenario: Attach a file while in a table
 - **GIVEN** the cursor in a table cell
@@ -126,10 +136,15 @@ Tables SHALL be saved with the note like other content and SHALL take part in un
 - **WHEN** a save contains a cell spanning 0 columns or a column width of 100,000 pixels
 - **THEN** the save is refused with an error and the stored note is unchanged
 
-### Requirement: Copying a table out
-A table copied from a note SHALL paste into Google Sheets as rows and columns.
+### Requirement: Copying tables between notes
+A table copied from a note and pasted into the same or another note SHALL arrive unchanged: the same rows, columns, header row, merged cells, column widths and cell formatting. Copying a block of selected cells SHALL paste them as a table of those cells.
 
-#### Scenario: Copy to Google Sheets
-- **GIVEN** a table in a note
-- **WHEN** the user selects the table, copies it and pastes it into Google Sheets
-- **THEN** the cells arrive in the same rows and columns
+#### Scenario: Copy a table to another note
+- **GIVEN** a table with a header row, a merged cell, a widened column and bold text in note A
+- **WHEN** the user selects the table, copies it and pastes it into note B
+- **THEN** note B shows the same table, with the header row, merged cell, column width and bold text
+
+#### Scenario: Copy some cells
+- **GIVEN** a 4 by 4 table
+- **WHEN** the user selects a block of 2 by 2 cells, copies them and pastes them on an empty line
+- **THEN** a 2 by 2 table with those cells' content appears

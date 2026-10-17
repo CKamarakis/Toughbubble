@@ -20,14 +20,16 @@
 **Goals:**
 - Tables pasted from web pages, Google Sheets and Excel keep their rows, columns, header row and merged cells.
 - Simple editing from the toolbar, with column widths that are saved.
-- Cells that hold text only.
+- Cells formatted like the rest of the note (headings, lists, sizes, bold), but no images or files.
+- Tables copy between notes unchanged.
 - Save validation that stays as strict as it is for other nodes.
 
 **Non-Goals:**
 - Sorting, filtering, formulas, cell colours and borders.
 - Merge and split commands, and images in cells.
 - Word as a tested source, and a slash menu.
-- Custom copy-out code: the default HTML copy is used, or copying out is dropped.
+- Copying tables into other apps such as Google Sheets: not promised.
+- A Settings default for header-cell style (later, if wanted).
 
 ## Decisions
 
@@ -42,11 +44,12 @@
 - It is added to `noteExtensions()`, so the editor and the validation agree automatically.
 - Alternative: write our own table node. Rejected, because cell selection, spans and resizing are the hard parts and the library already does them.
 
-**D2. Cells and header cells hold `paragraph+`, instead of the library's default `block+`.**
-- This is how "text only, no images" (from the PRD) is enforced in the schema. It is checked on paste, on typing and on the server.
-- When a paste brings an image, list or heading into a cell, the parser can't place it there. It drops the image and keeps the text as paragraphs.
-- Inline marks and font size still apply, and text alignment applies because paragraphs carry it.
-- Alternative: allow `block+` and filter it out on paste. Rejected, because a later drop or paste could still put an image in a cell, and the server would accept it.
+**D2. Cells hold every text block, but not images, file cards or tables.**
+- Cell and header-cell content is `(paragraph | heading | bulletList | orderedList | taskList | blockquote | codeBlock | horizontalRule)+`, not the library's `block+`.
+- A table is edited like the rest of the note: the same toolbar, shortcuts, font sizes, alignment and links work in cells.
+- The schema itself keeps images, file cards and nested tables out, so the rule holds on paste, on typing and on the server.
+- When a paste brings an image into a cell, the parser can't place it there, so it drops the image and keeps the text.
+- Alternative: allow `block+` and filter on paste. Rejected, because a later drop or paste could still put an image in a cell, and the server would accept it.
 
 **D3. Files go below the table.**
 - In `use-attach.ts`, when the selection is inside a table, the insert position becomes the position right after the table node.
@@ -85,14 +88,18 @@
   - A right-click menu. Rejected: the browser's own menu is expected there in notes.
 
 **D7. Styling in the `.tb-editor` styles.**
-- Borders use the theme `border` token, and header cells use the `muted` background with bold text.
+- Borders use the theme `border` token, and header cells use the `muted` background with bold text. That is the default header style; the user's own formatting (size, italic, alignment, a heading) applies on top.
+- A Settings default for header-cell style (like the per-element defaults in editor-settings) is left for later; it fits that pattern if it's wanted.
 - Cell padding is 6×8 px.
 - The selected-cell overlay and the resize handle use the `ring` token. Both are shown for light and dark themes.
 - No new colours.
 
-**D8. Copying out uses ProseMirror's default clipboard serializer, which writes the table's HTML.**
-- The task checks it with a paste into Google Sheets.
-- If it fails, the requirement "Copying a table out" is removed from the delta, as the PRD agreed, and no code is added.
+**D8. Copying tables between notes is required; copying to other apps is not.**
+- Inside the app, ProseMirror copies a selection as its own slice (with an HTML fallback that carries the node data), so a pasted table keeps every attribute: header row, spans, `colwidth`, marks and font sizes.
+- A cell selection copies as a table of those cells (`prosemirror-tables` handles the paste).
+- The existing `transformPasted` (attachments from another note) runs on the slice; cells hold no attachments, so it has nothing to change there.
+- Tests cover both a whole table and a block of cells, between two editors.
+- Pasting into Google Sheets or other apps is not promised; whatever the default HTML gives is accepted as it is.
 
 **D9. Paste sources are checked with saved fixtures.**
 - Test fixtures hold clipboard HTML captured from:
@@ -105,7 +112,7 @@
 ## Risks / Trade-offs
 
 - **[A source's HTML parses badly, for example an Excel `<col>` or style-only header]** → The fixture tests catch it. Fix it with a small `parseHTML` tweak, or list the source as untested, as the PRD says.
-- **[A pasted list or heading inside a cell becomes plain paragraphs]** → This is the accepted cost of D2, and the text is kept.
+- **[Toolbar commands that act on a whole block behave oddly in a cell, e.g. a checklist or code block in a narrow column]** → DOM tests cover heading, list and size in a cell; anything awkward gets fixed or noted in the testing plan.
 - **[`colwidth` makes stored JSON larger for big tables]** → It's small next to the 800 KB note limit. A table so large that the note goes over the limit gets the existing "too long" message.
 - **[Toolbar commands are shown when they can't run]** → Each item is disabled when its `editor.can()` check is false.
 - **[`prosemirror-tables` keyboard handling clashes with the note's Tab handling]** → The note's Tab handler only acts on links and selected attachments and returns false otherwise, so the table keymap gets Tab inside cells. A test covers Tab in a cell.
