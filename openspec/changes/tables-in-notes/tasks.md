@@ -2,9 +2,9 @@
 
 ## 1. Table nodes in the note schema
 
-- [ ] 1.1 Add `@tiptap/extension-table@3.31.3` (same version as the other Tiptap packages); verify `npm ls @tiptap/extension-table` shows 3.31.3 and `npm run build` still passes.
-- [ ] 1.2 Add Table (`resizable: true`), TableRow, TableHeader and TableCell to `noteExtensions()`, with cell and header content set to the text blocks of design D2 (D1, D2, D4); verify with a unit test in `src/lib/notes/` that `getSchema(noteExtensions())` knows the four nodes, accepts a heading and a list in a cell, and rejects an image, a file card and a nested table inside a cell.
-- [ ] 1.3 Paste fixtures (design D9): save clipboard HTML for a web table (FTL / LTL / groupage, with a header row, bold, a link and a list in a cell), a Google Sheets 3×3 range, an Excel range, a web table with an image in a cell one with a colspan and one with a header column, under `src/lib/notes/__fixtures__/tables/`; verify with a unit test that parses each through the note schema and checks rows, columns, header row, kept bold/link/list, dropped image, span and header column.
+- [x] 1.1 Add `@tiptap/extension-table@3.31.3` (same version as the other Tiptap packages); verify `npm ls @tiptap/extension-table` shows 3.31.3 and `npm run build` still passes.
+- [x] 1.2 Add Table (`resizable: true`), TableRow, TableHeader and TableCell to `noteExtensions()`, with cell and header content set to the text blocks of design D2 (D1, D2, D4); verify with a unit test in `src/lib/notes/` that `getSchema(noteExtensions())` knows the four nodes, accepts a heading and a list in a cell, and rejects an image, a file card and a nested table inside a cell.
+- [x] 1.3 Paste fixtures (design D9): save clipboard HTML for a web table (FTL / LTL / groupage, with a header row, bold, a link and a list in a cell), a Google Sheets 3×3 range, an Excel range, a web table with an image in a cell one with a colspan and one with a header column, under `src/lib/notes/__fixtures__/tables/`; verify with a unit test that parses each through the note schema and checks rows, columns, header row, kept bold/link/list, dropped image, span and header column.
 
 ## 2. Saving
 

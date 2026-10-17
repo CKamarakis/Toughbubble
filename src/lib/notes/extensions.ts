@@ -2,6 +2,7 @@ import type { AnyExtension } from "@tiptap/core";
 import Document from "@tiptap/extension-document";
 import Link from "@tiptap/extension-link";
 import { TaskItem, TaskList } from "@tiptap/extension-list";
+import { Table, TableCell, TableHeader, TableRow } from "@tiptap/extension-table";
 import TextAlign from "@tiptap/extension-text-align";
 import { FontSize, TextStyle } from "@tiptap/extension-text-style";
 import { Placeholder } from "@tiptap/extensions";
@@ -57,6 +58,57 @@ const SafeFontSize = FontSize.extend({
   },
 });
 
+/** Limits on table cells, shared with the save validation (tables-in-notes D5). */
+export const MAX_CELL_SPAN = 100;
+export const MIN_COLUMN_WIDTH = 25;
+export const MAX_COLUMN_WIDTH = 5000;
+export const CELL_ALIGNMENTS = ["left", "center", "right"] as const;
+
+/**
+ * What a table cell may hold: every text block, but no images, file cards or
+ * tables (tables-in-notes D2).
+ */
+const CELL_CONTENT = "(paragraph | heading | bulletList | orderedList | taskList | blockquote | codeBlock | horizontalRule)+";
+
+const clampSpan = (value: string | null) => {
+  const n = Number.parseInt(value ?? "", 10);
+  return Number.isFinite(n) ? Math.min(Math.max(n, 1), MAX_CELL_SPAN) : 1;
+};
+const clampWidth = (n: number) => Math.min(Math.max(Math.round(n), MIN_COLUMN_WIDTH), MAX_COLUMN_WIDTH);
+
+/** Pasted spans and widths are brought into range, so a paste never makes a note that can't be saved. */
+function safeCellAttributes<T extends Record<string, unknown>>(attributes: T) {
+  const colwidth = attributes.colwidth as { parseHTML?: (el: HTMLElement) => unknown } | undefined;
+  return {
+    ...attributes,
+    colspan: { default: 1, parseHTML: (el: HTMLElement) => clampSpan(el.getAttribute("colspan")) },
+    rowspan: { default: 1, parseHTML: (el: HTMLElement) => clampSpan(el.getAttribute("rowspan")) },
+    colwidth: {
+      ...colwidth,
+      parseHTML: (el: HTMLElement) => {
+        const widths = colwidth?.parseHTML?.(el);
+        if (!Array.isArray(widths)) return null;
+        const span = clampSpan(el.getAttribute("colspan"));
+        const clean = widths.slice(0, span).map((w) => (Number.isFinite(w) && w > 0 ? clampWidth(w) : 0));
+        return clean.length === span && clean.every((w) => w > 0) ? clean : null;
+      },
+    },
+  };
+}
+
+const NoteTableCell = TableCell.extend({
+  content: CELL_CONTENT,
+  addAttributes() {
+    return safeCellAttributes(this.parent?.() ?? {});
+  },
+});
+const NoteTableHeader = TableHeader.extend({
+  content: CELL_CONTENT,
+  addAttributes() {
+    return safeCellAttributes(this.parent?.() ?? {});
+  },
+});
+
 /**
  * `views` adds the editor's React views for attachments; the server leaves
  * them out, since validation only needs the schema.
@@ -90,5 +142,10 @@ export function noteExtensions({
     Placeholder.configure({ placeholder }),
     noteImage(views.image),
     fileAttachment(views.fileAttachment),
+    // Column widths are dragged and saved in each cell's `colwidth` (tables-in-notes D4).
+    Table.configure({ resizable: true, cellMinWidth: MIN_COLUMN_WIDTH }),
+    TableRow,
+    NoteTableHeader,
+    NoteTableCell,
   ];
 }
