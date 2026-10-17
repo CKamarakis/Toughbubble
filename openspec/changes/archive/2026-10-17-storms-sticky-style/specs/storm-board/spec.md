@@ -24,6 +24,11 @@ Double-clicking a sticky, or pressing Enter with one selected, SHALL start editi
 - **WHEN** a user pastes 800 characters into a sticky
 - **THEN** the sticky keeps the first 500 characters
 
+#### Scenario: Older long text
+- **GIVEN** a sticky saved with more than 500 characters before the limit existed
+- **WHEN** its Storm opens
+- **THEN** the sticky shows its first 500 characters, and the shortened text is saved with the sticky's next change
+
 #### Scenario: No jump
 - **WHEN** a user starts or finishes editing a sticky's text
 - **THEN** the text's lines stay in the same position and size; when the editor was scrolled to show text beyond the sticky's edge, finishing returns the text to the top

@@ -1,7 +1,7 @@
 # storm-saving Specification
 
 ## Purpose
-TBD - created by archiving change storms-canvas. Update Purpose after archive.
+Keeps a Storm's board safe: changes save automatically as small change sets, the server accepts only valid changes to the user's own Storms, edits from another tab are never silently lost, and undo and redo survive a reload.
 
 ## Requirements
 
@@ -58,7 +58,7 @@ A Storm's stored board SHALL be at most about 2 MB. A save that would exceed it 
 - **THEN** nothing is stored, the message is shown, and the board on screen keeps the user's work
 
 ### Requirement: Server checks
-The server SHALL accept board saves only for the signed-in user's own active Storms, and SHALL reject malformed changes: unknown item types or fields, ids that aren't UUIDs, the same id twice or in both the changed and deleted lists, non-finite or out-of-range positions and sizes, widths or heights of zero or less, text over 500 characters, more than 5,000 entries in a list, or a change set over 800 KB. A pending change set larger than 800 KB SHALL be sent as several saves in order.
+The server SHALL accept board saves only for the signed-in user's own active Storms, and SHALL reject malformed changes: unknown item types or fields, ids that aren't UUIDs, the same id twice or in both the changed and deleted lists, non-finite or out-of-range positions and sizes, widths or heights of zero or less, text over 500 characters, a colour that is not one of the sticky presets, a fitted font size that is not a whole number from 8 to 64, more than 5,000 entries in a list, or a change set over 800 KB. A sticky's colour and fitted font size SHALL be optional. A pending change set larger than 800 KB SHALL be sent as several saves in order.
 
 #### Scenario: Someone else's storm
 - **WHEN** a request tries to save changes to another user's Storm
@@ -71,6 +71,14 @@ The server SHALL accept board saves only for the signed-in user's own active Sto
 #### Scenario: Malformed change
 - **WHEN** a request sends a sticky with a non-numeric position
 - **THEN** it is refused and the stored board is unchanged
+
+#### Scenario: Unknown colour
+- **WHEN** a request sends a sticky with the colour "#123456"
+- **THEN** it is refused and the stored board is unchanged
+
+#### Scenario: Older sticky without style
+- **WHEN** a request sends a sticky without a colour or fitted size
+- **THEN** it is accepted
 
 ### Requirement: Undo and redo
 Ctrl or ⌘ + Z and the Undo button SHALL undo the last board change; Ctrl or ⌘ + Shift + Z, Ctrl + Y and the Redo button SHALL redo it. Placing, moving, nudging, typing and deleting SHALL each be undoable: one editing session of a sticky's text SHALL be one step, and nudges within one second of each other SHALL be one step. Zooming, panning and selecting SHALL NOT be undo steps. At most 30 steps SHALL be kept. A new change SHALL clear the redo steps. Undo and redo SHALL save like any other change.
