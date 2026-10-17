@@ -17,7 +17,7 @@ Opening a note SHALL show its body below the title in an editor the user can typ
 - **THEN** the body appears exactly as it was saved, with the same text and formatting
 
 ### Requirement: Block formatting
-The editor SHALL support paragraphs, headings of levels 1 to 6, bulleted lists, numbered lists, checklists with items that can be checked and unchecked, blockquotes, code blocks, and dividers.
+The editor SHALL support paragraphs, headings of levels 1 to 6, bulleted lists, numbered lists, checklists with items that can be checked and unchecked, blockquotes, code blocks, dividers, and tables (see note-tables).
 
 #### Scenario: Turn a paragraph into a heading
 - **WHEN** a user places the cursor in a paragraph and chooses Heading 2
@@ -144,11 +144,16 @@ The note page SHALL show a formatting toolbar above the body that stays visible 
 - **THEN** the formatting is undone
 
 ### Requirement: Pasting
-Pasted content SHALL keep formatting the editor supports and SHALL drop what it does not support, keeping the text. Images inside pasted web page content SHALL NOT be inserted. Image and other files pasted or dropped from the clipboard or the computer SHALL be attached to the note (see note-attachments).
+Pasted content SHALL keep formatting the editor supports and SHALL drop what it does not support, keeping the text. A pasted table SHALL keep its rows and columns (see note-tables). Images inside pasted web page content SHALL NOT be inserted. Image and other files pasted or dropped from the clipboard or the computer SHALL be attached to the note (see note-attachments).
 
 #### Scenario: Paste from a web page
 - **WHEN** a user pastes a copied web page section with a heading, bold text, a list, and an image
 - **THEN** the heading, bold text, and list are kept, and the image is not inserted
+
+#### Scenario: Paste a table
+- **GIVEN** a table copied from a web page
+- **WHEN** a user pastes it into a note
+- **THEN** it is kept as a table with the same rows and columns, not run together into one paragraph
 
 #### Scenario: Paste an image file
 - **WHEN** a user pastes an image copied as a file or screenshot
