@@ -4,6 +4,7 @@ status: Draft
 sources:
   - notes/2026-10-21-export-a-note-as-markdown.md
   - notes/mcp-connector/2026-10-08-mcp-connector-design-parked.md
+shape: declined
 ---
 
 <!-- Keep it to one or two pages. Every section should help someone decide or build. Write "Unknown" or move it to Open questions rather than guessing. -->
