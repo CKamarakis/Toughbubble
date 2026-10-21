@@ -83,6 +83,19 @@ describe("attachments bucket", () => {
     expect(new Uint8Array(await read.data!.arrayBuffer())[0]).toBe(1);
   });
 
+  it("lets the app's origin fetch a signed link (note export, export-note-markdown design D4)", async () => {
+    const path = pathFor(user);
+    await upload(user, path, bytes(10));
+    const signed = await (await bucket(user)).createSignedUrl(path, 60);
+    expect(signed.error).toBeNull();
+
+    const origin = "http://localhost:3001";
+    const response = await fetch(signed.data!.signedUrl, { headers: { Origin: origin } });
+    expect(response.ok).toBe(true);
+    expect([origin, "*"]).toContain(response.headers.get("access-control-allow-origin"));
+    expect((await response.arrayBuffer()).byteLength).toBe(10);
+  });
+
   it("refuses a file over 5 MB", async () => {
     const result = await upload(user, pathFor(user), bytes(5 * 1024 * 1024 + 1));
     expect(result.error).not.toBeNull();

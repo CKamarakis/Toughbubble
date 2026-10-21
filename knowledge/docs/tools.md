@@ -134,6 +134,15 @@
 - added by: phase-1-sidebar-tree
 - dev: no
 
+## Export
+
+### fflate
+- packages: fflate
+- for: building the zip (note Markdown plus its attachments) in the browser when a note is exported
+- used by: note-export
+- added by: export-note-markdown
+- dev: no
+
 ## Build assets
 
 ### sharp

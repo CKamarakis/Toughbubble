@@ -2,16 +2,16 @@
 
 ## 1. Setup
 
-- [ ] 1.1 Look up fflate's current version and zip API with context7, add it to `dependencies` and to `knowledge/docs/tools.md` (design D6), and verify `npm install` and `npm run build` succeed
-- [ ] 1.2 Add an integration test that requests a signed Storage URL from the dev project with an `Origin` header and asserts the response allows that origin (design Risks: CORS); verify it passes with `npm run test:integration`, or stop and revisit design D4 if it fails
+- [x] 1.1 Look up fflate's current version and zip API with context7, add it to `dependencies` and to `knowledge/docs/tools.md` (design D6), and verify `npm install` and `npm run build` succeed
+- [x] 1.2 Add an integration test that requests a signed Storage URL from the dev project with an `Origin` header and asserts the response allows that origin (design Risks: CORS); verify it passes with `npm run test:integration`, or stop and revisit design D4 if it fails
 
 ## 2. Markdown converter
 
-- [ ] 2.1 Write `noteToMarkdown(body, assets)` in `src/lib/notes/markdown.ts` for text blocks and marks (design D1), with unit tests for headings, paragraphs, bold/italic/strike/code, links, hard breaks, escaping of Markdown-special characters and dropped size/colour/alignment; verify `npm test` passes
-- [ ] 2.2 Add lists (bullet, ordered with `start`, task, nested) and blockquote, code block (language, fence longer than inner backticks) and horizontal rule, with unit tests; verify `npm test` passes
-- [ ] 2.3 Add tables: pipe table when lossless, HTML table otherwise (design D2), with unit tests for a header-row table, a table without a header row, a merged cell (`colspan`), a multi-paragraph cell and HTML escaping; verify `npm test` passes
-- [ ] 2.4 Add images and file cards: relative `assets/` links, URL-encoded names, and `> Missing file: <name>` for missing ones (design D7), with unit tests; verify `npm test` passes
-- [ ] 2.5 Add a test that fails when the note extension list (`src/lib/notes/extensions.ts`) has a node type the converter doesn't handle, and an unknown-node fallback to plain text; verify `npm test` passes
+- [x] 2.1 Write `noteToMarkdown(body, assets)` in `src/lib/notes/markdown.ts` for text blocks and marks (design D1), with unit tests for headings, paragraphs, bold/italic/strike/code, links, hard breaks, escaping of Markdown-special characters and dropped size/colour/alignment; verify `npm test` passes
+- [x] 2.2 Add lists (bullet, ordered with `start`, task, nested) and blockquote, code block (language, fence longer than inner backticks) and horizontal rule, with unit tests; verify `npm test` passes
+- [x] 2.3 Add tables: pipe table when lossless, HTML table otherwise (design D2), with unit tests for a header-row table, a table without a header row, a merged cell (`colspan`), a multi-paragraph cell and HTML escaping; verify `npm test` passes
+- [x] 2.4 Add images and file cards: relative `assets/` links, URL-encoded names, and `> Missing file: <name>` for missing ones (design D7), with unit tests; verify `npm test` passes
+- [x] 2.5 Add a test that fails when the note extension list (`src/lib/notes/extensions.ts`) has a node type the converter doesn't handle, and an unknown-node fallback to plain text; verify `npm test` passes
 
 ## 3. File names
 
