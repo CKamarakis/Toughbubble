@@ -3,6 +3,7 @@ title: Export a note as Markdown
 sources:
   - notes/2026-10-21-export-a-note-as-markdown.md
   - notes/mcp-connector/2026-10-08-mcp-connector-design-parked.md
+prd: prds/export-a-note-as-markdown.md
 ---
 
 # Export a note as Markdown
@@ -19,10 +20,8 @@ Written by the kit (`explore.mjs`) at the end of `/opsx:explore`; saves only add
 - Styling (font sizes, colours, alignment) is dropped; tables with merged cells are written as HTML tables.
 - Tiptap-to-Markdown conversion is a pure function, so the parked MCP connector can reuse it later.
 - The export is built in the browser: files fetched through their signed links while signed in, zipped there (avoids the server's 1 MB limit).
+- Q1: Finish the export and name the missing file in the .md.
+- Q2: fflate; check its current docs and version at build time.
 
 ## Open questions
 
-- Q1 A file that fails to download: finish the export and name the missing file in the .md (proposed), or stop the export?
-- Q2 Which zip library (fflate proposed); check its current docs and version at build time.
-
-<!-- kit-explore-undo {"new":true} -->
