@@ -124,3 +124,7 @@ context: |
 #     archive:
 #       guidance:
 #         - Summarize the archive outcome before finishing
+
+rules:
+  tasks:
+    - "Don't add tasks that need a running app, a browser or a check by hand; cover behavior with automated tests. /kit:verify offers a browser check on request."
