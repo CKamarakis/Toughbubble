@@ -9,6 +9,7 @@ import {
   ArrowUpToLine,
   Copy,
   Ellipsis,
+  FileDown,
   FolderInput,
   Pencil,
   Plus,
@@ -25,6 +26,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { exportNote } from "@/components/notes/export/export-note";
 import { cn } from "@/lib/utils";
 import { displayTitle } from "@/lib/tree/build";
 import { groupOf, movedOneStep, movedToEnd } from "@/lib/tree/reorder";
@@ -118,6 +120,12 @@ export function ItemMenu({
           <DropdownMenuItem onClick={() => ws.duplicate(item.id, copyable)}>
             <Copy />
             Duplicate
+          </DropdownMenuItem>
+        )}
+        {item.kind === "note" && (
+          <DropdownMenuItem onClick={() => void exportNote(item.id, item.title)}>
+            <FileDown />
+            Export as Markdown
           </DropdownMenuItem>
         )}
         <DropdownMenuItem

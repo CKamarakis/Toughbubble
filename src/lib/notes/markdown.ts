@@ -39,24 +39,26 @@ export const DROPPED_MARKS = ["textStyle", "underline"] as const;
 type Node = JSONContent;
 const children = (node: Node): Node[] => node.content ?? [];
 
-/** Attachment ids the body refers to, in order, without repeats. Nodes still copying (no id yet) are left out. */
-export function attachmentIds(body: Node): string[] {
-  const ids = new Set<string>();
+/** Every image and file card in the body, in order: its attachment id, or null while it is still being copied. */
+export function attachmentRefs(body: Node): (string | null)[] {
+  const refs: (string | null)[] = [];
   const walk = (node: Node) => {
-    if ((node.type === "image" || node.type === "fileAttachment") && typeof node.attrs?.attachmentId === "string") {
-      ids.add(node.attrs.attachmentId);
+    if (node.type === "image" || node.type === "fileAttachment") {
+      refs.push(typeof node.attrs?.attachmentId === "string" ? node.attrs.attachmentId : null);
     }
     children(node).forEach(walk);
   };
   walk(body);
-  return [...ids];
+  return refs;
 }
 
+/** Attachment ids the body refers to, in order, without repeats. Nodes still copying (no id yet) are left out. */
+export const attachmentIds = (body: Node): string[] => [
+  ...new Set(attachmentRefs(body).filter((id): id is string => id !== null)),
+];
+
 /** Whether the body holds any image or file card, including ones still copying. */
-export function hasAttachments(body: Node): boolean {
-  if (body.type === "image" || body.type === "fileAttachment") return true;
-  return children(body).some(hasAttachments);
-}
+export const hasAttachments = (body: Node): boolean => attachmentRefs(body).length > 0;
 
 export function noteToMarkdown(body: Node, assets: ExportAssets = {}): string {
   const out = blocks(children(body), assets).trim();

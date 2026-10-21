@@ -23,13 +23,13 @@
 
 ## 5. Export flow and menu
 
-- [ ] 5.1 Write `exportNote` in `src/components/notes/export/` (design D4): collect attachment ids, `.md` when none, otherwise fetch files, build the zip with fflate and download it; with happy-dom tests (mocked `loadNote`, `getExportFiles`, `fetch` and download) for a plain note, a note with an image and a file, a failed file fetch, a `copyOf` node, a failed `loadNote` and a second Export while one is preparing (design D9); verify `npm test` passes
-- [ ] 5.2 Show "Preparing…" via Sonner during export, an error toast when the note can't be loaded, and a warning toast naming the count of missing files; cover each in the 5.1 tests; verify `npm test` passes
-- [ ] 5.3 Add "Export as Markdown" after Duplicate in `item-menu.tsx` for notes only, with a test that a note's menu shows it and folder and Storm menus don't (workspace-tree delta); verify `npm test` and `npm run lint` pass
+- [x] 5.1 Write `exportNote` in `src/components/notes/export/` (design D4): collect attachment ids, `.md` when none, otherwise fetch files, build the zip with fflate and download it; with happy-dom tests (mocked `loadNote`, `getExportFiles`, `fetch` and download) for a plain note, a note with an image and a file, a failed file fetch, a `copyOf` node, a failed `loadNote` and a second Export while one is preparing (design D9); verify `npm test` passes
+- [x] 5.2 Show "Preparing…" via Sonner during export, an error toast when the note can't be loaded, and a warning toast naming the count of missing files; cover each in the 5.1 tests; verify `npm test` passes
+- [x] 5.3 Add "Export as Markdown" after Duplicate in `item-menu.tsx` for notes only, with a test that a note's menu shows it and folder and Storm menus don't (workspace-tree delta); verify `npm test` and `npm run lint` pass
 
 ## 6. Integration check
 
-- [ ] 6.1 Run `npm run lint`, `npm test`, `npm run test:integration` and `npm run build`; verify all pass
+- [x] 6.1 Run `npm run lint`, `npm test`, `npm run test:integration` and `npm run build`; verify all pass
 
 ## Workflow follow-up
 
