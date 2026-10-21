@@ -14,6 +14,11 @@ A user SHALL be able to export a note from its actions menu. The export SHALL us
 - **WHEN** the user chooses "Export as Markdown" from the note's actions menu
 - **THEN** a download of the note starts
 
+#### Scenario: Export from a sidebar row
+- **GIVEN** a note that is not open
+- **WHEN** the user chooses "Export as Markdown" from that note's row menu in the sidebar
+- **THEN** a download of the note starts without the note being opened
+
 #### Scenario: Note unchanged
 - **GIVEN** a note at version 5
 - **WHEN** the user exports it
@@ -105,6 +110,11 @@ While an export is being prepared, the user SHALL see that it is in progress, an
 - **GIVEN** a note with several large images
 - **WHEN** the user exports it
 - **THEN** "Preparing…" shows until the download starts
+
+#### Scenario: Export chosen again while preparing
+- **GIVEN** an export of a note is still preparing
+- **WHEN** the user chooses "Export as Markdown" for that note again
+- **THEN** no second export starts, and only one file downloads
 
 #### Scenario: Note can't be loaded
 - **GIVEN** the note can't be loaded (for example the connection drops)

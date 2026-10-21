@@ -54,12 +54,19 @@ New `getExportFiles(itemId, ids)` (in `src/lib/attachments/actions.ts`, operatio
 - **Export name:** the note title with control characters and `\ / : * ? " < > |` removed, trimmed, trailing dots removed, at most 100 characters; empty → "Untitled".
 - **Asset names:** `cleanFileName` (existing) plus the same character removal; collisions (case-insensitive, since Windows and macOS file systems are) get `-2`, `-3` before the extension. Markdown links use the name URL-encoded per path segment (`assets/My%20photo.png`), so spaces and brackets don't break the link.
 
-### D6. Zip library: fflate
-Small, no dependencies, works in the browser. Images and PDFs are stored without compression (already compressed); the `.md` is deflated. Check the current version and API with context7 before writing code.
+### D6. Zip library: fflate (confirmed at /kit:ready)
+Add it to `knowledge/docs/tools.md` with the change. Small, no dependencies, works in the browser. Images and PDFs are stored without compression (already compressed); the `.md` is deflated. Check the current version and API with context7 before writing code.
 - **Alternative:** JSZip. Larger and slower; nothing here needs its extras.
 
 ### D7. Missing files in the Markdown
 A missing image or file is written in its place as `> Missing file: <name>` (a quote line), so it is visible to a reader and to Claude without breaking the document.
+
+### D8. The export reads the saved note (decided at /kit:ready)
+The export uses `loadNote`, not the open editor's state, and doesn't wait for a pending autosave.
+- **Why:** the shared item menu can't reach the editor, and the gap is at most the ~1 s before autosave. Waiting for the save was rejected as extra wiring for that second.
+
+### D9. One export per note at a time (decided at /kit:ready)
+While a note's export is preparing, choosing Export for it again is ignored, so duplicates can't download. Tracked in a module-level set of note ids in the export flow.
 
 ## Risks / Trade-offs
 
@@ -72,3 +79,18 @@ A missing image or file is written in its place as `> Missing file: <name>` (a q
 ## Migration Plan
 
 None: no database, storage or rule changes. Rollback is removing the menu entry.
+
+## Safeguards
+
+Written by `/kit:ready` (`ready.mjs safeguards`) on 2026-10-21. Re-run the readiness check to change it.
+
+| Dimension | Rating | Why |
+|---|---|---|
+| Reach | medium | two specs (new note-export, modified workspace-tree); item-menu.tsx is imported by sidebar-tree.tsx and item-view.tsx |
+| Undo | low | no migration or data/storage writes; reverting the commits undoes it |
+| Safety | high | new server action returns signed links to the user's private files (read-only, RLS-scoped) |
+
+- **Recommended:** scenario-to-test check, worktree for the build, review against the spec, edge-case probes, medium security findings block, your OK before merge
+- **Chosen:** scenario-to-test check, worktree for the build, review against the spec, edge-case probes, medium security findings block, your OK before merge
+
+<!-- kit-safeguards-data {"date":"2026-10-21","ratings":{"reach":{"level":"medium","why":"two specs (new note-export, modified workspace-tree); item-menu.tsx is imported by sidebar-tree.tsx and item-view.tsx"},"undo":{"level":"low","why":"no migration or data/storage writes; reverting the commits undoes it"},"safety":{"level":"high","why":"new server action returns signed links to the user's private files (read-only, RLS-scoped)"}},"recommended":["scenario-check","worktree","spec-review","probes","security-weighted","user-ok"],"chosen":["scenario-check","worktree","spec-review","probes","security-weighted","user-ok"]} -->

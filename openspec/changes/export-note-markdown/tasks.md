@@ -2,7 +2,7 @@
 
 ## 1. Setup
 
-- [ ] 1.1 Look up fflate's current version and zip API with context7, add it to `dependencies`, and verify `npm install` and `npm run build` succeed
+- [ ] 1.1 Look up fflate's current version and zip API with context7, add it to `dependencies` and to `knowledge/docs/tools.md` (design D6), and verify `npm install` and `npm run build` succeed
 - [ ] 1.2 Add an integration test that requests a signed Storage URL from the dev project with an `Origin` header and asserts the response allows that origin (design Risks: CORS); verify it passes with `npm run test:integration`, or stop and revisit design D4 if it fails
 
 ## 2. Markdown converter
@@ -23,7 +23,7 @@
 
 ## 5. Export flow and menu
 
-- [ ] 5.1 Write `exportNote` in `src/components/notes/export/` (design D4): collect attachment ids, `.md` when none, otherwise fetch files, build the zip with fflate and download it; with happy-dom tests (mocked `loadNote`, `getExportFiles`, `fetch` and download) for a plain note, a note with an image and a file, a failed file fetch, a `copyOf` node and a failed `loadNote`; verify `npm test` passes
+- [ ] 5.1 Write `exportNote` in `src/components/notes/export/` (design D4): collect attachment ids, `.md` when none, otherwise fetch files, build the zip with fflate and download it; with happy-dom tests (mocked `loadNote`, `getExportFiles`, `fetch` and download) for a plain note, a note with an image and a file, a failed file fetch, a `copyOf` node, a failed `loadNote` and a second Export while one is preparing (design D9); verify `npm test` passes
 - [ ] 5.2 Show "Preparing…" via Sonner during export, an error toast when the note can't be loaded, and a warning toast naming the count of missing files; cover each in the 5.1 tests; verify `npm test` passes
 - [ ] 5.3 Add "Export as Markdown" after Duplicate in `item-menu.tsx` for notes only, with a test that a note's menu shows it and folder and Storm menus don't (workspace-tree delta); verify `npm test` and `npm run lint` pass
 
