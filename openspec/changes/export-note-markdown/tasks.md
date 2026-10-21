@@ -15,11 +15,11 @@
 
 ## 3. File names
 
-- [ ] 3.1 Write the export-name and asset-name helpers (design D5) with unit tests for slashes and reserved characters, trailing dots, length cap, empty title → "Untitled", and case-insensitive collisions → `-2`, `-3` before the extension; verify `npm test` passes
+- [x] 3.1 Write the export-name and asset-name helpers (design D5) with unit tests for slashes and reserved characters, trailing dots, length cap, empty title → "Untitled", and case-insensitive collisions → `-2`, `-3` before the extension; verify `npm test` passes
 
 ## 4. Export file list (server)
 
-- [ ] 4.1 Add `getExportFiles` operation and server action (design D3) returning id, name, MIME type and signed link for ready attachments of an active note, with id validation and the 500 limit; add an integration test that it returns only the caller's attachments for the given note and nothing for another user's note; verify `npm run test:integration` passes
+- [x] 4.1 Add `getExportFiles` operation and server action (design D3) returning id, name, MIME type and signed link for ready attachments of an active note, with id validation and the 500 limit; add an integration test that it returns only the caller's attachments for the given note and nothing for another user's note; verify `npm run test:integration` passes
 
 ## 5. Export flow and menu
 

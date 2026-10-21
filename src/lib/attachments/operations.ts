@@ -109,6 +109,32 @@ export async function getAttachmentLinks(
   return links;
 }
 
+export type ExportFile = { id: string; name: string; mimeType: string; url: string };
+
+/**
+ * Name, type and a signed link for each of `ids` that is a ready attachment of
+ * this active note, for exporting the note (export-note-markdown D3). Other
+ * notes' and other users' attachments are never included.
+ */
+export async function getExportFiles(tx: UserTx, bucket: Bucket, itemId: string, ids: string[]): Promise<ExportFile[]> {
+  if (ids.length === 0 || !(await isActiveNote(tx, itemId))) return [];
+  const rows = await tx
+    .select()
+    .from(attachments)
+    .where(and(eq(attachments.itemId, itemId), eq(attachments.status, "ready"), inArray(attachments.id, ids)));
+  if (rows.length === 0) return [];
+
+  const byPath = new Map(rows.map((row) => [pathOf(row), row]));
+  const signed = await bucket.createSignedUrls([...byPath.keys()], LINK_SECONDS);
+  if (signed.error) throw signed.error;
+  const files: ExportFile[] = [];
+  for (const entry of signed.data) {
+    const row = entry.path ? byPath.get(entry.path) : undefined;
+    if (row && entry.signedUrl) files.push({ id: row.id, name: row.name, mimeType: row.mimeType, url: entry.signedUrl });
+  }
+  return files;
+}
+
 /** A link that downloads the file under its original name, or null. */
 export async function getDownloadLink(tx: UserTx, bucket: Bucket, id: string): Promise<string | null> {
   const [row] = await tx

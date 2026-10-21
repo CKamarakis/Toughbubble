@@ -159,6 +159,36 @@ describe("signed links", () => {
   });
 });
 
+describe("export files (export-note-markdown D3)", () => {
+  it("lists name, type and a working link for the note's own ready attachments only", async () => {
+    const noteId = await newNote(user);
+    const ready = await attach(user, noteId);
+    const pending = await user.run((tx) => ops.startAttachment(tx, noteId, meta()));
+    const elsewhere = await attach(user, await newNote(user));
+    if (pending.status !== "started") throw new Error(pending.status);
+    const bucket = await bucketOf(user);
+
+    const files = await user.run((tx) => ops.getExportFiles(tx, bucket, noteId, [ready.id, pending.id, elsewhere.id]));
+    expect(files.map(({ id, name, mimeType }) => ({ id, name, mimeType }))).toEqual([
+      { id: ready.id, name: "photo.png", mimeType: "image/png" },
+    ]);
+    const res = await fetch(files[0].url);
+    expect(new Uint8Array(await res.arrayBuffer())).toEqual(new Uint8Array([1, 2, 3, 4]));
+  });
+
+  it("lists nothing for another user's note, an archived note, or no ids", async () => {
+    const noteId = await newNote(user);
+    const ready = await attach(user, noteId);
+    const theirBucket = await bucketOf(other);
+    expect(await other.run((tx) => ops.getExportFiles(tx, theirBucket, noteId, [ready.id]))).toEqual([]);
+
+    const bucket = await bucketOf(user);
+    expect(await user.run((tx) => ops.getExportFiles(tx, bucket, noteId, []))).toEqual([]);
+    await user.run((tx) => tree.archiveItem(tx, noteId));
+    expect(await user.run((tx) => ops.getExportFiles(tx, bucket, noteId, [ready.id]))).toEqual([]);
+  });
+});
+
 describe("copying attachments between notes", () => {
   it("copies into the target note, and the copy survives deleting the source forever", async () => {
     const source = await newNote(user);

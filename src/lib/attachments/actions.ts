@@ -52,6 +52,17 @@ export async function getAttachmentLinks(itemId: string, ids: string[]): Promise
   }
 }
 
+export async function getExportFiles(itemId: string, ids: string[]): Promise<ops.ExportFile[] | null> {
+  if (!isId(itemId) || !Array.isArray(ids) || ids.length > 500 || !ids.every(isId)) return [];
+  try {
+    const storage = await bucket();
+    return await withUserDb((tx) => ops.getExportFiles(tx, storage, itemId, ids));
+  } catch (error) {
+    failure(error, "");
+    return null;
+  }
+}
+
 export async function getDownloadLink(id: string): Promise<string | null> {
   if (!isId(id)) return null;
   try {
